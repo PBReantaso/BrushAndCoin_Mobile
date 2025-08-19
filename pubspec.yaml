@@ -35,12 +35,12 @@ dependencies:
   stripe_platform_interface: ^8.0.0
   
   # Image Handling
-  image_picker: ^1.0.4
-  image_cropper: ^5.0.1
+  # image_picker: ^1.0.4
+  # image_cropper: ^6.0.0
   
   # Notifications
-  firebase_messaging: ^14.7.10
-  flutter_local_notifications: ^16.3.0
+  # firebase_messaging: ^14.7.10
+  # flutter_local_notifications: ^17.2.0
   
   # Utilities
   intl: ^0.18.1
@@ -62,13 +62,4 @@ flutter:
     - assets/icons/
     - assets/animations/
   
-  fonts:
-    - family: Poppins
-      fonts:
-        - asset: assets/fonts/Poppins-Regular.ttf
-        - asset: assets/fonts/Poppins-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Poppins-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Poppins-Bold.ttf
-          weight: 700
+

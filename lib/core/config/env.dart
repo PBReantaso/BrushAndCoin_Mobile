@@ -16,16 +16,20 @@ class Environment {
   
   // Local Payment Gateways (Philippines)
   static const String gcashMerchantId = 'your_gcash_merchant_id';
-  static const String paymayaMerchantId = 'your_paymaya_merchant_id';
+  static const String paymayaPublicKey = 'your_paymaya_public_key';
+  static const String paymayaSecretKey = 'your_paymaya_secret_key';
   
   // Firebase Configuration
-  static const String firebaseProjectId = 'brushandcoin-mobile';
   static const String firebaseApiKey = 'your_firebase_api_key';
-  static const String firebaseAppId = 'your_firebase_app_id';
+  static const String firebaseProjectId = 'your_firebase_project_id';
   static const String firebaseMessagingSenderId = 'your_firebase_sender_id';
+  static const String firebaseAppId = 'your_firebase_app_id';
   
-  // Google Maps Configuration
-  static const String googleMapsApiKey = 'your_google_maps_api_key';
+  // Storage Keys
+  static const String authTokenKey = 'auth_token';
+  static const String userDataKey = 'user_data';
+  static const String appSettingsKey = 'app_settings';
+  static const String cacheKey = 'cache';
   
   // App Configuration
   static const String appName = 'Brush&Coin';
@@ -33,10 +37,30 @@ class Environment {
   static const String appBuildNumber = '1';
   
   // Feature Flags
-  static const bool enablePushNotifications = true;
   static const bool enableLocationServices = true;
-  static const bool enablePaymentProcessing = true;
-  static const bool enableRealTimeMessaging = true;
+  static const bool enablePushNotifications = true;
+  static const bool enableAnalytics = true;
+  static const bool enableCrashReporting = true;
+  
+  // Timeouts
+  static const int apiTimeoutSeconds = 30;
+  static const int imageCacheTimeoutDays = 7;
+  static const int sessionTimeoutMinutes = 60;
+  
+  // Limits
+  static const int maxImageSizeMB = 10;
+  static const int maxFileUploadSizeMB = 50;
+  static const int maxMessageLength = 1000;
+  static const int maxBioLength = 500;
+  static const int maxSpecializations = 5;
+  
+  // Default Values
+  static const String defaultLanguage = 'en';
+  static const String defaultCurrency = 'PHP';
+  static const String defaultTimeZone = 'Asia/Manila';
+  
+  // Google Maps Configuration
+  static const String googleMapsApiKey = 'your_google_maps_api_key';
   
   // Cache Configuration
   static const int imageCacheDuration = 7; // days
@@ -53,11 +77,6 @@ class Environment {
   static const int defaultPageSize = 20;
   static const int maxPageSize = 100;
   
-  // Timeouts
-  static const int connectionTimeout = 30; // seconds
-  static const int receiveTimeout = 30; // seconds
-  static const int uploadTimeout = 300; // seconds
-  
   // Rate Limiting
   static const int maxRequestsPerMinute = 100;
   static const int maxUploadsPerHour = 50;
@@ -72,7 +91,6 @@ class Environment {
   ];
   
   // Analytics
-  static const bool enableAnalytics = true;
   static const String analyticsTrackingId = 'your_analytics_tracking_id';
   
   // Debug Configuration
@@ -105,12 +123,6 @@ class Environment {
   static const String wsPaymentUpdated = 'payment_updated';
   static const String wsUserOnline = 'user_online';
   static const String wsUserOffline = 'user_offline';
-  
-  // Local Storage Keys
-  static const String authTokenKey = 'auth_token';
-  static const String userDataKey = 'user_data';
-  static const String appSettingsKey = 'app_settings';
-  static const String cacheKey = 'app_cache';
   
   // Notification Channels
   static const String generalChannelId = 'general_notifications';
