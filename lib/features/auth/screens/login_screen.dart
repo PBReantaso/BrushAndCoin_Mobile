@@ -25,18 +25,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
-
-    if (success && mounted) {
-      // Navigate to home screen
+    // For testing: bypass authentication and go straight to home
+    if (mounted) {
+      // Navigate to home screen immediately
       Navigator.of(context).pushReplacementNamed('/home');
     }
   }
@@ -55,6 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
@@ -62,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 60),
-                
+
                 // Header - Welcome back, Artist!
                 const Text(
                   'Welcome back,',
@@ -73,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const Text(
                   'Artist!',
                   style: TextStyle(
@@ -83,9 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 60),
-                
+
                 // Email/Phone Field
                 Container(
                   decoration: BoxDecoration(
@@ -109,13 +101,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: Color(0xFF9E9E9E),
                       ),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // Password Field
                 Container(
                   decoration: BoxDecoration(
@@ -140,9 +133,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword 
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
                           color: const Color(0xFF9E9E9E),
                         ),
                         onPressed: () {
@@ -152,13 +145,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // Remember Me & Forgot Password
                 Row(
                   children: [
@@ -183,9 +177,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const Spacer(),
-                    
+
                     // Forgot Password
                     TextButton(
                       onPressed: _navigateToForgotPassword,
@@ -200,9 +194,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // Sign In Button
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
@@ -228,7 +222,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : const Text(
@@ -243,9 +238,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Error Message
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
@@ -253,10 +248,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                                                     color: const Color(0xFFE53E3E).withValues(alpha: 0.1),
+                          color: const Color(0xFFE53E3E).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                                                         color: const Color(0xFFE53E3E).withValues(alpha: 0.3),
+                            color:
+                                const Color(0xFFE53E3E).withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -293,9 +289,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     return const SizedBox.shrink();
                   },
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // Divider
                 const Row(
                   children: [
@@ -314,9 +310,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Expanded(child: Divider(color: Color(0xFFE0E0E0))),
                   ],
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // Google Sign In Button
                 Container(
                   width: double.infinity,
@@ -352,9 +348,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 60),
-                
+
                 // Register Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -379,7 +375,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 20),
               ],
             ),

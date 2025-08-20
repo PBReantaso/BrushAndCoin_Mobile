@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
@@ -24,8 +25,10 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Hide system UI overlays for full screen experience
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    // Hide system UI overlays for full screen experience (mobile only)
+    if (!kIsWeb) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    }
 
     // Initialize animation controllers
     _logoController = AnimationController(
@@ -97,15 +100,19 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToLogin() {
-    // Restore system UI before navigating
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // Restore system UI before navigating (mobile only)
+    if (!kIsWeb) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
     Navigator.of(context).pushReplacementNamed('/login');
   }
 
   @override
   void dispose() {
-    // Restore system UI when disposing
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // Restore system UI when disposing (mobile only)
+    if (!kIsWeb) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
     _logoController.dispose();
     _textController.dispose();
     _fadeController.dispose();

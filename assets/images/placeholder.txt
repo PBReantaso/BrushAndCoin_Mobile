@@ -1,0 +1,6 @@
+This is a placeholder file for the images directory.
+In a real app, you would have actual image files here like:
+- mona_lisa.jpg
+- avatar1.jpg
+- avatar2.jpg
+etc.

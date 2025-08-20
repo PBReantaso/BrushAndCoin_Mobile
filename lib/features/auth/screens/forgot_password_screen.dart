@@ -32,7 +32,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     try {
       // TODO: Implement password reset API call
       await Future.delayed(const Duration(seconds: 2)); // Simulate API call
-      
+
       setState(() {
         _emailSent = true;
         _isLoading = false;
@@ -41,7 +41,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       setState(() {
         _isLoading = false;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -79,6 +79,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
@@ -86,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 40),
-                
+
                 // Header
                 const Text(
                   'Reset Password',
@@ -97,9 +98,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 const Text(
                   'Enter your email address and we\'ll send you a link to reset your password.',
                   style: TextStyle(
@@ -109,9 +110,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 60),
-                
+
                 if (!_emailSent) ...[
                   // Email Field
                   Container(
@@ -136,13 +137,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           color: Color(0xFF9E9E9E),
                         ),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 40),
-                  
+
                   // Reset Password Button
                   Container(
                     width: double.infinity,
@@ -166,7 +168,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Text(
@@ -184,10 +187,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                                             color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                                                 color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                        color: const Color(0xFF10B981).withValues(alpha: 0.3),
                       ),
                     ),
                     child: Column(
@@ -247,9 +250,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ),
                 ],
-                
+
                 const SizedBox(height: 40),
-                
+
                 // Back to Login Link
                 if (!_emailSent) ...[
                   Row(
@@ -276,7 +279,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ],
                   ),
                 ],
-                
+
                 const SizedBox(height: 20),
               ],
             ),
