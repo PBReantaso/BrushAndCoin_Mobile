@@ -421,97 +421,108 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   Widget _buildEventCard(Map<String, dynamic> event) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Date Section
-            Container(
-              width: 60,
-              child: Column(
-                children: [
-                  Text(
-                    event['date'].day.toString(),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  Text(
-                    _getMonthName(event['date'].month),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF666666),
-                    ),
-                  ),
-                  Text(
-                    event['date'].year.toString(),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF666666),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 16),
-
-            // Event Details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event['title'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    event['location'],
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF666666),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Event Image Placeholder
-                  Container(
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0F0F0),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.image,
-                        size: 40,
-                        color: Color(0xFFCCCCCC),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushNamed('/event-detail', arguments: {
+          'day': event['date'].day.toString(),
+          'month': _getMonthName(event['date'].month),
+          'year': event['date'].year.toString(),
+          'venue': event['location'],
+          'title': event['title'],
+          'description':
+              'Join us for an amazing event at ${event['location']}! This event will showcase incredible performances and provide a great opportunity to meet fellow enthusiasts.',
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Date Section
+              Container(
+                width: 60,
+                child: Column(
+                  children: [
+                    Text(
+                      event['date'].day.toString(),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Text(
+                      _getMonthName(event['date'].month),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF666666),
+                      ),
+                    ),
+                    Text(
+                      event['date'].year.toString(),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF666666),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Event Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      event['title'],
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      event['location'],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF666666),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Event Image Placeholder
+                    Container(
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F0F0),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.image,
+                          size: 40,
+                          color: Color(0xFFCCCCCC),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

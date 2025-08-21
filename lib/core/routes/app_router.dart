@@ -6,6 +6,7 @@ import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/post/screens/post_detail_screen.dart';
 import '../../features/events/screens/events_screen.dart';
+import '../../features/events/screens/event_detail_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 
 class AppRouter {
@@ -16,6 +17,7 @@ class AppRouter {
   static const String home = '/home';
   static const String postDetail = '/post-detail';
   static const String events = '/events';
+  static const String eventDetail = '/event-detail';
   static const String profile = '/profile';
   static const String initial = splash;
 
@@ -61,6 +63,13 @@ class AppRouter {
       case events:
         return _noTransitionRoute(
           const EventsScreen(),
+          settings,
+        );
+
+      case eventDetail:
+        final event = settings.arguments as Map<String, dynamic>;
+        return _noTransitionRoute(
+          EventDetailScreen(event: event),
           settings,
         );
 
