@@ -43,7 +43,7 @@ class _EventsScreenState extends State<EventsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -126,7 +126,7 @@ class _EventsScreenState extends State<EventsScreen> {
                   // Settings Icon
                   IconButton(
                     onPressed: () {
-                      // TODO: Navigate to settings
+                      Navigator.of(context).pushNamed('/settings');
                     },
                     icon: const Icon(
                       Icons.settings,
@@ -543,7 +543,7 @@ class _EventsScreenState extends State<EventsScreen> {
             // Already on events screen
             break;
           case 2:
-            // TODO: Navigate to messages
+            Navigator.of(context).pushReplacementNamed('/messaging');
             break;
           case 3:
             Navigator.of(context).pushReplacementNamed('/profile');

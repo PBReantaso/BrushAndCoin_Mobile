@@ -8,6 +8,10 @@ import '../../features/post/screens/post_detail_screen.dart';
 import '../../features/events/screens/events_screen.dart';
 import '../../features/events/screens/event_detail_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/messaging/screens/messaging_screen.dart';
+import '../../features/messaging/screens/chat_screen.dart';
+import '../models/post_model.dart';
+import '../../features/settings/screens/settings_screen.dart';
 
 class AppRouter {
   static const String splash = '/splash';
@@ -16,9 +20,12 @@ class AppRouter {
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String postDetail = '/post-detail';
+  static const String settings = '/settings';
   static const String events = '/events';
   static const String eventDetail = '/event-detail';
   static const String profile = '/profile';
+  static const String messaging = '/messaging';
+  static const String chat = '/chat';
   static const String initial = splash;
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -54,9 +61,15 @@ class AppRouter {
         );
 
       case postDetail:
-        final post = settings.arguments as Map<String, dynamic>;
+        final post = settings.arguments as Post;
         return _noTransitionRoute(
           PostDetailScreen(post: post),
+          settings,
+        );
+
+      case AppRouter.settings:
+        return _noTransitionRoute(
+          const SettingsScreen(),
           settings,
         );
 
@@ -74,8 +87,22 @@ class AppRouter {
         );
 
       case profile:
+        final userData = settings.arguments as Map<String, dynamic>?;
         return _noTransitionRoute(
-          const ProfileScreen(),
+          ProfileScreen(userData: userData),
+          settings,
+        );
+
+      case messaging:
+        return _noTransitionRoute(
+          const MessagingScreen(),
+          settings,
+        );
+
+      case chat:
+        final user = settings.arguments as Map<String, dynamic>;
+        return _noTransitionRoute(
+          ChatScreen(user: user),
           settings,
         );
 

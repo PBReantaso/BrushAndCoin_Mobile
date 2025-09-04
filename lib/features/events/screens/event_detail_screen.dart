@@ -29,7 +29,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -112,7 +112,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   // Settings Icon
                   IconButton(
                     onPressed: () {
-                      // TODO: Navigate to settings
+                      Navigator.of(context).pushNamed('/settings');
                     },
                     icon: const Icon(
                       Icons.settings,

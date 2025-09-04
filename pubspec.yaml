@@ -39,7 +39,7 @@ dependencies:
   stripe_platform_interface: ^8.0.0
   
   # Image Handling
-  # image_picker: ^1.0.4
+  image_picker: ^1.0.4
   # image_cropper: ^6.0.0
   
   # Notifications
