@@ -16,12 +16,12 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
 
   // Login method
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {String? role}) async {
     _setLoading(true);
     _clearError();
 
     try {
-      final response = await ApiService.login(email, password);
+      final response = await ApiService.login(email, password, role: role);
 
       if (response['success'] == true) {
         final userData = response['data']['user'];

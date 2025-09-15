@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/providers/auth_provider.dart';
+import 'package:flutter/services.dart';
 import '../../../core/providers/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -114,6 +116,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: _confirmLogout,
           ),
           _dangerTile(
+            icon: Icons.exit_to_app,
+            title: 'Exit Application',
+            onTap: _confirmExit,
+          ),
+          _dangerTile(
             icon: Icons.delete_outline,
             title: 'Delete Account',
             onTap: () {},
@@ -143,9 +150,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (confirmed == true) {
-      // Clear user session if needed and navigate to login
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      await auth.logout();
       if (!mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    }
+  }
+
+  Future<void> _confirmExit() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Exit Application'),
+        content: const Text('Are you sure you want to exit?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Exit'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await SystemChannels.platform.invokeMethod<void>('SystemNavigator.pop');
     }
   }
 

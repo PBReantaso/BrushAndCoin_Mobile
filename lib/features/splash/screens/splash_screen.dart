@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../../core/providers/auth_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import '../../../core/routes/app_router.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -82,9 +85,24 @@ class _SplashScreenState extends State<SplashScreen>
     // Start animations
     _startAnimations();
 
-    // Navigate to login after delay
-    Timer(const Duration(seconds: 3), () {
-      _navigateToLogin();
+    // Check auth after delay and route accordingly
+    Timer(const Duration(seconds: 3), () async {
+      if (!mounted) return;
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final isAuthed = await auth.checkAuthStatus();
+      if (!mounted) return;
+      if (isAuthed) {
+        final userType = auth.currentUser?.userType;
+        if (userType == 'client' || userType == 'patron') {
+          _navigateToHome();
+        } else if (userType == 'artist') {
+          _navigateToArtistHome();
+        } else {
+          _navigateToRoleSelect();
+        }
+      } else {
+        _navigateToRoleSelect();
+      }
     });
   }
 
@@ -99,12 +117,27 @@ class _SplashScreenState extends State<SplashScreen>
     _fadeController.forward();
   }
 
-  void _navigateToLogin() {
-    // Restore system UI before navigating (mobile only)
+  // Note: direct navigate-to-login not used; role selection precedes login
+
+  void _navigateToHome() {
     if (!kIsWeb) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
-    Navigator.of(context).pushReplacementNamed('/login');
+    Navigator.of(context).pushReplacementNamed('/home');
+  }
+
+  void _navigateToArtistHome() {
+    if (!kIsWeb) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+    Navigator.of(context).pushReplacementNamed('/artist-home');
+  }
+
+  void _navigateToRoleSelect() {
+    if (!kIsWeb) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+    Navigator.of(context).pushReplacementNamed(AppRouter.chooseRole);
   }
 
   @override

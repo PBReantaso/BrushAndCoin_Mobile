@@ -22,7 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
-  String _selectedUserType = 'client';
+  String _selectedRole = 'client'; // patron = 'client', artist = 'artist'
 
   @override
   void dispose() {
@@ -36,21 +36,62 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    // For testing: bypass authentication and go straight to home
-    if (mounted) {
-      // Navigate to home screen immediately
-      Navigator.of(context).pushReplacementNamed('/home');
-    }
-  }
+    if (!_formKey.currentState!.validate()) return;
 
-  void _navigateToLogin() {
-    Navigator.of(context).pushReplacementNamed('/login');
+    if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please agree to the terms to continue.')),
+      );
+      return;
+    }
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.register(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      username: _usernameController.text.trim().isEmpty
+          ? _emailController.text.trim().split('@').first
+          : _usernameController.text.trim(),
+      fullName: _fullNameController.text.trim().isEmpty
+          ? _usernameController.text.trim().isEmpty
+              ? _emailController.text.trim().split('@').first
+              : _usernameController.text.trim()
+          : _fullNameController.text.trim(),
+      userType: _selectedRole,
+      location: _locationController.text.trim().isEmpty
+          ? null
+          : _locationController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      // Route based on the registered user type
+      if (_selectedRole == 'client') {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else if (_selectedRole == 'artist') {
+        Navigator.of(context).pushReplacementNamed('/artist-home');
+      } else {
+        // Fallback to patron home
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.of(context).pushReplacementNamed('/login');
+          },
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -62,28 +103,108 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 const SizedBox(height: 40),
 
-                // Header - Hello, Artist!
-                const Text(
-                  'Hello,',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFE53E3E), // Red color from image
-                  ),
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 20),
+
+                // Role selection (large segmented buttons)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Choose role',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () =>
+                                setState(() => _selectedRole = 'client'),
+                            child: Container(
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: _selectedRole == 'client'
+                                    ? const Color(0xFFE53E3E)
+                                    : const Color(0xFFF5F5F5),
+                                borderRadius: BorderRadius.circular(12),
+                                border:
+                                    Border.all(color: const Color(0xFFE0E0E0)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.favorite_outline,
+                                    color: _selectedRole == 'client'
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Patron',
+                                    style: TextStyle(
+                                      color: _selectedRole == 'client'
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () =>
+                                setState(() => _selectedRole = 'artist'),
+                            child: Container(
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: _selectedRole == 'artist'
+                                    ? const Color(0xFFE53E3E)
+                                    : const Color(0xFFF5F5F5),
+                                borderRadius: BorderRadius.circular(12),
+                                border:
+                                    Border.all(color: const Color(0xFFE0E0E0)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.brush,
+                                    color: _selectedRole == 'artist'
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Artist',
+                                    style: TextStyle(
+                                      color: _selectedRole == 'artist'
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
 
-                const Text(
-                  'Artist!',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 60),
+                const SizedBox(height: 20),
 
                 // Email/Phone Field
                 Container(
@@ -407,32 +528,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 60),
 
-                // Login Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Already have an account? ',
-                      style: TextStyle(
-                        color: Color(0xFF9E9E9E),
-                        fontSize: 16,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: _navigateToLogin,
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(
-                          color: Color(0xFFE53E3E), // Red color
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
+                // Removed login link per requirement
               ],
             ),
           ),

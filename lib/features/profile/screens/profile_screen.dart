@@ -357,25 +357,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Commission Button or Follow Button
+                            // Primary large button: Commission (for other users)
                             SizedBox(
                               width: double.infinity,
                               height: 40,
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (_profile['isOtherUser']) {
-                                    _toggleFollow();
+                                    Navigator.of(context).pushNamed(
+                                      '/commission-request',
+                                      arguments: {
+                                        'artistId':
+                                            _profile['id'] ?? 'artist-id'
+                                      },
+                                    );
                                   } else {
-                                    // TODO: Navigate to commission form
+                                    Navigator.of(context).pushNamed(
+                                      '/edit-commission-settings',
+                                    );
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: _profile['isOtherUser']
-                                      ? (_profile['isFollowing'] ?? false
-                                          ? Colors.grey
-                                          : const Color.fromARGB(
-                                              255, 255, 60, 60))
-                                      : const Color.fromARGB(255, 255, 60, 60),
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 255, 60, 60),
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
@@ -384,13 +388,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 8),
                                 ),
-                                child: Text(
-                                  _profile['isOtherUser']
-                                      ? (_profile['isFollowing'] ?? false
-                                          ? 'Unfollow'
-                                          : 'Follow')
-                                      : 'Commission',
-                                  style: const TextStyle(
+                                child: const Text(
+                                  'Commission',
+                                  style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -462,18 +462,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const SizedBox(width: 8),
                                 ],
 
-                                // Follow Button
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: Colors.black,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Icon(
-                                    Icons.person_add,
-                                    color: Colors.white,
-                                    size: 16,
+                                // Follow Button (black)
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: _toggleFollow,
+                                    child: Container(
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          (_profile['isFollowing'] ?? false)
+                                              ? 'Unfollow'
+                                              : 'Follow',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],

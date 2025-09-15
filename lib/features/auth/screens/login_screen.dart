@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
+import '../../../core/routes/app_router.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/validators.dart';
 
@@ -16,6 +18,23 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  String? _selectedRole;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Safely extract role from route arguments after initState
+    if (_selectedRole == null) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      _selectedRole = args?['role'] as String?;
+    }
+  }
 
   @override
   void dispose() {
@@ -25,11 +44,62 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    // For testing: bypass authentication and go straight to home
-    if (mounted) {
-      // Navigate to home screen immediately
-      Navigator.of(context).pushReplacementNamed('/home');
+    if (!_formKey.currentState!.validate()) return;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+      role: _selectedRole,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      // Route based on user type from the actual logged-in user
+      final userType = authProvider.currentUser?.userType;
+      if (userType == 'client' || userType == 'patron') {
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil('/home', (route) => false);
+      } else if (userType == 'artist') {
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil('/artist-home', (route) => false);
+      } else {
+        // Fallback to patron home for unknown types
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil('/home', (route) => false);
+      }
+    } else {
+      final error = authProvider.error?.toLowerCase() ?? '';
+      if (error.contains('not found') ||
+          error.contains('no account') ||
+          error.contains('unregistered')) {
+        _promptRegister();
+      }
     }
+  }
+
+  void _promptRegister() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Account not found'),
+        content: const Text('Would you like to create an account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.of(context).pushNamed('/register');
+            },
+            child: const Text('Register'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _navigateToRegister() {
@@ -44,6 +114,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.of(context).pushReplacementNamed(AppRouter.chooseRole);
+          },
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -53,21 +133,11 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 60),
+                const SizedBox(height: 32),
 
-                // Header - Welcome back, Artist!
+                // Neutral header
                 const Text(
-                  'Welcome back,',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFE53E3E), // Red color from image
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const Text(
-                  'Artist!',
+                  'Welcome back',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -76,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 60),
+                const SizedBox(height: 24),
 
                 // Email/Phone Field
                 Container(
@@ -377,6 +447,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 const SizedBox(height: 20),
+
+                // Exit Application button
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await SystemChannels.platform
+                          .invokeMethod<void>('SystemNavigator.pop');
+                    },
+                    icon: const Icon(Icons.exit_to_app, color: Colors.black54),
+                    label: const Text(
+                      'Exit application',
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/role_select_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/home/screens/home_screen.dart';
+import '../../features/home/screens/artist_home_screen.dart';
 import '../../features/post/screens/post_detail_screen.dart';
 import '../../features/events/screens/events_screen.dart';
 import '../../features/events/screens/event_detail_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/commission_request_screen.dart';
+import '../../features/profile/screens/tip_screen.dart';
+import '../../features/profile/screens/edit_commission_settings_screen.dart';
 import '../../features/messaging/screens/messaging_screen.dart';
 import '../../features/messaging/screens/chat_screen.dart';
 import '../models/post_model.dart';
@@ -16,14 +21,19 @@ import '../../features/settings/screens/settings_screen.dart';
 class AppRouter {
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String chooseRole = '/choose-role';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
+  static const String artistHome = '/artist-home';
   static const String postDetail = '/post-detail';
   static const String settings = '/settings';
   static const String events = '/events';
   static const String eventDetail = '/event-detail';
   static const String profile = '/profile';
+  static const String commissionRequest = '/commission-request';
+  static const String tip = '/tip';
+  static const String editCommissionSettings = '/edit-commission-settings';
   static const String messaging = '/messaging';
   static const String chat = '/chat';
   static const String initial = splash;
@@ -42,6 +52,12 @@ class AppRouter {
           settings,
         );
 
+      case chooseRole:
+        return _noTransitionRoute(
+          const RoleSelectScreen(),
+          settings,
+        );
+
       case register:
         return _noTransitionRoute(
           const RegisterScreen(),
@@ -57,6 +73,12 @@ class AppRouter {
       case home:
         return _noTransitionRoute(
           const HomeScreen(),
+          settings,
+        );
+
+      case artistHome:
+        return _noTransitionRoute(
+          const ArtistHomeScreen(),
           settings,
         );
 
@@ -90,6 +112,28 @@ class AppRouter {
         final userData = settings.arguments as Map<String, dynamic>?;
         return _noTransitionRoute(
           ProfileScreen(userData: userData),
+          settings,
+        );
+
+      case commissionRequest:
+        final artistId =
+            (settings.arguments as Map<String, dynamic>)['artistId'] as String;
+        return _noTransitionRoute(
+          CommissionRequestScreen(artistId: artistId),
+          settings,
+        );
+
+      case tip:
+        final artistId =
+            (settings.arguments as Map<String, dynamic>)['artistId'] as String;
+        return _noTransitionRoute(
+          TipScreen(artistId: artistId),
+          settings,
+        );
+
+      case editCommissionSettings:
+        return _noTransitionRoute(
+          const EditCommissionSettingsScreen(),
           settings,
         );
 
