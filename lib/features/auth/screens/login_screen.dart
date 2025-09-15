@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
-import '../../../core/routes/app_router.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/validators.dart';
 
@@ -18,29 +17,24 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
-  String? _selectedRole;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Safely extract role from route arguments after initState
-    if (_selectedRole == null) {
-      final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      _selectedRole = args?['role'] as String?;
-    }
-  }
+  String _roleFromArgs = 'client';
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final role = (args?['role'] as String?)?.toLowerCase();
+    if (role == 'artist' || role == 'client' || role == 'patron') {
+      _roleFromArgs = role == 'patron' ? 'client' : role!;
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -50,24 +44,19 @@ class _LoginScreenState extends State<LoginScreen> {
     final success = await authProvider.login(
       _emailController.text.trim(),
       _passwordController.text,
-      role: _selectedRole,
     );
 
     if (!mounted) return;
 
     if (success) {
-      // Route based on user type from the actual logged-in user
-      final userType = authProvider.currentUser?.userType;
-      if (userType == 'client' || userType == 'patron') {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/home', (route) => false);
-      } else if (userType == 'artist') {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/artist-home', (route) => false);
-      } else {
-        // Fallback to patron home for unknown types
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/home', (route) => false);
+      if (_roleFromArgs == 'client' || _roleFromArgs == 'patron') {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else if (_roleFromArgs == 'artist') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Artist portal coming soon. Please use Patron mode.'),
+          ),
+        );
       }
     } else {
       final error = authProvider.error?.toLowerCase() ?? '';
@@ -114,16 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.of(context).pushReplacementNamed(AppRouter.chooseRole);
-          },
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -133,12 +112,39 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 32),
+                const SizedBox(height: 60),
 
-                // Neutral header
-                const Text(
-                  'Welcome back',
-                  style: TextStyle(
+                // Role label (selected previously)
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    _roleFromArgs == 'artist'
+                        ? 'Login as Artist'
+                        : 'Login as Patron',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Header - Welcome back (dynamic role)
+                Text(
+                  'Welcome back,',
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFE53E3E), // Red color from image
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                Text(
+                  _roleFromArgs == 'artist' ? 'Artist!' : 'Patron!',
+                  style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -146,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 60),
 
                 // Email/Phone Field
                 Container(

@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/providers/post_provider.dart';
 import '../../../core/models/post_model.dart';
 import '../../post/screens/create_post_screen.dart';
-import '../../../core/providers/auth_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,8 +73,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final bool isArtist = (authProvider.currentUser?.userType == 'artist');
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -163,96 +160,95 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Post Creation Section (artists only)
-            if (isArtist)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFE0E0E0),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 5,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+            // Post Creation Section
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFFE0E0E0),
+                  width: 1,
                 ),
-                child: Row(
-                  children: [
-                    // User Avatar
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF666666),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // User Avatar
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF666666),
+                      shape: BoxShape.circle,
                     ),
-
-                    const SizedBox(width: 12),
-
-                    // Post Input Field
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _navigateToCreatePost,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: const Color(0xFFE0E0E0),
-                              width: 1,
-                            ),
-                          ),
-                          child: const Text(
-                            "Share your artwork...",
-                            style: TextStyle(
-                              color: Color(0xFF9E9E9E),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 20,
                     ),
+                  ),
 
-                    const SizedBox(width: 12),
+                  const SizedBox(width: 12),
 
-                    // Post Button
-                    GestureDetector(
+                  // Post Input Field
+                  Expanded(
+                    child: GestureDetector(
                       onTap: _navigateToCreatePost,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                            horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 255, 60, 60),
+                          color: const Color(0xFFF5F5F5),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(0xFFE0E0E0),
+                            width: 1,
+                          ),
                         ),
                         child: const Text(
-                          'Post',
+                          "Share your artwork...",
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFF9E9E9E),
                             fontSize: 14,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // Post Button
+                  GestureDetector(
+                    onTap: _navigateToCreatePost,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 255, 60, 60),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Post',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+            ),
 
             // Posts Feed
             Expanded(

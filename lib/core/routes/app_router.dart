@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
-import '../../features/auth/screens/role_select_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/home/screens/home_screen.dart';
-import '../../features/home/screens/artist_home_screen.dart';
 import '../../features/post/screens/post_detail_screen.dart';
 import '../../features/events/screens/events_screen.dart';
 import '../../features/events/screens/event_detail_screen.dart';
@@ -25,7 +23,6 @@ class AppRouter {
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
-  static const String artistHome = '/artist-home';
   static const String postDetail = '/post-detail';
   static const String settings = '/settings';
   static const String events = '/events';
@@ -52,11 +49,7 @@ class AppRouter {
           settings,
         );
 
-      case chooseRole:
-        return _noTransitionRoute(
-          const RoleSelectScreen(),
-          settings,
-        );
+      // Removed choose-role screen; go straight to login from splash
 
       case register:
         return _noTransitionRoute(
@@ -73,12 +66,6 @@ class AppRouter {
       case home:
         return _noTransitionRoute(
           const HomeScreen(),
-          settings,
-        );
-
-      case artistHome:
-        return _noTransitionRoute(
-          const ArtistHomeScreen(),
           settings,
         );
 

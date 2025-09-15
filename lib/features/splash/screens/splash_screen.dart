@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
-import '../../../core/routes/app_router.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -91,17 +90,12 @@ class _SplashScreenState extends State<SplashScreen>
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final isAuthed = await auth.checkAuthStatus();
       if (!mounted) return;
-      if (isAuthed) {
-        final userType = auth.currentUser?.userType;
-        if (userType == 'client' || userType == 'patron') {
-          _navigateToHome();
-        } else if (userType == 'artist') {
-          _navigateToArtistHome();
-        } else {
-          _navigateToRoleSelect();
-        }
+      if (isAuthed &&
+          (auth.currentUser?.userType == 'client' ||
+              auth.currentUser?.userType == 'patron')) {
+        _navigateToHome();
       } else {
-        _navigateToRoleSelect();
+        _navigateToLogin();
       }
     });
   }
@@ -117,8 +111,6 @@ class _SplashScreenState extends State<SplashScreen>
     _fadeController.forward();
   }
 
-  // Note: direct navigate-to-login not used; role selection precedes login
-
   void _navigateToHome() {
     if (!kIsWeb) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -126,18 +118,11 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacementNamed('/home');
   }
 
-  void _navigateToArtistHome() {
+  void _navigateToLogin() {
     if (!kIsWeb) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
-    Navigator.of(context).pushReplacementNamed('/artist-home');
-  }
-
-  void _navigateToRoleSelect() {
-    if (!kIsWeb) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    }
-    Navigator.of(context).pushReplacementNamed(AppRouter.chooseRole);
+    Navigator.of(context).pushReplacementNamed('/login');
   }
 
   @override

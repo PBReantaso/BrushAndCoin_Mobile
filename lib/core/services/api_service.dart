@@ -46,22 +46,19 @@ class ApiService {
   }
 
   // Authentication
-  static Future<Map<String, dynamic>> login(String email, String password,
-      {String? role}) async {
+  static Future<Map<String, dynamic>> login(
+      String email, String password) async {
     if (useMock) {
       await Future.delayed(const Duration(milliseconds: 400));
-      // Use the provided role or default to client
-      final userType = role?.toLowerCase() == 'artist' ? 'artist' : 'client';
-      final fullName = userType == 'artist' ? 'Artist User' : 'Patron User';
-
+      // Accept any credentials and return a patron user
       final mockUser = {
         'id': 'mock-user-id',
         'email': email,
         'username': email.split('@').first,
-        'full_name': fullName,
+        'full_name': 'Patron User',
         'profile_image': null,
         'bio': null,
-        'user_type': userType,
+        'user_type': 'client',
         'specializations': [],
         'rating': 0.0,
         'review_count': 0,

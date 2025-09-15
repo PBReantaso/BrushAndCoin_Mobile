@@ -66,32 +66,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Route based on the registered user type
       if (_selectedRole == 'client') {
         Navigator.of(context).pushReplacementNamed('/home');
-      } else if (_selectedRole == 'artist') {
-        Navigator.of(context).pushReplacementNamed('/artist-home');
       } else {
-        // Fallback to patron home
-        Navigator.of(context).pushReplacementNamed('/home');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Artist account created. Please sign in.'),
+          ),
+        );
+        _navigateToLogin();
       }
     }
+  }
+
+  void _navigateToLogin() {
+    Navigator.of(context).pushReplacementNamed('/login');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.of(context).pushReplacementNamed('/login');
-          },
-        ),
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -103,9 +98,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 const SizedBox(height: 40),
 
-                const SizedBox(height: 20),
+                // Header - Hello, Artist!
+                const Text(
+                  'Hello,',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFE53E3E), // Red color from image
+                  ),
+                  textAlign: TextAlign.center,
+                ),
 
-                // Role selection (large segmented buttons)
+                const Text(
+                  'Artist!',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 60),
+
+                // Role selection (Patron or Artist)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -125,34 +141,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onTap: () =>
                                 setState(() => _selectedRole = 'client'),
                             child: Container(
-                              height: 56,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
                               decoration: BoxDecoration(
-                                color: _selectedRole == 'client'
-                                    ? const Color(0xFFE53E3E)
-                                    : const Color(0xFFF5F5F5),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                border:
-                                    Border.all(color: const Color(0xFFE0E0E0)),
+                                border: Border.all(
+                                  color: _selectedRole == 'client'
+                                      ? const Color(0xFFE53E3E)
+                                      : const Color(0xFFE0E0E0),
+                                  width: _selectedRole == 'client' ? 2 : 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.03),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.favorite_outline,
-                                    color: _selectedRole == 'client'
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Patron',
-                                    style: TextStyle(
-                                      color: _selectedRole == 'client'
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFE4E6),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
+                                    child: const Icon(Icons.person_outline,
+                                        color: Color(0xFFE11D48)),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: const [
+                                        Text(
+                                          'Patron',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Discover and hire artists',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF6B7280),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    _selectedRole == 'client'
+                                        ? Icons.radio_button_checked
+                                        : Icons.radio_button_off,
+                                    color: _selectedRole == 'client'
+                                        ? const Color(0xFFE53E3E)
+                                        : const Color(0xFF9E9E9E),
                                   ),
                                 ],
                               ),
@@ -165,34 +216,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onTap: () =>
                                 setState(() => _selectedRole = 'artist'),
                             child: Container(
-                              height: 56,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
                               decoration: BoxDecoration(
-                                color: _selectedRole == 'artist'
-                                    ? const Color(0xFFE53E3E)
-                                    : const Color(0xFFF5F5F5),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
-                                border:
-                                    Border.all(color: const Color(0xFFE0E0E0)),
+                                border: Border.all(
+                                  color: _selectedRole == 'artist'
+                                      ? const Color(0xFFE53E3E)
+                                      : const Color(0xFFE0E0E0),
+                                  width: _selectedRole == 'artist' ? 2 : 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.03),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.brush,
-                                    color: _selectedRole == 'artist'
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Artist',
-                                    style: TextStyle(
-                                      color: _selectedRole == 'artist'
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE0F2FE),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
+                                    child: const Icon(Icons.brush_outlined,
+                                        color: Color(0xFF0284C7)),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: const [
+                                        Text(
+                                          'Artist',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Showcase and sell your art',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF6B7280),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    _selectedRole == 'artist'
+                                        ? Icons.radio_button_checked
+                                        : Icons.radio_button_off,
+                                    color: _selectedRole == 'artist'
+                                        ? const Color(0xFFE53E3E)
+                                        : const Color(0xFF9E9E9E),
                                   ),
                                 ],
                               ),
@@ -528,7 +614,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 60),
 
-                // Removed login link per requirement
+                // Login Link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Already have an account? ',
+                      style: TextStyle(
+                        color: Color(0xFF9E9E9E),
+                        fontSize: 16,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _navigateToLogin,
+                      child: const Text(
+                        'Sign In',
+                        style: TextStyle(
+                          color: Color(0xFFE53E3E), // Red color
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
