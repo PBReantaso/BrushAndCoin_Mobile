@@ -112,24 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 60),
-
-                // Role label (selected previously)
-                Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    _roleFromArgs == 'artist'
-                        ? 'Login as Artist'
-                        : 'Login as Patron',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
+                const SizedBox(height: 80),
 
                 // Header - Welcome back (dynamic role)
                 Text(
@@ -142,9 +125,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   textAlign: TextAlign.center,
                 ),
 
-                Text(
-                  _roleFromArgs == 'artist' ? 'Artist!' : 'Patron!',
-                  style: const TextStyle(
+                const Text(
+                  'User!',
+                  style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,

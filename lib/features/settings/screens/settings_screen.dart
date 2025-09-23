@@ -35,7 +35,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         centerTitle: false,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          16 + MediaQuery.of(context).padding.bottom,
+        ),
         children: [
           _sectionHeader('Account'),
           _tile(

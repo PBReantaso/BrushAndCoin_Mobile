@@ -594,27 +594,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
 
                       const Spacer(),
-
-                      // Price (if for sale)
-                      if (post.isForSale && post.price != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 255, 60, 60),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            '\$${post.price!.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
                     ],
                   ),
 
