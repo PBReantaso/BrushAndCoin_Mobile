@@ -14,12 +14,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _priceController = TextEditingController();
   final _locationController = TextEditingController();
 
   File? _selectedImage;
   String? _selectedCategory;
-  bool _isForSale = false;
   final List<String> _tags = [];
   final _tagController = TextEditingController();
 
@@ -40,7 +38,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _priceController.dispose();
     _locationController.dispose();
     _tagController.dispose();
     super.dispose();
@@ -115,16 +112,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               // Location
               _buildLocationField(),
               const SizedBox(height: 16),
-
-              // For Sale Toggle
-              _buildForSaleToggle(),
-              const SizedBox(height: 16),
-
-              // Price (if for sale)
-              if (_isForSale) ...[
-                _buildPriceField(),
-                const SizedBox(height: 16),
-              ],
 
               // Error Display
               Consumer<PostProvider>(
@@ -346,61 +333,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget _buildForSaleToggle() {
-    return Row(
-      children: [
-        const Text(
-          'For Sale',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        const Spacer(),
-        Switch(
-          value: _isForSale,
-          onChanged: (value) {
-            setState(() {
-              _isForSale = value;
-              if (!value) {
-                _priceController.clear();
-              }
-            });
-          },
-          activeColor: const Color.fromARGB(255, 255, 60, 60),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPriceField() {
-    return TextFormField(
-      controller: _priceController,
-      keyboardType: TextInputType.number,
-      decoration: const InputDecoration(
-        labelText: 'Price *',
-        hintText: '0.00',
-        prefixText: '\$ ',
-        border: OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color.fromARGB(255, 255, 60, 60)),
-        ),
-      ),
-      validator: _isForSale
-          ? (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter a price';
-              }
-              if (double.tryParse(value) == null) {
-                return 'Please enter a valid price';
-              }
-              return null;
-            }
-          : null,
-    );
-  }
-
   void _showImagePicker() {
     showModalBottomSheet(
       context: context,
@@ -505,10 +437,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       location: _locationController.text.trim().isEmpty
           ? null
           : _locationController.text.trim(),
-      price: _isForSale && _priceController.text.isNotEmpty
-          ? double.tryParse(_priceController.text)
-          : null,
-      isForSale: _isForSale,
+      price: null,
+      isForSale: false,
       category: _selectedCategory,
     );
 
