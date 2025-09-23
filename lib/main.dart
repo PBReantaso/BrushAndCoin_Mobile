@@ -10,6 +10,7 @@ import 'core/providers/artwork_provider.dart';
 import 'core/providers/commission_provider.dart';
 import 'core/providers/post_provider.dart';
 import 'core/providers/messaging_provider.dart';
+import 'core/providers/events_provider.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/api_service.dart';
@@ -75,6 +76,7 @@ class BrushAndCoinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CommissionProvider()),
         ChangeNotifierProvider(create: (_) => PostProvider()),
         ChangeNotifierProvider(create: (_) => MessagingProvider()),
+        ChangeNotifierProvider(create: (_) => EventsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: Consumer<ThemeProvider>(

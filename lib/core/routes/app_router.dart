@@ -7,6 +7,7 @@ import '../../features/home/screens/home_screen.dart';
 import '../../features/post/screens/post_detail_screen.dart';
 import '../../features/events/screens/events_screen.dart';
 import '../../features/events/screens/event_detail_screen.dart';
+import '../../features/events/screens/create_event_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/commission_request_screen.dart';
 import '../../features/profile/screens/tip_screen.dart';
@@ -92,6 +93,12 @@ class AppRouter {
         final event = settings.arguments as Map<String, dynamic>;
         return _noTransitionRoute(
           EventDetailScreen(event: event),
+          settings,
+        );
+
+      case '/create-event':
+        return _noTransitionRoute(
+          const CreateEventScreen(),
           settings,
         );
 

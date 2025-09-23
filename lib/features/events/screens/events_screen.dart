@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/providers/events_provider.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -13,26 +15,8 @@ class _EventsScreenState extends State<EventsScreen> {
   DateTime _selectedDate = DateTime.now();
   DateTime _focusedDate = DateTime.now();
 
-  // Mock events data
-  final List<Map<String, dynamic>> _events = [
-    {
-      'id': 1,
-      'title': 'Bicol Cosplay Arena',
-      'date': DateTime(2025, 9, 19),
-      'image': 'assets/images/event1.jpg',
-      'description':
-          'Anime cosplay event featuring Hatsune Miku and other characters',
-      'location': 'Bicol Cosplay Arena',
-    },
-    {
-      'id': 2,
-      'title': 'Art Gallery Opening',
-      'date': DateTime(2025, 9, 25),
-      'image': 'assets/images/event2.jpg',
-      'description': 'Local artist showcase and gallery opening',
-      'location': 'Downtown Art Center',
-    },
-  ];
+  List<Map<String, dynamic>> get _events =>
+      Provider.of<EventsProvider>(context, listen: false).events;
 
   @override
   void dispose() {
@@ -140,8 +124,8 @@ class _EventsScreenState extends State<EventsScreen> {
 
             // Calendar Section
             Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -198,25 +182,25 @@ class _EventsScreenState extends State<EventsScreen> {
                     children: const [
                       Text('SUN',
                           style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
+                              fontSize: 11, fontWeight: FontWeight.w500)),
                       Text('MON',
                           style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
+                              fontSize: 11, fontWeight: FontWeight.w500)),
                       Text('TUE',
                           style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
+                              fontSize: 11, fontWeight: FontWeight.w500)),
                       Text('WED',
                           style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
+                              fontSize: 11, fontWeight: FontWeight.w500)),
                       Text('THU',
                           style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
+                              fontSize: 11, fontWeight: FontWeight.w500)),
                       Text('FRI',
                           style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
+                              fontSize: 11, fontWeight: FontWeight.w500)),
                       Text('SAT',
                           style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w500)),
+                              fontSize: 11, fontWeight: FontWeight.w500)),
                     ],
                   ),
 
@@ -304,13 +288,16 @@ class _EventsScreenState extends State<EventsScreen> {
                     ),
                     const SizedBox(height: 12),
                     Expanded(
-                      child: ListView.builder(
-                        physics: const ClampingScrollPhysics(),
-                        itemCount: _events.length,
-                        itemBuilder: (context, index) {
-                          final event = _events[index];
-                          return _buildEventCard(event);
-                        },
+                      child: Consumer<EventsProvider>(
+                        builder: (context, eventsProvider, _) =>
+                            ListView.builder(
+                          physics: const ClampingScrollPhysics(),
+                          itemCount: eventsProvider.events.length,
+                          itemBuilder: (context, index) {
+                            final event = eventsProvider.events[index];
+                            return _buildEventCard(event);
+                          },
+                        ),
                       ),
                     ),
                   ],
@@ -364,7 +351,7 @@ class _EventsScreenState extends State<EventsScreen> {
 
     // Add empty cells for days before the first day of the month
     for (int i = 0; i < firstWeekday; i++) {
-      calendarDays.add(const SizedBox(height: 40));
+      calendarDays.add(const SizedBox(height: 34));
     }
 
     // Add days of the month
@@ -386,8 +373,8 @@ class _EventsScreenState extends State<EventsScreen> {
             });
           },
           child: Container(
-            width: 40,
-            height: 40,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               color: isSelected
                   ? const Color.fromARGB(255, 255, 60, 60)
@@ -398,7 +385,7 @@ class _EventsScreenState extends State<EventsScreen> {
               child: Text(
                 day.toString(),
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: isSelected
                       ? Colors.white
@@ -414,8 +401,8 @@ class _EventsScreenState extends State<EventsScreen> {
     }
 
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 6,
+      runSpacing: 6,
       children: calendarDays,
     );
   }
@@ -429,7 +416,7 @@ class _EventsScreenState extends State<EventsScreen> {
           'year': event['date'].year.toString(),
           'venue': event['location'],
           'title': event['title'],
-          'description':
+          'description': event['description'] ??
               'Join us for an amazing event at ${event['location']}! This event will showcase incredible performances and provide a great opportunity to meet fellow enthusiasts.',
         });
       },
@@ -594,22 +581,6 @@ class _EventsScreenState extends State<EventsScreen> {
   }
 
   void _showAddEventDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add New Event'),
-          content: const Text('Event creation feature coming soon!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
+    Navigator.of(context).pushNamed('/create-event');
   }
 }
