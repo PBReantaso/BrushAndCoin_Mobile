@@ -44,3 +44,4 @@ class EventsProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+

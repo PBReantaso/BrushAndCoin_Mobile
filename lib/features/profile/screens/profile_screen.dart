@@ -761,7 +761,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 child: _selectedTab == 0
                     ? _buildGalleryGrid()
-                    : _buildMerchandiseGrid(),
+                    : Stack(
+                        children: [
+                          // Merchandise grid as the base layer
+                          Positioned.fill(child: _buildMerchandiseGrid()),
+
+                          // Floating small button on the bottom-right, above the grid
+                          Positioned(
+                            right: 8,
+                            bottom: 8,
+                            child: SafeArea(
+                              top: false,
+                              child: SizedBox(
+                                width: 44,
+                                height: 44,
+                                child: FloatingActionButton(
+                                  onPressed: _showAddMerchandiseSheet,
+                                  mini: true,
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 255, 60, 60),
+                                  elevation: 3,
+                                  child: const Icon(Icons.add,
+                                      color: Colors.white, size: 22),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ),
           ],
@@ -797,6 +824,130 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showAddMerchandiseSheet() {
+    final titleController = TextEditingController();
+    final priceController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom +
+                MediaQuery.of(context).padding.bottom +
+                16,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Add Merchandise',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.black),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Image placeholder (similar to create post)
+              Container(
+                height: 140,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F0F0),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                ),
+                child: const Center(
+                  child: Icon(Icons.add_photo_alternate,
+                      color: Color(0xFFCCCCCC), size: 40),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Price',
+                  prefixText: '\$ ',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final title = titleController.text.trim();
+                    final price = priceController.text.trim();
+                    if (title.isEmpty || price.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Please enter title and price')),
+                      );
+                      return;
+                    }
+                    setState(() {
+                      _merchandise.insert(0, {
+                        'id': DateTime.now().millisecondsSinceEpoch,
+                        'title': title,
+                        'image': null,
+                        'price': '\$${price}',
+                      });
+                    });
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 255, 60, 60),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 16),
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                  child: const Text('Add'),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
     );
   }
 
