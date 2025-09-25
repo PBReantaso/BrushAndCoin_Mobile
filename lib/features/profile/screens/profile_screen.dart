@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/providers/post_provider.dart';
 import '../../../core/models/post_model.dart';
+import 'merchandise_detail_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -766,27 +768,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           // Merchandise grid as the base layer
                           Positioned.fill(child: _buildMerchandiseGrid()),
 
-                          // Floating small button on the bottom-right, above the grid
-                          Positioned(
-                            right: 8,
-                            bottom: 8,
-                            child: SafeArea(
-                              top: false,
-                              child: SizedBox(
-                                width: 44,
-                                height: 44,
-                                child: FloatingActionButton(
-                                  onPressed: _showAddMerchandiseSheet,
-                                  mini: true,
-                                  backgroundColor:
-                                      const Color.fromARGB(255, 255, 60, 60),
-                                  elevation: 3,
-                                  child: const Icon(Icons.add,
-                                      color: Colors.white, size: 22),
+                          // Floating small button on the bottom-right, above the grid (only for current user)
+                          if (!_profile['isOtherUser'])
+                            Positioned(
+                              right: 8,
+                              bottom: 8,
+                              child: SafeArea(
+                                top: false,
+                                child: SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: FloatingActionButton(
+                                    onPressed: _showAddMerchandiseSheet,
+                                    mini: true,
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 255, 60, 60),
+                                    elevation: 3,
+                                    child: const Icon(Icons.add,
+                                        color: Colors.white, size: 22),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
                         ],
                       ),
               ),
@@ -827,10 +830,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _formatPrice(TextEditingController controller) {
+    final text = controller.text.trim();
+    if (text.isNotEmpty && !text.contains('.')) {
+      controller.text = '$text.00';
+      controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.text.length),
+      );
+    }
+  }
+
+  String _formatPriceDisplay(String price) {
+    if (price.isEmpty) return price;
+
+    // Remove the $ symbol for processing
+    String cleanPrice = price.replaceAll('\$', '');
+
+    // If it doesn't contain a decimal, add .00
+    if (!cleanPrice.contains('.')) {
+      return '\$${cleanPrice}.00';
+    }
+
+    // If it has a decimal but only one digit after, add another 0
+    if (cleanPrice.split('.').length == 2) {
+      String decimalPart = cleanPrice.split('.')[1];
+      if (decimalPart.length == 1) {
+        return '\$${cleanPrice}0';
+      }
+    }
+
+    // Return with $ symbol
+    return '\$${cleanPrice}';
+  }
+
   void _showAddMerchandiseSheet() {
     final titleController = TextEditingController();
     final priceController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final shippingController = TextEditingController();
+    final deliveryController = TextEditingController();
     File? selectedImage;
+    String selectedAvailability = 'In Stock';
 
     showModalBottomSheet(
       context: context,
@@ -840,159 +880,474 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom +
-                MediaQuery.of(context).padding.bottom +
-                16,
-            left: 16,
-            right: 16,
-            top: 16,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Text(
-                    'Add Merchandise',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: Colors.black),
-                  ),
-                ],
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom +
+                    MediaQuery.of(context).padding.bottom +
+                    16,
+                left: 16,
+                right: 16,
+                top: 16,
               ),
-              const SizedBox(height: 12),
-
-              // Image selector
-              GestureDetector(
-                onTap: () async {
-                  final source = await showModalBottomSheet<ImageSource>(
-                    context: context,
-                    backgroundColor: Colors.white,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(20)),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Add Merchandise',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close, color: Colors.black),
+                        ),
+                      ],
                     ),
-                    builder: (_) => SafeArea(
-                      child: Wrap(
-                        children: [
-                          ListTile(
-                            leading: const Icon(Icons.photo_library),
-                            title: const Text('Photo Library'),
-                            onTap: () =>
-                                Navigator.pop(context, ImageSource.gallery),
+                    const SizedBox(height: 12),
+
+                    // Image selector
+                    GestureDetector(
+                      onTap: () async {
+                        final source = await showModalBottomSheet<ImageSource>(
+                          context: context,
+                          backgroundColor: Colors.white,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(20)),
                           ),
-                          ListTile(
-                            leading: const Icon(Icons.photo_camera),
-                            title: const Text('Camera'),
-                            onTap: () =>
-                                Navigator.pop(context, ImageSource.camera),
+                          builder: (_) => SafeArea(
+                            child: Wrap(
+                              children: [
+                                ListTile(
+                                  leading: const Icon(Icons.photo_library),
+                                  title: const Text('Photo Library'),
+                                  onTap: () => Navigator.pop(
+                                      context, ImageSource.gallery),
+                                ),
+                                ListTile(
+                                  leading: const Icon(Icons.photo_camera),
+                                  title: const Text('Camera'),
+                                  onTap: () => Navigator.pop(
+                                      context, ImageSource.camera),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        );
+                        if (source != null) {
+                          final picker = ImagePicker();
+                          final picked = await picker.pickImage(
+                              source: source, imageQuality: 85);
+                          if (picked != null) {
+                            setModalState(() {
+                              selectedImage = File(picked.path);
+                            });
+                          }
+                        }
+                      },
+                      child: Container(
+                        height: 140,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F0F0),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: selectedImage == null
+                            ? const Center(
+                                child: Icon(Icons.add_photo_alternate,
+                                    color: Color(0xFFCCCCCC), size: 40),
+                              )
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(selectedImage!,
+                                    fit: BoxFit.cover, width: double.infinity),
+                              ),
                       ),
                     ),
-                  );
-                  if (source != null) {
-                    final picker = ImagePicker();
-                    final picked = await picker.pickImage(
-                        source: source, imageQuality: 85);
-                    if (picked != null) {
-                      setState(() {
-                        selectedImage = File(picked.path);
-                      });
-                    }
-                  }
-                },
-                child: Container(
-                  height: 140,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F0F0),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
-                  ),
-                  child: selectedImage == null
-                      ? const Center(
-                          child: Icon(Icons.add_photo_alternate,
-                              color: Color(0xFFCCCCCC), size: 40),
-                        )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(selectedImage!,
-                              fit: BoxFit.cover, width: double.infinity),
+
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        label: RichText(
+                          text: const TextSpan(
+                            style: TextStyle(
+                                color: Color(0xFF666666), fontSize: 14),
+                            children: [
+                              TextSpan(text: 'Title '),
+                              TextSpan(
+                                text: '*',
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 60, 60)),
+                              ),
+                            ],
+                          ),
                         ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: priceController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Price',
-                  prefixText: '\$ ',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final title = titleController.text.trim();
-                    final price = priceController.text.trim();
-                    if (title.isEmpty || price.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Please enter title and price')),
-                      );
-                      return;
-                    }
-                    setState(() {
-                      _merchandise.insert(0, {
-                        'id': DateTime.now().millisecondsSinceEpoch,
-                        'title': title,
-                        'image': selectedImage?.path,
-                        'price': '\$${price}',
-                      });
-                    });
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 255, 60, 60),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Color.fromARGB(255, 255, 60, 60)),
+                        ),
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 16),
-                    minimumSize: const Size.fromHeight(52),
-                  ),
-                  child: const Text('Add'),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: priceController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d{0,2}')),
+                      ],
+                      onEditingComplete: () {
+                        _formatPrice(priceController);
+                      },
+                      onSubmitted: (value) {
+                        _formatPrice(priceController);
+                      },
+                      decoration: InputDecoration(
+                        label: RichText(
+                          text: const TextSpan(
+                            style: TextStyle(
+                                color: Color(0xFF666666), fontSize: 14),
+                            children: [
+                              TextSpan(text: 'Price '),
+                              TextSpan(
+                                text: '*',
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 60, 60)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        prefixText: '\$ ',
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Color.fromARGB(255, 255, 60, 60)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Description Field
+                    TextField(
+                      controller: descriptionController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        hintText: 'Describe your merchandise...',
+                        border: OutlineInputBorder(),
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Purchase Information Section
+                    const Text(
+                      'Purchase Information',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE0E0E0)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonFormField<String>(
+                        value: selectedAvailability,
+                        decoration: const InputDecoration(
+                          labelText: 'Availability',
+                          labelStyle: TextStyle(
+                            color: Color(0xFF666666),
+                            fontSize: 14,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          prefixIcon: Icon(
+                            Icons.inventory_2_outlined,
+                            color: Color(0xFF666666),
+                            size: 20,
+                          ),
+                        ),
+                        dropdownColor: Colors.white,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Color(0xFF666666),
+                            size: 20,
+                          ),
+                        ),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'In Stock',
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.green,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'In Stock',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Out of Stock',
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Out of Stock',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Limited Stock',
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.orange,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Limited Stock',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Pre-order',
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.blue,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Pre-order',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Discontinued',
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.grey,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Discontinued',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setModalState(() {
+                              selectedAvailability = value;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: shippingController,
+                      decoration: InputDecoration(
+                        label: RichText(
+                          text: const TextSpan(
+                            style: TextStyle(
+                                color: Color(0xFF666666), fontSize: 14),
+                            children: [
+                              TextSpan(text: 'Shipping Info '),
+                              TextSpan(
+                                text: '*',
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 60, 60)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        hintText: 'Enter shipping information',
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Color.fromARGB(255, 255, 60, 60)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: deliveryController,
+                      decoration: InputDecoration(
+                        label: RichText(
+                          text: const TextSpan(
+                            style: TextStyle(
+                                color: Color(0xFF666666), fontSize: 14),
+                            children: [
+                              TextSpan(text: 'Estimated Delivery '),
+                              TextSpan(
+                                text: '*',
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 60, 60)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        hintText: 'Enter delivery time',
+                        border: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Color.fromARGB(255, 255, 60, 60)),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final title = titleController.text.trim();
+                          final price = priceController.text.trim();
+                          final description = descriptionController.text.trim();
+                          final availability = selectedAvailability;
+                          final shipping = shippingController.text.trim();
+                          final delivery = deliveryController.text.trim();
+
+                          if (title.isEmpty ||
+                              price.isEmpty ||
+                              shipping.isEmpty ||
+                              delivery.isEmpty) {
+                            // Show error message within the modal
+                            print(
+                                'Validation failed: title="$title", price="$price", shipping="$shipping", delivery="$delivery"');
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Required Fields'),
+                                content: const Text(
+                                    'Please fill in all required fields.'),
+                                backgroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text(
+                                      'OK',
+                                      style: TextStyle(
+                                        color: Color.fromARGB(255, 255, 60, 60),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                            return;
+                          }
+                          setState(() {
+                            _merchandise.insert(0, {
+                              'id': DateTime.now().millisecondsSinceEpoch,
+                              'title': title,
+                              'image': selectedImage?.path,
+                              'price': '\$${price}',
+                              'description': description.isNotEmpty
+                                  ? description
+                                  : 'This is a high-quality merchandise item perfect for any fan. Made with premium materials and featuring excellent craftsmanship, this item is sure to become a treasured part of your collection.',
+                              'availability': availability,
+                              'shipping': shipping,
+                              'delivery': delivery,
+                            });
+                          });
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 255, 60, 60),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 16),
+                          minimumSize: const Size.fromHeight(52),
+                        ),
+                        child: const Text('Add'),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 20),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -1131,73 +1486,114 @@ class _ProfileScreenState extends State<ProfileScreen> {
       itemCount: _merchandise.length,
       itemBuilder: (context, index) {
         final item = _merchandise[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Product Image
-              Expanded(
-                flex: 3,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F0F0),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    ),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.image,
-                      size: 40,
-                      color: Color(0xFFCCCCCC),
-                    ),
-                  ),
+        return GestureDetector(
+          onTap: () {
+            Navigator.of(context)
+                .push(
+              MaterialPageRoute(
+                builder: (context) => MerchandiseDetailScreen(
+                  merchandise: item,
+                  onDelete: () {
+                    setState(() {
+                      _merchandise.removeAt(index);
+                    });
+                  },
+                  isCurrentUser: !_profile['isOtherUser'],
                 ),
               ),
+            )
+                .then((_) {
+              // Refresh the merchandise list when returning from detail screen
+              setState(() {});
+            });
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Product Image
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F0F0),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                    ),
+                    child: item['image'] != null
+                        ? ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(8),
+                              topRight: Radius.circular(8),
+                            ),
+                            child: Image.file(
+                              File(item['image']),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.shopping_bag,
+                              size: 40,
+                              color: Color(0xFFCCCCCC),
+                            ),
+                          ),
+                  ),
+                ),
 
-              // Product Info
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item['title'],
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                // Product Info
+                Expanded(
+                  flex: 1,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            item['title'],
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.left,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatPriceDisplay(item['price']),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 255, 60, 60),
+                            ),
+                            textAlign: TextAlign.left,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item['price'],
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 255, 60, 60),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

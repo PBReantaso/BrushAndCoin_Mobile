@@ -9,6 +9,7 @@ import '../../features/events/screens/events_screen.dart';
 import '../../features/events/screens/event_detail_screen.dart';
 import '../../features/events/screens/create_event_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/merchandise_detail_screen.dart';
 import '../../features/profile/screens/commission_request_screen.dart';
 import '../../features/profile/screens/tip_screen.dart';
 import '../../features/profile/screens/edit_commission_settings_screen.dart';
@@ -29,6 +30,7 @@ class AppRouter {
   static const String events = '/events';
   static const String eventDetail = '/event-detail';
   static const String profile = '/profile';
+  static const String merchandiseDetail = '/merchandise-detail';
   static const String commissionRequest = '/commission-request';
   static const String tip = '/tip';
   static const String editCommissionSettings = '/edit-commission-settings';
@@ -106,6 +108,13 @@ class AppRouter {
         final userData = settings.arguments as Map<String, dynamic>?;
         return _noTransitionRoute(
           ProfileScreen(userData: userData),
+          settings,
+        );
+
+      case merchandiseDetail:
+        final merchandise = settings.arguments as Map<String, dynamic>;
+        return _noTransitionRoute(
+          MerchandiseDetailScreen(merchandise: merchandise),
           settings,
         );
 
