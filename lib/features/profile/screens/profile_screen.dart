@@ -830,6 +830,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showAddMerchandiseSheet() {
     final titleController = TextEditingController();
     final priceController = TextEditingController();
+    File? selectedImage;
 
     showModalBottomSheet(
       context: context,
@@ -871,17 +872,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Image placeholder (similar to create post)
-              Container(
-                height: 140,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F0F0),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE0E0E0)),
-                ),
-                child: const Center(
-                  child: Icon(Icons.add_photo_alternate,
-                      color: Color(0xFFCCCCCC), size: 40),
+              // Image selector
+              GestureDetector(
+                onTap: () async {
+                  final source = await showModalBottomSheet<ImageSource>(
+                    context: context,
+                    backgroundColor: Colors.white,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (_) => SafeArea(
+                      child: Wrap(
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.photo_library),
+                            title: const Text('Photo Library'),
+                            onTap: () =>
+                                Navigator.pop(context, ImageSource.gallery),
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.photo_camera),
+                            title: const Text('Camera'),
+                            onTap: () =>
+                                Navigator.pop(context, ImageSource.camera),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                  if (source != null) {
+                    final picker = ImagePicker();
+                    final picked = await picker.pickImage(
+                        source: source, imageQuality: 85);
+                    if (picked != null) {
+                      setState(() {
+                        selectedImage = File(picked.path);
+                      });
+                    }
+                  }
+                },
+                child: Container(
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F0F0),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: selectedImage == null
+                      ? const Center(
+                          child: Icon(Icons.add_photo_alternate,
+                              color: Color(0xFFCCCCCC), size: 40),
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(selectedImage!,
+                              fit: BoxFit.cover, width: double.infinity),
+                        ),
                 ),
               ),
 
@@ -923,7 +970,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _merchandise.insert(0, {
                         'id': DateTime.now().millisecondsSinceEpoch,
                         'title': title,
-                        'image': null,
+                        'image': selectedImage?.path,
                         'price': '\$${price}',
                       });
                     });
