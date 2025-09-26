@@ -45,14 +45,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToCreatePost() {
-    Navigator.of(context)
-        .push(
-      MaterialPageRoute(
-        builder: (context) => const CreatePostScreen(),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.88,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          child: const CreatePostScreen(),
+        ),
       ),
-    )
-        .then((_) {
-      // Refresh posts after creating a new one
+    ).then((_) {
       _updateFilteredPosts();
     });
   }

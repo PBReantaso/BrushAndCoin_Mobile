@@ -7,6 +7,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/providers/post_provider.dart';
 import '../../../core/models/post_model.dart';
 import 'merchandise_detail_screen.dart';
+// import 'commission_request_screen.dart';
+import 'edit_commission_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -366,16 +368,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (_profile['isOtherUser']) {
-                                    Navigator.of(context).pushNamed(
-                                      '/commission-request',
-                                      arguments: {
-                                        'artistId':
-                                            _profile['id'] ?? 'artist-id'
-                                      },
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) =>
+                                          CommissionSettingsViewSheet(
+                                        artistId: _profile['id'] ?? 'artist-id',
+                                        showRequestButton: true,
+                                      ),
                                     );
                                   } else {
-                                    Navigator.of(context).pushNamed(
-                                      '/edit-commission-settings',
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) =>
+                                          const CommissionSettingsViewSheet(),
                                     );
                                   }
                                 },
@@ -842,25 +851,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _formatPriceDisplay(String price) {
     if (price.isEmpty) return price;
-
-    // Remove the $ symbol for processing
-    String cleanPrice = price.replaceAll('\$', '');
-
-    // If it doesn't contain a decimal, add .00
+    // Normalize input by removing any currency symbol
+    String cleanPrice = price.replaceAll(RegExp(r'^[\$₱]\s?'), '');
+    // Ensure two decimal places
     if (!cleanPrice.contains('.')) {
-      return '\$${cleanPrice}.00';
+      return '₱${cleanPrice}.00';
     }
-
-    // If it has a decimal but only one digit after, add another 0
-    if (cleanPrice.split('.').length == 2) {
-      String decimalPart = cleanPrice.split('.')[1];
-      if (decimalPart.length == 1) {
-        return '\$${cleanPrice}0';
-      }
+    final parts = cleanPrice.split('.');
+    if (parts.length == 2 && parts[1].length == 1) {
+      return '₱${cleanPrice}0';
     }
-
-    // Return with $ symbol
-    return '\$${cleanPrice}';
+    return '₱$cleanPrice';
   }
 
   void _showAddMerchandiseSheet() {
@@ -1488,22 +1489,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final item = _merchandise[index];
         return GestureDetector(
           onTap: () {
-            Navigator.of(context)
-                .push(
-              MaterialPageRoute(
-                builder: (context) => MerchandiseDetailScreen(
-                  merchandise: item,
-                  onDelete: () {
-                    setState(() {
-                      _merchandise.removeAt(index);
-                    });
-                  },
-                  isCurrentUser: !_profile['isOtherUser'],
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (ctx) => FractionallySizedBox(
+                heightFactor: 0.88,
+                child: ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: MerchandiseDetailScreen(
+                    merchandise: item,
+                    onDelete: () {
+                      setState(() {
+                        _merchandise.removeAt(index);
+                      });
+                      Navigator.of(ctx).pop();
+                    },
+                    isCurrentUser: !_profile['isOtherUser'],
+                    showHeader: false,
+                  ),
                 ),
               ),
-            )
-                .then((_) {
-              // Refresh the merchandise list when returning from detail screen
+            ).then((_) {
               setState(() {});
             });
           },

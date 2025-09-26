@@ -6,12 +6,14 @@ class MerchandiseDetailScreen extends StatefulWidget {
   final Map<String, dynamic> merchandise;
   final VoidCallback? onDelete;
   final bool isCurrentUser;
+  final bool showHeader;
 
   const MerchandiseDetailScreen(
       {super.key,
       required this.merchandise,
       this.onDelete,
-      this.isCurrentUser = true});
+      this.isCurrentUser = true,
+      this.showHeader = true});
 
   @override
   State<MerchandiseDetailScreen> createState() =>
@@ -51,18 +53,24 @@ class _MerchandiseDetailScreenState extends State<MerchandiseDetailScreen> {
   }
 
   void _editMerchandise(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EditMerchandiseScreen(
-          merchandise: widget.merchandise,
-          onSave: (updatedMerchandise) {
-            // Update the merchandise data
-            widget.merchandise.clear();
-            widget.merchandise.addAll(updatedMerchandise);
-
-            // Trigger a rebuild to show updated data
-            setState(() {});
-          },
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.88,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          child: EditMerchandiseScreen(
+            merchandise: widget.merchandise,
+            onSave: (updatedMerchandise) {
+              widget.merchandise
+                ..clear()
+                ..addAll(updatedMerchandise);
+              setState(() {});
+              Navigator.of(context).pop();
+            },
+          ),
         ),
       ),
     );
@@ -125,96 +133,98 @@ class _MerchandiseDetailScreenState extends State<MerchandiseDetailScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // App Header with Logo, Search, and Settings
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x1A000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // Logo
-                  const Row(
-                    children: [
-                      Text(
-                        'B',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '&C',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.normal,
-                          color: Color.fromARGB(255, 255, 60, 60),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  // Search Bar
-                  Expanded(
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFFE0E0E0),
-                          width: 1,
-                        ),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          hintText: 'Search',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF9E9E9E),
-                            fontSize: 14,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search,
+            // App Header with Logo, Search, and Settings (optional)
+            if (widget.showHeader)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x1A000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Logo
+                    const Row(
+                      children: [
+                        Text(
+                          'B',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                             color: Colors.black,
-                            size: 20,
                           ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                        ),
+                        Text(
+                          '&C',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.normal,
+                            color: Color.fromARGB(255, 255, 60, 60),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    // Search Bar
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: const Color(0xFFE0E0E0),
+                            width: 1,
+                          ),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: const InputDecoration(
+                            hintText: 'Search',
+                            hintStyle: TextStyle(
+                              color: Color(0xFF9E9E9E),
+                              fontSize: 14,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Colors.black,
+                              size: 20,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(width: 16),
+                    const SizedBox(width: 16),
 
-                  // Settings Icon
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/settings');
-                    },
-                    icon: const Icon(
-                      Icons.settings,
-                      color: Colors.black,
-                      size: 24,
+                    // Settings Icon
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/settings');
+                      },
+                      icon: const Icon(
+                        Icons.settings,
+                        color: Colors.black,
+                        size: 24,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
             // Merchandise Content
             Expanded(
@@ -227,17 +237,7 @@ class _MerchandiseDetailScreenState extends State<MerchandiseDetailScreen> {
                     // Merchandise Information Card
                     Container(
                       width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
+                      color: Colors.white,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -247,23 +247,25 @@ class _MerchandiseDetailScreenState extends State<MerchandiseDetailScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Back Button
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF5F5F5),
-                                      borderRadius: BorderRadius.circular(8),
+                                // Close Button (top-right)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: const BoxDecoration(),
+                                        child: const Icon(
+                                          Icons.close,
+                                          color: Colors.black,
+                                          size: 20,
+                                        ),
+                                      ),
                                     ),
-                                    child: const Icon(
-                                      Icons.arrow_back,
-                                      color: Colors.black,
-                                      size: 20,
-                                    ),
-                                  ),
+                                  ],
                                 ),
                                 const SizedBox(height: 16),
                                 // Title and Price Row
@@ -295,7 +297,7 @@ class _MerchandiseDetailScreenState extends State<MerchandiseDetailScreen> {
                                       child: Text(
                                         _formatPriceDisplay(
                                             widget.merchandise['price'] ??
-                                                '\$0.00'),
+                                                '₱0.00'),
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -314,10 +316,7 @@ class _MerchandiseDetailScreenState extends State<MerchandiseDetailScreen> {
                             width: double.infinity,
                             height: 300,
                             margin: const EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF0F0F0),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                            decoration: const BoxDecoration(),
                             child: widget.merchandise['image'] != null
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
@@ -356,14 +355,7 @@ class _MerchandiseDetailScreenState extends State<MerchandiseDetailScreen> {
                                 Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: const Color(0xFFE0E0E0),
-                                      width: 1,
-                                    ),
-                                  ),
+                                  decoration: const BoxDecoration(),
                                   child: Text(
                                     widget.merchandise['description'] ??
                                         'This is a high-quality merchandise item perfect for any fan. Made with premium materials and featuring excellent craftsmanship, this item is sure to become a treasured part of your collection.',
@@ -398,14 +390,7 @@ class _MerchandiseDetailScreenState extends State<MerchandiseDetailScreen> {
                                 Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF5F5F5),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: const Color(0xFFE0E0E0),
-                                      width: 1,
-                                    ),
-                                  ),
+                                  decoration: const BoxDecoration(),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,

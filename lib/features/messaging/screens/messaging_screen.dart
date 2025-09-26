@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/messaging_provider.dart';
+import 'commission_detail_modal.dart';
 
 class MessagingScreen extends StatefulWidget {
   const MessagingScreen({super.key});
@@ -13,13 +14,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
   int _selectedTabIndex = 0;
   int _selectedNavIndex = 2; // Messages tab is selected
   String _commissionFilter = 'All';
-  final List<String> _commissionFilters = const [
-    'All',
-    'Pending',
-    'Accepted',
-    'Completed',
-    'Declined',
-  ];
+  // Removed unused _commissionFilters after switching to popup menu
 
   // Mock data for messages
   final List<Map<String, dynamic>> _messages = [
@@ -474,47 +469,54 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
     return Column(
       children: [
-        // Filters row
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+        // Right-aligned filter button
+        Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
-            children: _commissionFilters.map((f) {
-              final bool selected = f == _commissionFilter;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _commissionFilter = f;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? const Color.fromARGB(255, 255, 60, 60)
-                          : const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected
-                            ? const Color.fromARGB(255, 255, 60, 60)
-                            : const Color(0xFFE0E0E0),
-                        width: 1,
+            children: [
+              const Spacer(),
+              PopupMenuButton<String>(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                onSelected: (value) {
+                  setState(() {
+                    _commissionFilter = value;
+                  });
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'All', child: Text('All')),
+                  const PopupMenuItem(value: 'Pending', child: Text('Pending')),
+                  const PopupMenuItem(
+                      value: 'Accepted', child: Text('Accepted')),
+                  const PopupMenuItem(
+                      value: 'Declined', child: Text('Declined')),
+                  const PopupMenuItem(
+                      value: 'Completed', child: Text('Completed')),
+                ],
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(20),
+                    border:
+                        Border.all(color: const Color(0xFFE0E0E0), width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        _commissionFilter == 'All'
+                            ? 'Filter'
+                            : _commissionFilter,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-                    ),
-                    child: Text(
-                      f,
-                      style: TextStyle(
-                        color: selected ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                    ],
                   ),
                 ),
-              );
-            }).toList(),
+              ),
+            ],
           ),
         ),
 
@@ -537,162 +539,203 @@ class _MessagingScreenState extends State<MessagingScreen> {
   }
 
   Widget _buildCommissionRequestItem(Map<String, dynamic> request) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE0E0E0),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+    final bool isAccepted =
+        (request['status'] as String).toLowerCase() == 'accepted';
+    return GestureDetector(
+      onTap: isAccepted
+          ? () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (ctx) => CommissionDetailModal(commission: request),
+              );
+            }
+          : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE0E0E0),
+            width: 1,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Profile Picture Placeholder
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF5F5F5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person,
-                  color: Color(0xFF9E9E9E),
-                  size: 20,
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              // User Name and Status
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      request['userName'],
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    Text(
-                      request['timestamp'],
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF9E9E9E),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Status Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: request['status'] == 'pending'
-                      ? const Color(0xFFFFF3CD)
-                      : const Color(0xFFD4EDDA),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  request['status'].toString().toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: request['status'] == 'pending'
-                        ? const Color(0xFF856404)
-                        : const Color(0xFF155724),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                // Profile Picture Placeholder
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF5F5F5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    color: Color(0xFF9E9E9E),
+                    size: 20,
                   ),
                 ),
-              ),
-            ],
-          ),
 
-          const SizedBox(height: 12),
+                const SizedBox(width: 12),
 
-          // Request Title
-          Text(
-            request['requestTitle'],
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Request Description
-          Text(
-            request['requestDescription'],
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B7280),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Budget and Actions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Budget: ${request['budget']}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color.fromARGB(255, 255, 60, 60),
-                ),
-              ),
-              if (request['status'] == 'pending')
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Accept commission request
-                      },
-                      child: const Text(
-                        'Accept',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 60, 60),
+                // User Name and Status
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        request['userName'],
+                        style: const TextStyle(
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: Colors.black,
                         ),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Decline commission request
-                      },
-                      child: const Text(
-                        'Decline',
-                        style: TextStyle(
+                      Text(
+                        request['timestamp'],
+                        style: const TextStyle(
+                          fontSize: 12,
                           color: Color(0xFF9E9E9E),
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-            ],
-          ),
-        ],
+
+                // Status Badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color:
+                        (request['status'] as String).toLowerCase() == 'pending'
+                            ? const Color(0xFFFFF3CD)
+                            : (request['status'] as String).toLowerCase() ==
+                                    'declined'
+                                ? const Color(0xFFF8D7DA)
+                                : const Color(0xFFD4EDDA),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    (request['status'] as String).toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: (request['status'] as String).toLowerCase() ==
+                              'pending'
+                          ? const Color(0xFF856404)
+                          : (request['status'] as String).toLowerCase() ==
+                                  'declined'
+                              ? const Color(0xFF721C24)
+                              : const Color(0xFF155724),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Request Title
+            Text(
+              request['requestTitle'],
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Request Description
+            Text(
+              request['requestDescription'],
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF6B7280),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Budget and Actions
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Budget: ${request['budget'].toString().replaceAll('\$', '₱')}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color.fromARGB(255, 255, 60, 60),
+                  ),
+                ),
+                if ((request['status'] as String).toLowerCase() == 'pending')
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          final int id = request['id'] as int;
+                          final int originalIndex = _commissionRequests
+                              .indexWhere((r) => r['id'] == id);
+                          if (originalIndex != -1) {
+                            setState(() {
+                              _commissionRequests[originalIndex]['status'] =
+                                  'accepted';
+                            });
+                          }
+                        },
+                        child: const Text(
+                          'Accept',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 255, 60, 60),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          final int id = request['id'] as int;
+                          final int originalIndex = _commissionRequests
+                              .indexWhere((r) => r['id'] == id);
+                          if (originalIndex != -1) {
+                            setState(() {
+                              _commissionRequests[originalIndex]['status'] =
+                                  'declined';
+                            });
+                          }
+                        },
+                        child: const Text(
+                          'Decline',
+                          style: TextStyle(
+                            color: Color(0xFF9E9E9E),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
