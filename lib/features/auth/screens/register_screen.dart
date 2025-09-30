@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/validators.dart';
 
@@ -83,12 +85,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   textAlign: TextAlign.center,
                 ),
 
+<<<<<<< Updated upstream
                 const SizedBox(height: 60),
+=======
+                const SizedBox(height: 20),
+>>>>>>> Stashed changes
 
                 // Email/Phone Field
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
+                    color: const Color.fromARGB(255, 78, 8, 8),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFFE0E0E0)),
                   ),
@@ -221,27 +227,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     Expanded(
                       child: RichText(
-                        text: const TextSpan(
-                          style: TextStyle(
+                        text: TextSpan(
+                          style: const TextStyle(
                             fontSize: 14,
                             color: Color(0xFF9E9E9E),
                           ),
                           children: [
-                            TextSpan(text: 'By signing up, you agree to our '),
+                            const TextSpan(text: 'By signing up, you agree to our '),
                             TextSpan(
                               text: 'Terms of Service',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Color(0xFFE53E3E),
                                 fontWeight: FontWeight.w600,
                               ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Terms of Service'),
+                                      content: const Text('Terms of Service content goes here.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: const Text('Close'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                             ),
-                            TextSpan(text: ' & '),
+                            const TextSpan(text: ' & '),
                             TextSpan(
                               text: 'Privacy Policy',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Color(0xFFE53E3E),
                                 fontWeight: FontWeight.w600,
                               ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Privacy Policy'),
+                                      content: const Text('Privacy Policy content goes here.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.of(context).pop(),
+                                          child: const Text('Close'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                             ),
                           ],
                         ),
