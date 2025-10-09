@@ -5,6 +5,8 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
+import loginRoute from './routes/loginRoute.js';
+
 dotenv.config();
 
 const app = express();
@@ -17,10 +19,7 @@ app.use(helmet()); // Use Helmet to enhance API's security
 
 app.use(morgan('dev')); // Use Morgan for logging requests
 
-app.get('/test', (req, res) => {
-    console.log(res.getHeaders());
-  res.send('Hello World!');
-});
+app.use('/api/users', loginRoute);
 
  app.listen(PORT, () => {
    console.log(`Server is running on port ` + PORT);
