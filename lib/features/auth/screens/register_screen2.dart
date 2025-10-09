@@ -100,7 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 const SizedBox(height: 40),
 
-                // Header - Hello, Artist!
+                // Profile image
                 const Text(
                   'Hello,',
                   style: TextStyle(
@@ -123,7 +123,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 
                 const SizedBox(height: 20),
 
-                // Email/Phone Field
+                // Username
                 Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F5F5),
@@ -136,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     textInputAction: TextInputAction.next,
                     validator: Validators.validateEmail,
                     decoration: const InputDecoration(
-                      hintText: 'Enter your mail',
+                      hintText: 'Enter your username',
                       hintStyle: TextStyle(
                         color: Color(0xFF9E9E9E),
                         fontSize: 16,
@@ -154,7 +154,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 20),
 
-                // Password Field
+                // Phone number
                 Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F5F5),
@@ -194,130 +194,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           horizontal: 16, vertical: 16),
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Confirm Password Field
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
-                  ),
-                  child: TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: _obscureConfirmPassword,
-                    textInputAction: TextInputAction.done,
-                    validator: (value) => Validators.validateConfirmPassword(
-                      value,
-                      _passwordController.text,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Re-type your password',
-                      hintStyle: const TextStyle(
-                        color: Color(0xFF9E9E9E),
-                        fontSize: 16,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.lock_outlined,
-                        color: Color(0xFF9E9E9E),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          color: const Color(0xFF9E9E9E),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Terms and Conditions
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _agreeToTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _agreeToTerms = value ?? false;
-                        });
-                      },
-                      activeColor: const Color(0xFFE53E3E),
-                    ),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF9E9E9E),
-                          ),
-                          children: [
-                            const TextSpan(text: 'By signing up, you agree to our '),
-                            TextSpan(
-                              text: 'Terms of Service',
-                              style: const TextStyle(
-                                color: Color(0xFFE53E3E),
-                                fontWeight: FontWeight.w600,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Terms of Service'),
-                                      content: const Text('Terms of Service content goes here.'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(),
-                                          child: const Text('Close'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                            ),
-                            const TextSpan(text: ' & '),
-                            TextSpan(
-                              text: 'Privacy Policy',
-                              style: const TextStyle(
-                                color: Color(0xFFE53E3E),
-                                fontWeight: FontWeight.w600,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Privacy Policy'),
-                                      content: const Text('Privacy Policy content goes here.'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(),
-                                          child: const Text('Close'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
 
                 const SizedBox(height: 40),

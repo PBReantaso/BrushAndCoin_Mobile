@@ -1,21 +1,21 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
-import 'core/providers/auth_provider.dart';
-import 'core/providers/user_provider.dart';
 import 'core/providers/artwork_provider.dart';
+import 'core/providers/auth_provider.dart';
 import 'core/providers/commission_provider.dart';
-import 'core/providers/post_provider.dart';
-import 'core/providers/messaging_provider.dart';
 import 'core/providers/events_provider.dart';
+import 'core/providers/messaging_provider.dart';
+import 'core/providers/post_provider.dart';
+import 'core/providers/theme_provider.dart';
+import 'core/providers/user_provider.dart';
 import 'core/routes/app_router.dart';
-import 'core/theme/app_theme.dart';
 import 'core/services/api_service.dart';
 import 'core/services/storage_service.dart';
-import 'core/providers/theme_provider.dart';
+import 'core/theme/app_theme.dart';
 
 class NoOverscrollBehavior extends ScrollBehavior {
   const NoOverscrollBehavior();
