@@ -1,4 +1,5 @@
 //const express = require('express');
+/*
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -23,4 +24,4 @@ app.use('/api/users', loginRoute);
 
  app.listen(PORT, () => {
    console.log(`Server is running on port ` + PORT);
- });
+ });*/
