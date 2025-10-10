@@ -33,6 +33,12 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Mobile build directories
+mobile/build/
+mobile/android/app/debug/
+mobile/android/app/profile/
+mobile/android/app/release/
+
 # Symbolication related
 app.*.symbols
 
@@ -43,3 +49,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Web/Node.js related
+web/node_modules/
+web/.next/
+web/out/
+web/build/
+web/.env*.local
+web/.vercel
+web/*.tsbuildinfo
+web/next-env.d.ts
+
+# Shared build artifacts
+shared/node_modules/
+shared/dist/
+shared/build/
