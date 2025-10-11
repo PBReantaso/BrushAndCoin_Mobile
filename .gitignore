@@ -1,0 +1,40 @@
+# Top-level ignores for BrushAndCoin_Mobile
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Flutter / Dart
+mobile/.dart_tool/
+mobile/build/
+mobile/.gradle/
+mobile/.idea/
+mobile/local.properties
+mobile/key.properties
+
+# Android
+mobile/android/**/build/
+mobile/android/**/.cxx/
+mobile/android/**/.gradle/
+mobile/android/.idea/
+mobile/android/*.iml
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# lock files
+*.lock
+
+# other
+.env
+
