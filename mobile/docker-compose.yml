@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: BoboyAdmin_2025
+      POSTGRES_DB: BCDB
+    ports:
+      - "5433:5433"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: srecepcioniii@gbox.adnu.edu.ph
+      PGADMIN_DEFAULT_PASSWORD: BoboyAdmin_2025
+    depends_on:
+      - postgres
+
+  postgrest:
+    image: postgrest/postgrest
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: postgres://postgres:BoboyAdmin_2025@postgres:5433/BCDB
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: postgres
+      PGRST_SERVER_PROXY_URI: http://localhost:3000
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
+    driver: local
