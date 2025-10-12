@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/providers/post_provider.dart';
-import '../../../core/models/post_model.dart';
+import '../../../shared/types/post.dart';
 import '../../post/screens/create_post_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -422,10 +422,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: CircleAvatar(
                       radius: 20,
                       backgroundColor: const Color(0xFF666666),
-                      backgroundImage: post.userAvatar != null
-                          ? CachedNetworkImageProvider(post.userAvatar!)
+                      backgroundImage: post.userAvatar.isNotEmpty
+                          ? CachedNetworkImageProvider(post.userAvatar)
                           : null,
-                      child: post.userAvatar == null
+                      child: post.userAvatar.isEmpty
                           ? const Icon(
                               Icons.person,
                               color: Colors.white,
@@ -514,7 +514,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: post.artworkImageUrl == 'no_image_placeholder'
+                child: post.imageUrl == 'no_image_placeholder'
                     ? Container(
                         color: const Color(0xFFF0F0F0),
                         child: const Center(
@@ -540,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       )
                     : CachedNetworkImage(
-                        imageUrl: post.artworkImageUrl,
+                        imageUrl: post.imageUrl,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => const Center(
                           child: CircularProgressIndicator(
@@ -595,26 +595,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const Spacer(),
 
-                      // Price (if for sale)
-                      if (post.isForSale && post.price != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 255, 60, 60),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            '\$${post.price!.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                      // Price (if for sale) - Commented out as shared Post type doesn't have isForSale and price
+                      // if (post.isForSale && post.price != null)
+                      //   Container(
+                      //     padding: const EdgeInsets.symmetric(
+                      //       horizontal: 12,
+                      //       vertical: 6,
+                      //     ),
+                      //     decoration: BoxDecoration(
+                      //       color: const Color.fromARGB(255, 255, 60, 60),
+                      //       borderRadius: BorderRadius.circular(16),
+                      //     ),
+                      //     child: Text(
+                      //       '\$${post.price!.toStringAsFixed(0)}',
+                      //       style: const TextStyle(
+                      //         color: Colors.white,
+                      //         fontSize: 14,
+                      //         fontWeight: FontWeight.w600,
+                      //       ),
+                      //     ),
+                      //   ),
                     ],
                   ),
 
@@ -622,7 +622,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Artwork Title
                   Text(
-                    post.artworkTitle,
+                    post.title,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -631,10 +631,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   // Description (if available)
-                  if (post.artworkDescription != null) ...[
+                  if (post.description.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      post.artworkDescription!,
+                      post.description,
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF6B7280),
@@ -676,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Likes and Comments Count
                   Text(
-                    '${postProvider.formatLikes(post.likesCount)} Likes • ${post.commentsCount} Comments',
+                    '${post.likes} Likes • ${post.comments} Comments',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF9E9E9E),

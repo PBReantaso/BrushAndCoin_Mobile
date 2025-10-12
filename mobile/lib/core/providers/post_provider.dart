@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../models/post_model.dart';
+import '../../shared/types/post.dart';
 import '../services/api_service.dart';
 
 class PostProvider extends ChangeNotifier {
@@ -69,20 +69,17 @@ class PostProvider extends ChangeNotifier {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         userId: 'current_user', // Mock current user ID
         userName: 'You', // Mock current user name
-        userAvatar: null,
-        artworkTitle: artworkTitle,
-        artworkDescription: artworkDescription,
-        artworkImageUrl: imageUrl,
+        userAvatar: '', // Empty string for no avatar
+        title: artworkTitle,
+        description: artworkDescription ?? '',
+        imageUrl: imageUrl,
         tags: tags ?? [],
-        likesCount: 0,
-        commentsCount: 0,
+        likes: 0,
+        comments: 0,
         isLiked: false,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        location: location,
-        price: price,
-        isForSale: isForSale,
-        category: category,
+        category: category ?? 'General',
       );
 
       // Add to local list
@@ -106,13 +103,24 @@ class PostProvider extends ChangeNotifier {
 
       final post = _posts[postIndex];
       final newIsLiked = !post.isLiked;
-      final newLikesCount =
-          newIsLiked ? post.likesCount + 1 : post.likesCount - 1;
+      final newLikesCount = newIsLiked ? post.likes + 1 : post.likes - 1;
 
       // Update local state immediately for better UX
-      _posts[postIndex] = post.copyWith(
+      _posts[postIndex] = Post(
+        id: post.id,
+        userId: post.userId,
+        userName: post.userName,
+        userAvatar: post.userAvatar,
+        title: post.title,
+        description: post.description,
+        imageUrl: post.imageUrl,
+        tags: post.tags,
+        likes: newLikesCount,
+        comments: post.comments,
         isLiked: newIsLiked,
-        likesCount: newLikesCount,
+        createdAt: post.createdAt,
+        updatedAt: DateTime.now(),
+        category: post.category,
       );
       notifyListeners();
 
@@ -146,8 +154,21 @@ class PostProvider extends ChangeNotifier {
     final postIndex = _posts.indexWhere((post) => post.id == postId);
     if (postIndex != -1) {
       final post = _posts[postIndex];
-      _posts[postIndex] = post.copyWith(
-        commentsCount: _postComments[postId]!.length,
+      _posts[postIndex] = Post(
+        id: post.id,
+        userId: post.userId,
+        userName: post.userName,
+        userAvatar: post.userAvatar,
+        title: post.title,
+        description: post.description,
+        imageUrl: post.imageUrl,
+        tags: post.tags,
+        likes: post.likes,
+        comments: _postComments[postId]!.length,
+        isLiked: post.isLiked,
+        createdAt: post.createdAt,
+        updatedAt: DateTime.now(),
+        category: post.category,
       );
       notifyListeners();
     }
@@ -194,8 +215,21 @@ class PostProvider extends ChangeNotifier {
     for (int i = 0; i < _posts.length; i++) {
       final post = _posts[i];
       final comments = getCommentsForPost(post.id);
-      _posts[i] = post.copyWith(
-        commentsCount: comments.length,
+      _posts[i] = Post(
+        id: post.id,
+        userId: post.userId,
+        userName: post.userName,
+        userAvatar: post.userAvatar,
+        title: post.title,
+        description: post.description,
+        imageUrl: post.imageUrl,
+        tags: post.tags,
+        likes: post.likes,
+        comments: comments.length,
+        isLiked: post.isLiked,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        category: post.category,
       );
     }
     notifyListeners();
@@ -282,9 +316,8 @@ class PostProvider extends ChangeNotifier {
 
     final lowercaseQuery = query.toLowerCase();
     return _posts.where((post) {
-      return post.artworkTitle.toLowerCase().contains(lowercaseQuery) ||
-          post.artworkDescription?.toLowerCase().contains(lowercaseQuery) ==
-              true ||
+      return post.title.toLowerCase().contains(lowercaseQuery) ||
+          post.description.toLowerCase().contains(lowercaseQuery) ||
           post.userName.toLowerCase().contains(lowercaseQuery) ||
           post.tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery));
     }).toList();
@@ -340,19 +373,16 @@ class PostProvider extends ChangeNotifier {
         userId: 'user1',
         userName: 'Alice Johnson',
         userAvatar: 'https://i.pravatar.cc/150?img=1',
-        artworkTitle: 'Digital Sunset',
-        artworkDescription:
+        title: 'Digital Sunset',
+        description:
             'A beautiful digital painting of a sunset over the mountains.',
-        artworkImageUrl: 'https://picsum.photos/400/300?random=1',
+        imageUrl: 'https://picsum.photos/400/300?random=1',
         tags: ['digital', 'sunset', 'landscape'],
-        likesCount: 1523,
-        commentsCount: 3,
+        likes: 1523,
+        comments: 3,
         isLiked: false,
         createdAt: DateTime.now().subtract(const Duration(hours: 2)),
         updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
-        location: 'New York, NY',
-        price: 150.0,
-        isForSale: true,
         category: 'Digital Art',
       ),
       Post(
@@ -360,19 +390,15 @@ class PostProvider extends ChangeNotifier {
         userId: 'user2',
         userName: 'Bob Smith',
         userAvatar: 'https://i.pravatar.cc/150?img=2',
-        artworkTitle: 'Abstract Dreams',
-        artworkDescription:
-            'An abstract piece exploring the depths of imagination.',
-        artworkImageUrl: 'https://picsum.photos/400/300?random=2',
+        title: 'Abstract Dreams',
+        description: 'An abstract piece exploring the depths of imagination.',
+        imageUrl: 'https://picsum.photos/400/300?random=2',
         tags: ['abstract', 'colorful', 'modern'],
-        likesCount: 892,
-        commentsCount: 7,
+        likes: 892,
+        comments: 7,
         isLiked: true,
         createdAt: DateTime.now().subtract(const Duration(hours: 5)),
         updatedAt: DateTime.now().subtract(const Duration(hours: 5)),
-        location: 'Los Angeles, CA',
-        price: 200.0,
-        isForSale: true,
         category: 'Abstract Art',
       ),
       Post(
@@ -380,18 +406,15 @@ class PostProvider extends ChangeNotifier {
         userId: 'user3',
         userName: 'Carol Davis',
         userAvatar: 'https://i.pravatar.cc/150?img=3',
-        artworkTitle: 'Portrait Study',
-        artworkDescription: 'A detailed portrait study in oil paints.',
-        artworkImageUrl: 'https://picsum.photos/400/300?random=3',
+        title: 'Portrait Study',
+        description: 'A detailed portrait study in oil paints.',
+        imageUrl: 'https://picsum.photos/400/300?random=3',
         tags: ['portrait', 'oil', 'traditional'],
-        likesCount: 2341,
-        commentsCount: 12,
+        likes: 2341,
+        comments: 12,
         isLiked: false,
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
         updatedAt: DateTime.now().subtract(const Duration(days: 1)),
-        location: 'Chicago, IL',
-        price: 300.0,
-        isForSale: true,
         category: 'Portrait',
       ),
       Post(
@@ -399,18 +422,15 @@ class PostProvider extends ChangeNotifier {
         userId: 'user4',
         userName: 'David Wilson',
         userAvatar: 'https://i.pravatar.cc/150?img=4',
-        artworkTitle: 'Urban Sketch',
-        artworkDescription: 'Quick sketch of downtown city life.',
-        artworkImageUrl: 'https://picsum.photos/400/300?random=4',
+        title: 'Urban Sketch',
+        description: 'Quick sketch of downtown city life.',
+        imageUrl: 'https://picsum.photos/400/300?random=4',
         tags: ['sketch', 'urban', 'pen'],
-        likesCount: 567,
-        commentsCount: 5,
+        likes: 567,
+        comments: 5,
         isLiked: false,
         createdAt: DateTime.now().subtract(const Duration(days: 2)),
         updatedAt: DateTime.now().subtract(const Duration(days: 2)),
-        location: 'Seattle, WA',
-        price: 75.0,
-        isForSale: true,
         category: 'Sketch',
       ),
       Post(
@@ -418,18 +438,15 @@ class PostProvider extends ChangeNotifier {
         userId: 'user5',
         userName: 'Emma Brown',
         userAvatar: 'https://i.pravatar.cc/150?img=5',
-        artworkTitle: 'Nature\'s Palette',
-        artworkDescription: 'Watercolor painting inspired by autumn colors.',
-        artworkImageUrl: 'https://picsum.photos/400/300?random=5',
+        title: 'Nature\'s Palette',
+        description: 'Watercolor painting inspired by autumn colors.',
+        imageUrl: 'https://picsum.photos/400/300?random=5',
         tags: ['watercolor', 'nature', 'autumn'],
-        likesCount: 1234,
-        commentsCount: 9,
+        likes: 1234,
+        comments: 9,
         isLiked: true,
         createdAt: DateTime.now().subtract(const Duration(days: 3)),
         updatedAt: DateTime.now().subtract(const Duration(days: 3)),
-        location: 'Portland, OR',
-        price: 120.0,
-        isForSale: true,
         category: 'Watercolor',
       ),
     ];
@@ -440,8 +457,21 @@ class PostProvider extends ChangeNotifier {
       _initializeCommentsForPost(post.id);
       // Update the post's comment count to match the actual comments
       final commentCount = _postComments[post.id]!.length;
-      _posts[i] = post.copyWith(
-        commentsCount: commentCount,
+      _posts[i] = Post(
+        id: post.id,
+        userId: post.userId,
+        userName: post.userName,
+        userAvatar: post.userAvatar,
+        title: post.title,
+        description: post.description,
+        imageUrl: post.imageUrl,
+        tags: post.tags,
+        likes: post.likes,
+        comments: commentCount,
+        isLiked: post.isLiked,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        category: post.category,
       );
     }
   }

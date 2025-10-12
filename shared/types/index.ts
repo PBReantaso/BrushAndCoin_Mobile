@@ -6,3 +6,4 @@ export * from './payment';
 export * from './messaging';
 export * from './event';
 export * from './api';
+export * from './post';

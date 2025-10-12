@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/providers/post_provider.dart';
-import '../../../core/models/post_model.dart';
+import '../../../shared/types/post.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -854,7 +854,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: post.artworkImageUrl == 'no_image_placeholder'
+                  child: post.imageUrl == 'no_image_placeholder'
                       ? Container(
                           color: const Color(0xFFF0F0F0),
                           child: const Center(
@@ -880,7 +880,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         )
                       : CachedNetworkImage(
-                          imageUrl: post.artworkImageUrl,
+                          imageUrl: post.imageUrl,
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
                             color: const Color(0xFFF0F0F0),
