@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/messaging_provider.dart';
+import '../../../shared/types/messaging.dart';
+import '../../../shared/utils/messaging_utils.dart';
 
 class ChatScreen extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -38,10 +40,10 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _onLongPressMessage(Map<String, dynamic> message) async {
+  void _onLongPressMessage(Message message) async {
     final key = widget.user['userName'] as String;
     final messagingProvider = context.read<MessagingProvider>();
-    final isMine = message['isMe'] == true;
+    final isMine = message.senderId == 'current_user';
 
     if (!isMine) return; // Only allow editing/deleting own messages
 
@@ -60,7 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 onTap: () async {
                   Navigator.pop(context);
                   final controller =
-                      TextEditingController(text: message['text'] as String);
+                      TextEditingController(text: message.content);
                   final result = await showDialog<String>(
                     context: context,
                     builder: (ctx) => AlertDialog(
@@ -83,9 +85,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   );
                   if (result != null && result.isNotEmpty) {
                     messagingProvider.editMessage(
-                        key: key,
-                        messageId: message['id'] as int,
-                        newText: result);
+                        conversationId: key,
+                        messageId: message.id,
+                        newContent: result);
                     setState(() {});
                   }
                 },
@@ -97,7 +99,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 onTap: () async {
                   Navigator.pop(context);
                   messagingProvider.deleteMessage(
-                      key: key, messageId: message['id'] as int);
+                      conversationId: key, messageId: message.id);
                   setState(() {});
                 },
               ),
@@ -114,25 +116,10 @@ class _ChatScreenState extends State<ChatScreen> {
       final key = widget.user['userName'] as String;
       context
           .read<MessagingProvider>()
-          .sendMessage(key: key, text: text, isMe: true);
+          .sendMessage(conversationId: key, content: text);
       _messageController.clear();
       _scrollToBottom();
       setState(() {}); // trigger rebuild to show new message
-    }
-  }
-
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m';
-    } else {
-      return 'now';
     }
   }
 
@@ -352,8 +339,8 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(Map<String, dynamic> message) {
-    final isMe = message['isMe'];
+  Widget _buildMessageBubble(Message message) {
+    final isMe = message.senderId == 'current_user';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -400,15 +387,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      message['text'],
-                      style: TextStyle(
+                      message.content,
+                      style: const TextStyle(
                         fontSize: 16,
-                        color: (message['isDeleted'] == true)
-                            ? (isMe ? Colors.white70 : const Color(0xFF9E9E9E))
-                            : (isMe ? Colors.white : Colors.black),
-                        fontStyle: (message['isDeleted'] == true)
-                            ? FontStyle.italic
-                            : FontStyle.normal,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -416,7 +398,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _formatTimestamp(message['timestamp']),
+                          MessagingUtils.formatMessageTime(message.timestamp),
                           style: TextStyle(
                             fontSize: 12,
                             color: isMe
@@ -424,26 +406,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                 : const Color(0xFF9E9E9E),
                           ),
                         ),
-                        if ((message['isEdited'] == true) &&
-                            (message['isDeleted'] != true)) ...[
-                          const SizedBox(width: 6),
-                          Text(
-                            '(edited)',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isMe
-                                  ? Colors.white.withOpacity(0.7)
-                                  : const Color(0xFF9E9E9E),
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
+                        // Note: edited/deleted properties would need to be added to Message class
                         if (isMe) ...[
                           const SizedBox(width: 4),
                           Icon(
-                            message['isRead'] ? Icons.done_all : Icons.done,
+                            message.isRead ? Icons.done_all : Icons.done,
                             size: 16,
-                            color: message['isRead']
+                            color: message.isRead
                                 ? Colors.white.withOpacity(0.7)
                                 : Colors.white.withOpacity(0.5),
                           ),

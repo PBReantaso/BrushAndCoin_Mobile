@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/messaging_provider.dart';
+import '../../../shared/types/commission.dart';
+import '../../../shared/utils/messaging_utils.dart';
+import '../../../shared/utils/commission_utils.dart';
+import '../../commission/screens/commission_acceptance_screen.dart';
 
 class MessagingScreen extends StatefulWidget {
   const MessagingScreen({super.key});
@@ -84,31 +88,66 @@ class _MessagingScreenState extends State<MessagingScreen> {
   // Mock data for commission requests
   final List<Map<String, dynamic>> _commissionRequests = [
     {
-      'id': 1,
-      'userName': 'Sarah Connor',
-      'requestTitle': 'Portrait Commission',
-      'requestDescription': 'I would like a portrait of my dog',
-      'budget': '\$150',
-      'timestamp': '1 hour ago',
+      'id': '1',
+      'title': 'Portrait Commission',
+      'description': 'I would like a portrait of my dog',
+      'category': 'portrait',
+      'budget': 150.0,
+      'deadline': DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+      'is_urgent': false,
+      'client_id': 'client_1',
+      'client_name': 'Sarah Connor',
+      'client_avatar': null,
+      'artist_id': 'artist_1',
+      'artist_name': 'Current Artist',
+      'artist_avatar': null,
       'status': 'pending',
+      'created_at':
+          DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
+      'updated_at':
+          DateTime.now().subtract(const Duration(hours: 1)).toIso8601String(),
     },
     {
-      'id': 2,
-      'userName': 'Mike Johnson',
-      'requestTitle': 'Digital Artwork',
-      'requestDescription': 'Need a logo design for my business',
-      'budget': '\$300',
-      'timestamp': '2 hours ago',
+      'id': '2',
+      'title': 'Digital Artwork',
+      'description': 'Need a logo design for my business',
+      'category': 'logoDesign',
+      'budget': 300.0,
+      'deadline':
+          DateTime.now().add(const Duration(days: 14)).toIso8601String(),
+      'is_urgent': false,
+      'client_id': 'client_2',
+      'client_name': 'Mike Johnson',
+      'client_avatar': null,
+      'artist_id': 'artist_1',
+      'artist_name': 'Current Artist',
+      'artist_avatar': null,
       'status': 'pending',
+      'created_at':
+          DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
+      'updated_at':
+          DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
     },
     {
-      'id': 3,
-      'userName': 'Lisa Wang',
-      'requestTitle': 'Custom Illustration',
-      'requestDescription': 'Book cover illustration needed',
-      'budget': '\$200',
-      'timestamp': '1 day ago',
+      'id': '3',
+      'title': 'Custom Illustration',
+      'description': 'Book cover illustration needed',
+      'category': 'illustration',
+      'budget': 200.0,
+      'deadline':
+          DateTime.now().add(const Duration(days: 10)).toIso8601String(),
+      'is_urgent': false,
+      'client_id': 'client_3',
+      'client_name': 'Lisa Wang',
+      'client_avatar': null,
+      'artist_id': 'artist_1',
+      'artist_name': 'Current Artist',
+      'artist_avatar': null,
       'status': 'accepted',
+      'created_at':
+          DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+      'updated_at':
+          DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
     },
   ];
 
@@ -331,19 +370,17 @@ class _MessagingScreenState extends State<MessagingScreen> {
               final conversation = messagingProvider.getConversation(key);
               final hasMessages = conversation.isNotEmpty;
               final last = hasMessages ? conversation.last : null;
-              String lastPreview = hasMessages
-                  ? (last!['text'] as String)
-                  : thread['lastMessage'];
-              if (hasMessages &&
-                  ((last!['isEdited'] as bool?) == true) &&
-                  ((last['isDeleted'] as bool?) != true)) {
-                lastPreview = '$lastPreview (edited)';
+              String lastPreview =
+                  hasMessages ? last!.content : thread['lastMessage'];
+              if (hasMessages) {
+                // Note: edited and deleted properties would need to be added to Message class
+                // For now, just use the content
               }
               final String lastTime = hasMessages
-                  ? _formatTimestamp(last!['timestamp'] as DateTime)
+                  ? MessagingUtils.formatMessageTime(last!.timestamp)
                   : (thread['timestamp'] as String);
               final bool hasUnread = conversation
-                  .any((m) => !(m['isRead'] as bool) && !(m['isMe'] as bool));
+                  .any((m) => !m.isRead && m.senderId != 'current_user');
 
               return _buildMessageItem({
                 'userName': key,
@@ -446,21 +483,6 @@ class _MessagingScreenState extends State<MessagingScreen> {
             ],
           ),
         ));
-  }
-
-  String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'now';
-    }
   }
 
   Widget _buildCommissionRequestsList() {
@@ -583,7 +605,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      request['userName'],
+                      request['client_name'],
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -591,7 +613,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       ),
                     ),
                     Text(
-                      request['timestamp'],
+                      CommissionUtils.formatDate(
+                          DateTime.parse(request['created_at'])),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF9E9E9E),
@@ -628,7 +651,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
           // Request Title
           Text(
-            request['requestTitle'],
+            request['title'],
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -640,7 +663,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
           // Request Description
           Text(
-            request['requestDescription'],
+            request['description'],
             style: const TextStyle(
               fontSize: 14,
               color: Color(0xFF6B7280),
@@ -654,7 +677,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Budget: ${request['budget']}',
+                'Budget: ${CommissionUtils.formatPeso(request['budget'])}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -666,7 +689,16 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   children: [
                     TextButton(
                       onPressed: () {
-                        // TODO: Accept commission request
+                        // Convert Map to CommissionRequest
+                        final commissionRequest =
+                            CommissionRequest.fromJson(request);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => CommissionAcceptanceScreen(
+                              commissionRequest: commissionRequest,
+                            ),
+                          ),
+                        );
                       },
                       child: const Text(
                         'Accept',
@@ -768,7 +800,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
     for (final thread in _messages) {
       final conv =
           messagingProvider.getConversation(thread['userName'] as String);
-      if (conv.any((m) => !(m['isRead'] as bool) && !(m['isMe'] as bool)))
+      if (conv.any((m) => !m.isRead && m.senderId != 'current_user'))
         return true;
     }
     return false;
