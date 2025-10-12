@@ -65,3 +65,4 @@ export default function MobileLayout({ children, currentPage = 'home' }: MobileL
     </div>
   )
 }
+

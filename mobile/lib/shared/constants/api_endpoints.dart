@@ -100,3 +100,4 @@ class Upload {
   static const String file = '/upload/file';
   static const String avatar = '/upload/avatar';
 }
+
