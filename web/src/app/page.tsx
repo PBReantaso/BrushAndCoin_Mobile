@@ -9,5 +9,6 @@ export default async function HomePage() {
     redirect('/auth/login')
   }
   
-  redirect('/dashboard')
+  // Redirect to the home feed (matching Flutter app)
+  redirect('/home')
 }

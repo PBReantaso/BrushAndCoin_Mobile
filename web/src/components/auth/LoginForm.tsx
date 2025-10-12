@@ -22,6 +22,7 @@ const loginSchema = z.object({
     .string()
     .min(1, VALIDATION_RULES.PASSWORD.REQUIRED)
     .min(VALIDATION_RULES.PASSWORD.MIN_LENGTH, VALIDATION_RULES.PASSWORD.MIN_LENGTH_MSG),
+  rememberMe: z.boolean().optional(),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
@@ -44,7 +45,16 @@ export default function LoginForm() {
       const result = await dispatch(loginUser(data)).unwrap()
       if (result) {
         toast.success('Login successful!')
-        router.push('/dashboard')
+        
+        // Set remember me cookie if checked
+        if (data.rememberMe) {
+          document.cookie = 'remember_me_token=dev-remember-token; path=/; max-age=2592000' // 30 days
+        } else {
+          // Clear remember me cookie if not checked
+          document.cookie = 'remember_me_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        }
+        
+        router.push('/home')
       }
     } catch (error: any) {
       toast.error(error || 'Login failed. Please try again.')
@@ -111,8 +121,8 @@ export default function LoginForm() {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <input
+            {...register('rememberMe')}
             id="remember-me"
-            name="remember-me"
             type="checkbox"
             className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
           />

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
+import '../../../core/providers/auth_provider.dart';
+import '../../../core/services/storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -82,9 +85,9 @@ class _SplashScreenState extends State<SplashScreen>
     // Start animations
     _startAnimations();
 
-    // Navigate to login after delay
+    // Check authentication and navigate after delay
     Timer(const Duration(seconds: 3), () {
-      _navigateToLogin();
+      _checkAuthenticationAndNavigate();
     });
   }
 
@@ -99,12 +102,29 @@ class _SplashScreenState extends State<SplashScreen>
     _fadeController.forward();
   }
 
-  void _navigateToLogin() {
+  Future<void> _checkAuthenticationAndNavigate() async {
     // Restore system UI before navigating (mobile only)
     if (!kIsWeb) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
-    Navigator.of(context).pushReplacementNamed('/login');
+
+    try {
+      // Check if user has a valid remember me token
+      final rememberMeToken =
+          await StorageService.getString('remember_me_token');
+      final authToken = await StorageService.getString('auth_token');
+
+      if (rememberMeToken != null && authToken != null) {
+        // User has remember me token, navigate to home
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else {
+        // No remember me token, navigate to login
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+    } catch (e) {
+      // If there's any error, default to login screen
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
   }
 
   @override
