@@ -4,15 +4,15 @@ class DatabaseConfig {
   static const Map<String, dynamic> _configs = {
     'development': {
       'host': 'localhost',
-      'port': 5432,
-      'database': 'brushandcoin_dev',
+      'port': 5433,
+      'database': 'BCDB',
       'username': 'postgres',
-      'password': 'password',
+      'password': 'BoboyAdmin_2025',
       'ssl': false,
     },
     'staging': {
       'host': 'staging-db.brushandcoin.com',
-      'port': 5432,
+      'port': 5433,
       'database': 'brushandcoin_staging',
       'username': 'staging_user',
       'password': 'staging_password',
@@ -20,7 +20,7 @@ class DatabaseConfig {
     },
     'production': {
       'host': 'prod-db.brushandcoin.com',
-      'port': 5432,
+      'port': 5433,
       'database': 'brushandcoin_prod',
       'username': 'prod_user',
       'password': 'prod_password',
