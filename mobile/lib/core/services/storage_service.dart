@@ -173,4 +173,17 @@ class StorageService {
       await saveLanguage(data['language']);
     }
   }
+
+  // Generic Storage Methods (for splash screen and other components)
+  static Future<void> setString(String key, String value) async {
+    await _prefs.setString(key, value);
+  }
+
+  static String? getString(String key) {
+    return _prefs.getString(key);
+  }
+
+  static Future<void> remove(String key) async {
+    await _prefs.remove(key);
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/services/storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,10 +26,36 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    // For testing: bypass authentication and go straight to home
-    if (mounted) {
-      // Navigate to home screen immediately
-      Navigator.of(context).pushReplacementNamed('/home');
+    if (_formKey.currentState!.validate()) {
+      try {
+        // Simulate API call for authentication
+        await Future.delayed(const Duration(seconds: 1));
+
+        // Store authentication tokens
+        await StorageService.setString('auth_token', 'mock-auth-token');
+
+        // Store remember me token if checked
+        if (_rememberMe) {
+          await StorageService.setString(
+              'remember_me_token', 'mock-remember-token');
+        } else {
+          // Clear remember me token if not checked
+          await StorageService.remove('remember_me_token');
+        }
+
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login failed: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 

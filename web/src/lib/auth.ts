@@ -2,18 +2,43 @@ import { cookies } from 'next/headers'
 import { User } from '@/shared/types'
 
 export async function auth(): Promise<User | null> {
+  // Check for remember me token first
   const cookieStore = cookies()
-  const token = cookieStore.get('auth_token')?.value
+  const rememberMeToken = cookieStore.get('remember_me_token')?.value
+  const authToken = cookieStore.get('auth_token')?.value
   
-  if (!token) {
+  // If no remember me token and no auth token, user is not authenticated
+  if (!rememberMeToken && !authToken) {
     return null
   }
-  
+
+  // Development mode - check if user has valid session
+  if (process.env.NODE_ENV === 'development') {
+    // Only return mock user if there's a remember me token
+    if (rememberMeToken === 'dev-remember-token') {
+      return {
+        id: 'dev-user-1',
+        email: 'dev@brushandcoin.com',
+        fullName: 'Development User',
+        firstName: 'Development',
+        lastName: 'User',
+        username: 'devuser',
+        userType: 'artist',
+        profileImage: 'https://i.pravatar.cc/150?img=10',
+        isVerified: true,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }
+    return null
+  }
+
   try {
     // Verify token with your API
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${authToken}`,
       },
     })
     
