@@ -1,12 +1,16 @@
+import 'dart:io' show Platform;
+
 class Environment {
-  // API Configuration
-  static const String apiBaseUrl = 'postgresql://postgres:BoboyAdmin_2025@localhost:5433/BCDB/api/v1';
-  static const String wsUrl = 'postgresql://postgres:BoboyAdmin_2025@localhost:5433/BCDB/ws';
+  // API Configuration (HTTP endpoints for client)
+  // Production API should be an HTTP(S) endpoint (not a postgres:// URI)
+  static const String apiBaseUrl = 'https://api.brushandcoin.com/api/v1';
+  static const String wsUrl = 'wss://api.brushandcoin.com/ws';
   static const String imageBaseUrl = 'https://cdn.brushandcoin.com';
   
   // Development API (for testing)
-  static const String devApiBaseUrl = 'https://dev-api.brushandcoin.com/api/v1';
-  static const String devWsUrl = 'wss://dev-api.brushandcoin.com/ws';
+  // Development API: local HTTP server or PostgREST running on port 3000
+  static const String devApiBaseUrl = 'http://localhost:3000/api/v1';
+  static const String devWsUrl = 'ws://localhost:3000/ws';
   
   // Payment Gateway Configuration
   static const String stripePublishableKey = 'pk_test_your_stripe_publishable_key';
@@ -103,8 +107,27 @@ class Environment {
   static bool get isProduction => const bool.fromEnvironment('dart.vm.product') == true;
   
   // Dynamic Configuration
-  static String get currentApiBaseUrl => isDevelopment ? devApiBaseUrl : apiBaseUrl;
-  static String get currentWsUrl => isDevelopment ? devWsUrl : wsUrl;
+  // When running on Android emulator, the host machine's localhost is accessible
+  // at 10.0.2.2. Use that mapping automatically in development.
+  static String get currentApiBaseUrl {
+    if (isDevelopment) {
+      try {
+        if (Platform.isAndroid) return 'http://10.0.2.2:3000/api/v1';
+      } catch (_) {}
+      return devApiBaseUrl;
+    }
+    return apiBaseUrl;
+  }
+
+  static String get currentWsUrl {
+    if (isDevelopment) {
+      try {
+        if (Platform.isAndroid) return 'ws://10.0.2.2:3000/ws';
+      } catch (_) {}
+      return devWsUrl;
+    }
+    return wsUrl;
+  }
   
   // API Endpoints
   static const String authEndpoint = '/auth';

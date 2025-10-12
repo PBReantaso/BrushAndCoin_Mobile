@@ -1,17 +1,17 @@
 import 'package:dio/dio.dart';
 
+import '../config/env.dart';
+
 /// PostgreSQL service for handling database operations
 /// This service communicates with a backend API that uses PostgreSQL
 class PostgreSQLService {
   static late Dio _dio;
-  static const String _baseUrl =
-      'https://api.brushandcoin.com'; // Replace with your actual API URL
-  static const String _apiVersion = '/api/v1';
+  static final String _baseUrl = Environment.currentApiBaseUrl;
   static const String _dbEndpoint = '/db';
 
   static Future<void> init() async {
     _dio = Dio(BaseOptions(
-      baseUrl: _baseUrl + _apiVersion + _dbEndpoint,
+  baseUrl: _baseUrl + _dbEndpoint,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {

@@ -1,11 +1,14 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/env.dart';
+
 class ApiService {
   static late Dio _dio;
-  static const String _baseUrl = 'https://api.brushandcoin.com'; // Replace with your actual API URL
-  static const String _apiVersion = '/api/v1';
+  static final String _baseUrl = Environment.currentApiBaseUrl;
+  static const String _apiVersion = ''; // api version is included in Environment.currentApiBaseUrl
   
   // API Endpoints
   static const String _auth = '/auth';
@@ -239,11 +242,6 @@ class ApiService {
   }
   
   // Helper methods
-  static Future<void> _saveAuthToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
-  }
-  
   static Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');

@@ -6,11 +6,16 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: BoboyAdmin_2025
       POSTGRES_DB: BCDB
+    # map host port 5433 -> container port 5432 (Postgres default)
     ports:
-      - "5433:5433"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   pgadmin:
     image: dpage/pgadmin4
     restart: always
@@ -19,14 +24,14 @@ services:
       PGADMIN_DEFAULT_PASSWORD: BoboyAdmin_2025
     depends_on:
       - postgres
-
   postgrest:
     image: postgrest/postgrest
     restart: always
     ports:
       - "3000:3000"
     environment:
-      PGRST_DB_URI: postgres://postgres:BoboyAdmin_2025@postgres:5433/BCDB
+      # Connect to the Postgres container's internal port (5432)
+      PGRST_DB_URI: postgres://postgres:BoboyAdmin_2025@postgres:5432/BCDB
       PGRST_DB_SCHEMA: public
       PGRST_DB_ANON_ROLE: postgres
       PGRST_SERVER_PROXY_URI: http://localhost:3000
