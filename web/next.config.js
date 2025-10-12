@@ -1,29 +1,49 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    domains: ['api.brushandcoin.com', 'dev-api.brushandcoin.com', 'cdn.brushandcoin.com'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
-  },
+  reactStrictMode: true,
+  swcMinify: true,
+  
+  // Environment variables for the client
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.brushandcoin.com/api/v1',
-    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'wss://api.brushandcoin.com/ws',
-    NEXT_PUBLIC_STRIPE_KEY: process.env.NEXT_PUBLIC_STRIPE_KEY,
-    NEXT_PUBLIC_PAYPAL_CLIENT_ID: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws',
+    NEXT_PUBLIC_APP_NAME: 'Brush&Coin',
+    NEXT_PUBLIC_APP_VERSION: '1.0.0',
   },
+
+  // API routes for server-side operations
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.brushandcoin.com/api/v1';
     return [
       {
         source: '/api/:path*',
-        destination: `${apiUrl}/:path*`,
+        destination: 'http://localhost:3001/api/:path*', // Proxy to backend API
       },
-    ];
+    ]
   },
-};
 
-module.exports = nextConfig;
+  // Image optimization
+  images: {
+    domains: ['localhost', 'api.brushandcoin.com'],
+    unoptimized: true, // For static exports if needed
+  },
+
+  // Webpack configuration
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      }
+    }
+    return config
+  },
+
+  // Output configuration for deployment
+  output: 'standalone', // For Docker deployment
+  // output: 'export', // For static export (uncomment if needed)
+  // trailingSlash: true, // For static export (uncomment if needed)
+}
+
+module.exports = nextConfig

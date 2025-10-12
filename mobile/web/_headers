@@ -1,0 +1,26 @@
+# Netlify Headers Configuration for Flutter Web App
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(self)
+
+# Cache static assets
+/flutter.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/canvaskit/
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/
+  Cache-Control: public, max-age=31536000, immutable
+
+/icons/
+  Cache-Control: public, max-age=31536000, immutable
+
+# Don't cache HTML files
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
