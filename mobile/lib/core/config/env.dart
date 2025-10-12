@@ -1,7 +1,7 @@
 class Environment {
   // API Configuration
-  static const String apiBaseUrl = 'https://api.brushandcoin.com/api/v1';
-  static const String wsUrl = 'wss://api.brushandcoin.com/ws';
+  static const String apiBaseUrl = 'postgresql://postgres:BoboyAdmin_2025@localhost:5433/BCDB/api/v1';
+  static const String wsUrl = 'postgresql://postgres:BoboyAdmin_2025@localhost:5433/BCDB/ws';
   static const String imageBaseUrl = 'https://cdn.brushandcoin.com';
   
   // Development API (for testing)
