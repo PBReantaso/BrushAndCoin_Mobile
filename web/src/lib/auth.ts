@@ -1,5 +1,5 @@
-import { cookies } from 'next/headers'
 import { User } from '@/shared/types'
+import { cookies } from 'next/headers'
 
 export async function auth(): Promise<User | null> {
   // Check for remember me token first

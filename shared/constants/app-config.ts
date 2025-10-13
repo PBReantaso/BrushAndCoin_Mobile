@@ -5,11 +5,11 @@ export const APP_CONFIG = {
   VERSION: '1.0.0',
   
   // API Configuration
-  API_BASE_URL: (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL) || 'https://api.brushandcoin.com/api/v1',
+  API_BASE_URL: (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL) || 'https://api.brushandcoin.com',
   WS_URL: (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_WS_URL) || 'wss://api.brushandcoin.com/ws',
   
   // Development API
-  DEV_API_BASE_URL: (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_DEV_API_URL) || 'https://dev-api.brushandcoin.com/api/v1',
+  DEV_API_BASE_URL: (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_DEV_API_URL) || 'https://dev-api.brushandcoin.com',
   DEV_WS_URL: (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_DEV_WS_URL) || 'wss://dev-api.brushandcoin.com/ws',
   
   // Payment Gateway Configuration
