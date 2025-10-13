@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/providers/post_provider.dart';
+import '../../../core/utils/system_ui_utils.dart';
+import '../../../core/widgets/rounded_navigation_bar.dart';
 import '../../../shared/types/post.dart';
 import '../../post/screens/create_post_screen.dart';
 
@@ -73,90 +75,99 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Apply red theme to system UI (status bar and navigation bar)
+    SystemUIUtils.applyRedTheme();
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Column(
           children: [
             // App Bar with Logo, Search, and Settings
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  // Logo
-                  const Row(
-                    children: [
-                      Text(
-                        'B',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '&C',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.normal,
-                          color: Color.fromARGB(255, 255, 60, 60),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  // Search Bar
-                  Expanded(
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFFE0E0E0),
-                          width: 1,
-                        ),
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: _onSearchChanged,
-                        decoration: const InputDecoration(
-                          hintText: 'Search artworks...',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF9E9E9E),
-                            fontSize: 14,
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: const BoxDecoration(
+                color: Color.fromARGB(255, 255, 60, 60),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+              ),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    // Logo
+                    const Row(
+                      children: [
+                        Text(
+                          'B',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: Colors.black,
-                            size: 20,
+                        ),
+                        Text(
+                          '&C',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.white,
                           ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    // Search Bar
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: _onSearchChanged,
+                          decoration: const InputDecoration(
+                            hintText: 'Search artworks...',
+                            hintStyle: TextStyle(
+                              color: Color(0xFF9E9E9E),
+                              fontSize: 14,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Color.fromARGB(255, 255, 60, 60),
+                              size: 20,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(width: 16),
+                    const SizedBox(width: 16),
 
-                  // Settings Icon
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/settings');
-                    },
-                    icon: const Icon(
-                      Icons.settings,
-                      color: Colors.black,
-                      size: 24,
+                    // Settings Icon
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/settings');
+                      },
+                      icon: const Icon(
+                        Icons.settings,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -356,34 +367,35 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-      // Bottom Navigation
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFF5F5F5),
-          border: Border(
-            top: BorderSide(
-              color: Color(0xFFE0E0E0),
-              width: 1,
-            ),
-          ),
-        ),
-        child: SafeArea(
-          child: Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.home, 0, isSelected: _selectedIndex == 0),
-                _buildNavItem(Icons.map, 1, isSelected: _selectedIndex == 1),
-                _buildNavItem(Icons.chat_bubble_outline, 2,
-                    isSelected: _selectedIndex == 2),
-                _buildNavItem(Icons.person_outline, 3,
-                    isSelected: _selectedIndex == 3),
-              ],
-            ),
-          ),
-        ),
+      // Bottom Navigation with rounded corners
+      bottomNavigationBar: RoundedNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+          // Navigate to different screens based on index
+          switch (index) {
+            case 0:
+              // Already on home screen
+              break;
+            case 1:
+              Navigator.of(context).pushNamed('/events');
+              break;
+            case 2:
+              Navigator.of(context).pushNamed('/messaging');
+              break;
+            case 3:
+              Navigator.of(context).pushNamed('/profile');
+              break;
+          }
+        },
+        items: const [
+          NavigationItem(icon: Icons.home, label: 'Home'),
+          NavigationItem(icon: Icons.map, label: 'Events'),
+          NavigationItem(icon: Icons.chat_bubble_outline, label: 'Messages'),
+          NavigationItem(icon: Icons.person_outline, label: 'Profile'),
+        ],
       ),
     );
   }
@@ -687,53 +699,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, int index, {required bool isSelected}) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-        // Navigate to different screens based on index
-        switch (index) {
-          case 0:
-            // Already on home screen
-            break;
-          case 1:
-            Navigator.of(context).pushReplacementNamed('/events');
-            break;
-          case 2:
-            Navigator.of(context).pushReplacementNamed('/messaging');
-            break;
-          case 3:
-            Navigator.of(context).pushReplacementNamed('/profile');
-            break;
-        }
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected
-                ? const Color.fromARGB(255, 255, 60, 60)
-                : Colors.black,
-            size: 24,
-          ),
-          if (isSelected)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              width: 4,
-              height: 4,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-            ),
-        ],
       ),
     );
   }

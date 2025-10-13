@@ -1,15 +1,13 @@
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../config/env.dart';
-
 class ApiService {
   static late Dio _dio;
-  static final String _baseUrl = Environment.currentApiBaseUrl;
-  static const String _apiVersion = ''; // api version is included in Environment.currentApiBaseUrl
-  
+  static const String _baseUrl =
+      'https://api.brushandcoin.com'; // Replace with your actual API URL
+  static const String _apiVersion = '/api/v1';
+
   // API Endpoints
   static const String _auth = '/auth';
   static const String _users = '/users';
@@ -19,7 +17,7 @@ class ApiService {
   static const String _messages = '/messages';
   static const String _reviews = '/reviews';
   static const String _events = '/events';
-  
+
   static Future<void> init() async {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl + _apiVersion,
@@ -30,7 +28,7 @@ class ApiService {
         'Accept': 'application/json',
       },
     ));
-    
+
     // Add interceptors for authentication and error handling
     _dio.interceptors.addAll([
       _AuthInterceptor(),
@@ -38,9 +36,10 @@ class ApiService {
       _LoggingInterceptor(),
     ]);
   }
-  
+
   // Authentication
-  static Future<Map<String, dynamic>> login(String email, String password) async {
+  static Future<Map<String, dynamic>> login(
+      String email, String password) async {
     try {
       final response = await _dio.post('$_auth/login', data: {
         'email': email,
@@ -51,8 +50,9 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
-  static Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
+
+  static Future<Map<String, dynamic>> register(
+      Map<String, dynamic> userData) async {
     try {
       final response = await _dio.post('$_auth/register', data: userData);
       return response.data;
@@ -60,7 +60,7 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   static Future<void> logout() async {
     try {
       await _dio.post('$_auth/logout');
@@ -69,7 +69,7 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   // User Management
   static Future<Map<String, dynamic>> getUserProfile(String userId) async {
     try {
@@ -79,8 +79,9 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
-  static Future<Map<String, dynamic>> updateUserProfile(String userId, Map<String, dynamic> data) async {
+
+  static Future<Map<String, dynamic>> updateUserProfile(
+      String userId, Map<String, dynamic> data) async {
     try {
       final response = await _dio.put('$_users/$userId', data: data);
       return response.data;
@@ -88,9 +89,10 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   // Artwork Management
-  static Future<List<Map<String, dynamic>>> getArtworks({Map<String, dynamic>? filters}) async {
+  static Future<List<Map<String, dynamic>>> getArtworks(
+      {Map<String, dynamic>? filters}) async {
     try {
       final response = await _dio.get(_artworks, queryParameters: filters);
       return List<Map<String, dynamic>>.from(response.data['data']);
@@ -98,8 +100,9 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
-  static Future<Map<String, dynamic>> createArtwork(Map<String, dynamic> artworkData) async {
+
+  static Future<Map<String, dynamic>> createArtwork(
+      Map<String, dynamic> artworkData) async {
     try {
       final response = await _dio.post(_artworks, data: artworkData);
       return response.data;
@@ -107,8 +110,9 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
-  static Future<Map<String, dynamic>> updateArtwork(String artworkId, Map<String, dynamic> data) async {
+
+  static Future<Map<String, dynamic>> updateArtwork(
+      String artworkId, Map<String, dynamic> data) async {
     try {
       final response = await _dio.put('$_artworks/$artworkId', data: data);
       return response.data;
@@ -116,7 +120,7 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   static Future<void> deleteArtwork(String artworkId) async {
     try {
       await _dio.delete('$_artworks/$artworkId');
@@ -124,9 +128,10 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   // Commission Management
-  static Future<List<Map<String, dynamic>>> getCommissions({Map<String, dynamic>? filters}) async {
+  static Future<List<Map<String, dynamic>>> getCommissions(
+      {Map<String, dynamic>? filters}) async {
     try {
       final response = await _dio.get(_commissions, queryParameters: filters);
       return List<Map<String, dynamic>>.from(response.data['data']);
@@ -134,8 +139,9 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
-  static Future<Map<String, dynamic>> createCommission(Map<String, dynamic> commissionData) async {
+
+  static Future<Map<String, dynamic>> createCommission(
+      Map<String, dynamic> commissionData) async {
     try {
       final response = await _dio.post(_commissions, data: commissionData);
       return response.data;
@@ -143,18 +149,21 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
-  static Future<Map<String, dynamic>> updateCommissionStatus(String commissionId, String status) async {
+
+  static Future<Map<String, dynamic>> updateCommissionStatus(
+      String commissionId, String status) async {
     try {
-      final response = await _dio.patch('$_commissions/$commissionId/status', data: {'status': status});
+      final response = await _dio.patch('$_commissions/$commissionId/status',
+          data: {'status': status});
       return response.data;
     } catch (e) {
       throw _handleError(e);
     }
   }
-  
+
   // Payment Management
-  static Future<Map<String, dynamic>> createPayment(Map<String, dynamic> paymentData) async {
+  static Future<Map<String, dynamic>> createPayment(
+      Map<String, dynamic> paymentData) async {
     try {
       final response = await _dio.post(_payments, data: paymentData);
       return response.data;
@@ -162,7 +171,7 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   static Future<Map<String, dynamic>> getPaymentStatus(String paymentId) async {
     try {
       final response = await _dio.get('$_payments/$paymentId');
@@ -171,9 +180,10 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   // Messaging
-  static Future<List<Map<String, dynamic>>> getMessages(String conversationId) async {
+  static Future<List<Map<String, dynamic>>> getMessages(
+      String conversationId) async {
     try {
       final response = await _dio.get('$_messages/$conversationId');
       return List<Map<String, dynamic>>.from(response.data['data']);
@@ -181,8 +191,9 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
-  static Future<Map<String, dynamic>> sendMessage(Map<String, dynamic> messageData) async {
+
+  static Future<Map<String, dynamic>> sendMessage(
+      Map<String, dynamic> messageData) async {
     try {
       final response = await _dio.post(_messages, data: messageData);
       return response.data;
@@ -190,7 +201,7 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   // Reviews
   static Future<List<Map<String, dynamic>>> getReviews(String userId) async {
     try {
@@ -200,8 +211,9 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
-  static Future<Map<String, dynamic>> createReview(Map<String, dynamic> reviewData) async {
+
+  static Future<Map<String, dynamic>> createReview(
+      Map<String, dynamic> reviewData) async {
     try {
       final response = await _dio.post(_reviews, data: reviewData);
       return response.data;
@@ -209,9 +221,10 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   // Events
-  static Future<List<Map<String, dynamic>>> getEvents({Map<String, dynamic>? filters}) async {
+  static Future<List<Map<String, dynamic>>> getEvents(
+      {Map<String, dynamic>? filters}) async {
     try {
       final response = await _dio.get(_events, queryParameters: filters);
       return List<Map<String, dynamic>>.from(response.data['data']);
@@ -219,7 +232,7 @@ class ApiService {
       throw _handleError(e);
     }
   }
-  
+
   // File Upload
   static Future<String> uploadImage(File imageFile, String type) async {
     try {
@@ -227,41 +240,43 @@ class ApiService {
         'file': await MultipartFile.fromFile(imageFile.path),
         'type': type,
       });
-      
+
       final response = await _dio.post('/upload/image', data: formData);
       return response.data['url'];
     } catch (e) {
       throw _handleError(e);
     }
   }
-  
+
   // Real-time updates (WebSocket connection)
   static void connectWebSocket(String userId) {
     // Implementation for real-time updates
     // This would connect to your WebSocket server for live updates
   }
-  
+
   // Helper methods
   static Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token');
   }
-  
+
   static Future<void> _clearAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
   }
-  
+
   static Exception _handleError(dynamic error) {
     if (error is DioException) {
       switch (error.type) {
         case DioExceptionType.connectionTimeout:
         case DioExceptionType.sendTimeout:
         case DioExceptionType.receiveTimeout:
-          return Exception('Connection timeout. Please check your internet connection.');
+          return Exception(
+              'Connection timeout. Please check your internet connection.');
         case DioExceptionType.badResponse:
           final statusCode = error.response?.statusCode;
-          final message = error.response?.data['message'] ?? 'Server error occurred';
+          final message =
+              error.response?.data['message'] ?? 'Server error occurred';
           return Exception('Error $statusCode: $message');
         case DioExceptionType.cancel:
           return Exception('Request was cancelled');
@@ -271,12 +286,119 @@ class ApiService {
     }
     return Exception('An unexpected error occurred');
   }
+
+  // Commission Operations
+  static Future<List<Map<String, dynamic>>> getPendingCommissions() async {
+    try {
+      final response = await _dio.get('/commissions/pending');
+      return List<Map<String, dynamic>>.from(response.data['data']);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getUserCommissions(
+      {String? status}) async {
+    try {
+      final queryParams =
+          status != null ? {'status': status} : <String, dynamic>{};
+      final response =
+          await _dio.get('/commissions/user', queryParameters: queryParams);
+      return List<Map<String, dynamic>>.from(response.data['data']);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<Map<String, dynamic>> acceptCommission({
+    required String commissionId,
+    required String paymentMethod,
+    String? message,
+  }) async {
+    try {
+      final response =
+          await _dio.post('/commissions/$commissionId/accept', data: {
+        'payment_method': paymentMethod,
+        'message': message,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<Map<String, dynamic>> declineCommission({
+    required String commissionId,
+    required String reason,
+  }) async {
+    try {
+      final response =
+          await _dio.post('/commissions/$commissionId/decline', data: {
+        'reason': reason,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<Map<String, dynamic>> submitWork({
+    required String commissionId,
+    required String workUrl,
+    String? description,
+  }) async {
+    try {
+      final response =
+          await _dio.post('/commissions/$commissionId/submit', data: {
+        'work_url': workUrl,
+        'description': description,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<Map<String, dynamic>> approveWork(String commissionId) async {
+    try {
+      final response = await _dio.post('/commissions/$commissionId/approve');
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<Map<String, dynamic>> requestRevision({
+    required String commissionId,
+    required String feedback,
+  }) async {
+    try {
+      final response =
+          await _dio.post('/commissions/$commissionId/revision', data: {
+        'feedback': feedback,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  static Future<Map<String, dynamic>> getEscrowStatus(
+      String commissionId) async {
+    try {
+      final response = await _dio.get('/commissions/$commissionId/escrow');
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
 }
 
 // Interceptors
 class _AuthInterceptor extends Interceptor {
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+      RequestOptions options, RequestInterceptorHandler handler) async {
     final token = await ApiService._getAuthToken();
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -302,16 +424,18 @@ class _LoggingInterceptor extends Interceptor {
     print('REQUEST[${options.method}] => PATH: ${options.path}');
     handler.next(options);
   }
-  
+
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    print('RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
+    print(
+        'RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
     handler.next(response);
   }
-  
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    print('ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}');
+    print(
+        'ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}');
     handler.next(err);
   }
 }

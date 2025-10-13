@@ -14,7 +14,6 @@ import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/api_service.dart';
 import 'core/services/storage_service.dart';
-import 'core/providers/theme_provider.dart';
 
 class NoOverscrollBehavior extends ScrollBehavior {
   const NoOverscrollBehavior();
@@ -75,19 +74,14 @@ class BrushAndCoinApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CommissionProvider()),
         ChangeNotifierProvider(create: (_) => PostProvider()),
         ChangeNotifierProvider(create: (_) => MessagingProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) => MaterialApp(
-          title: 'Brush&Coin',
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: themeProvider.mode,
-          initialRoute: AppRouter.initial,
-          onGenerateRoute: AppRouter.onGenerateRoute,
-          debugShowCheckedModeBanner: false,
-          scrollBehavior: const NoOverscrollBehavior(),
-        ),
+      child: MaterialApp(
+        title: 'Brush&Coin',
+        theme: AppTheme.lightTheme,
+        initialRoute: AppRouter.initial,
+        onGenerateRoute: AppRouter.onGenerateRoute,
+        debugShowCheckedModeBanner: false,
+        scrollBehavior: const NoOverscrollBehavior(),
       ),
     );
   }

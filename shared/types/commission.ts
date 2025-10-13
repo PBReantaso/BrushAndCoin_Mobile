@@ -1,73 +1,190 @@
-import { User } from './user';
+// Shared Commission Types for Mobile and Web
+
+export enum CommissionStatus {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  IN_PROGRESS = 'in_progress',
+  AWAITING_APPROVAL = 'awaiting_approval',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  DECLINED = 'declined',
+}
+
+export enum PaymentMethod {
+  GCASH = 'gcash',
+  PAYMAYA = 'paymaya',
+  PAYPAL = 'paypal',
+  STRIPE = 'stripe',
+}
+
+export enum CommissionCategory {
+  DIGITAL_ART = 'digital_art',
+  TRADITIONAL_ART = 'traditional_art',
+  PORTRAIT = 'portrait',
+  CHARACTER_DESIGN = 'character_design',
+  LOGO_DESIGN = 'logo_design',
+  ILLUSTRATION = 'illustration',
+  PHOTOGRAPHY = 'photography',
+  OTHER = 'other',
+}
+
+export interface CommissionRequest {
+  id: string;
+  title: string;
+  description: string;
+  category: CommissionCategory;
+  budget: number;
+  deadline: string; // ISO date string
+  requirements?: string;
+  isUrgent: boolean;
+  referenceImages?: string[]; // URLs to reference images
+  clientId: string;
+  clientName: string;
+  clientAvatar?: string;
+  artistId: string;
+  artistName: string;
+  artistAvatar?: string;
+  status: CommissionStatus;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+}
 
 export interface Commission {
   id: string;
   title: string;
   description: string;
+  category: CommissionCategory;
   budget: number;
-  status: CommissionStatus;
-  client: User;
-  artist: User;
-  startDate: string;
-  deadline: string;
-  milestones: Milestone[];
-  messages: Message[];
-  attachments: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type CommissionStatus = 
-  | 'pending'
-  | 'accepted'
-  | 'in_progress'
-  | 'review'
-  | 'completed'
-  | 'cancelled'
-  | 'disputed';
-
-export interface Milestone {
-  id: string;
-  title: string;
-  description: string;
-  status: 'pending' | 'completed';
-  dueDate: string;
-  completedDate?: string;
-  amount: number;
-}
-
-export interface Message {
-  id: string;
-  senderId: string;
-  content: string;
-  type: 'text' | 'image' | 'file';
-  attachments?: string[];
-  timestamp: string;
-  isRead: boolean;
-}
-
-export interface CommissionCreateRequest {
-  title: string;
-  description: string;
-  budget: number;
+  urgencyFee?: number;
+  platformFee: number;
+  totalAmount: number;
+  deadline: string; // ISO date string
+  requirements?: string;
+  referenceImages?: string[];
+  clientId: string;
+  clientName: string;
+  clientAvatar?: string;
   artistId: string;
-  deadline: string;
-  milestones?: Omit<Milestone, 'id'>[];
+  artistName: string;
+  artistAvatar?: string;
+  status: CommissionStatus;
+  paymentMethod?: PaymentMethod;
+  escrowStatus: EscrowStatus;
+  progress: number; // 0-100
+  latestUpdate?: string;
+  workSubmission?: WorkSubmission;
+  revisions: Revision[];
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
 }
 
-export interface CommissionUpdateRequest {
-  title?: string;
+export enum EscrowStatus {
+  PENDING = 'pending',
+  HELD = 'held',
+  RELEASED = 'released',
+  REFUNDED = 'refunded',
+}
+
+export interface WorkSubmission {
+  id: string;
+  commissionId: string;
+  workUrl: string;
   description?: string;
-  budget?: number;
-  deadline?: string;
-  status?: CommissionStatus;
+  submittedAt: string; // ISO date string
+  status: 'pending' | 'approved' | 'revision_requested';
+}
+
+export interface Revision {
+  id: string;
+  commissionId: string;
+  feedback: string;
+  requestedBy: string; // clientId or artistId
+  requestedAt: string; // ISO date string
+  resolved: boolean;
+  resolvedAt?: string; // ISO date string
+}
+
+export interface EscrowPayment {
+  id: string;
+  commissionId: string;
+  amount: number;
+  currency: string;
+  paymentMethod: PaymentMethod;
+  gatewayTransactionId?: string;
+  status: EscrowStatus;
+  heldAt?: string; // ISO date string
+  releasedAt?: string; // ISO date string
+  refundedAt?: string; // ISO date string
+  createdAt: string; // ISO date string
 }
 
 export interface CommissionFilters {
   status?: CommissionStatus;
-  clientId?: string;
-  artistId?: string;
+  category?: CommissionCategory;
   minBudget?: number;
   maxBudget?: number;
-  search?: string;
+  isUrgent?: boolean;
+  dateFrom?: string; // ISO date string
+  dateTo?: string; // ISO date string
+}
+
+export interface CreateCommissionRequest {
+  title: string;
+  description: string;
+  category: CommissionCategory;
+  budget: number;
+  deadline: string; // ISO date string
+  requirements?: string;
+  isUrgent?: boolean;
+  referenceImages?: File[]; // For upload
+  artistId: string;
+}
+
+export interface AcceptCommissionRequest {
+  commissionId: string;
+  paymentMethod: PaymentMethod;
+  message?: string;
+}
+
+export interface DeclineCommissionRequest {
+  commissionId: string;
+  reason: string;
+}
+
+export interface SubmitWorkRequest {
+  commissionId: string;
+  workUrl: string;
+  description?: string;
+}
+
+export interface ApproveWorkRequest {
+  commissionId: string;
+  feedback?: string;
+}
+
+export interface RequestRevisionRequest {
+  commissionId: string;
+  feedback: string;
+}
+
+// API Response Types
+export interface CommissionResponse {
+  success: boolean;
+  data: Commission;
+  message?: string;
+}
+
+export interface CommissionListResponse {
+  success: boolean;
+  data: Commission[];
+  total: number;
+  page: number;
+  limit: number;
+  message?: string;
+}
+
+export interface EscrowStatusResponse {
+  success: boolean;
+  data: EscrowPayment;
+  message?: string;
 }

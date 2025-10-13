@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/providers/post_provider.dart';
-import '../../../core/models/post_model.dart';
+import '../../../core/utils/system_ui_utils.dart';
+import '../../../shared/types/post.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post post;
@@ -30,6 +31,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     super.initState();
     _loadInitialComments();
     _scrollController.addListener(_onScroll);
+    _commentController.addListener(() {
+      setState(() {}); // Rebuild to update send button color
+    });
   }
 
   @override
@@ -223,463 +227,559 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final postProvider = Provider.of<PostProvider>(context, listen: false);
+    // Apply red theme to system UI (status bar and navigation bar)
+    SystemUIUtils.applyRedTheme();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top Header with Logo, Search, and Settings
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
+        title: const Text(
+          'Post Details',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 255, 60, 60),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              // TODO: Implement share functionality
+            },
+            icon: const Icon(Icons.share, color: Colors.white),
+          ),
+          IconButton(
+            onPressed: _showPostOptions,
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Header with post info
+          _buildHeader(),
+
+          // Content
+          Expanded(
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo
-                  const Row(
-                    children: [
-                      Text(
-                        'B',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        '&C',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.normal,
-                          color: Color.fromARGB(255, 255, 60, 60),
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Post Image
+                  _buildPostImage(),
 
-                  const SizedBox(width: 16),
+                  const SizedBox(height: 16),
 
-                  // Search Bar
-                  Expanded(
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: const Color(0xFFE0E0E0),
-                          width: 1,
-                        ),
-                      ),
-                      child: const TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF9E9E9E),
-                            fontSize: 14,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: Colors.black,
-                            size: 20,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Post Actions
+                  _buildPostActions(),
 
-                  const SizedBox(width: 16),
+                  const SizedBox(height: 24),
 
-                  // Settings Icon
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/settings');
-                    },
-                    icon: const Icon(
-                      Icons.settings,
-                      color: Colors.black,
-                      size: 24,
-                    ),
-                  ),
+                  // Comments Section
+                  _buildCommentsSection(),
+
+                  // Add bottom padding to account for floating comment input
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
 
-            // Navigation Row with Back, Share, and More Options
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  // Back Button
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: Colors.black,
-                      size: 20,
-                    ),
-                  ),
+      // Floating Comment Input
+      bottomNavigationBar: _buildFloatingCommentInput(),
+    );
+  }
 
-                  const Spacer(),
-
-                  // Share Button
-                  IconButton(
-                    onPressed: () {
-                      // TODO: Implement share functionality
-                    },
-                    icon: const Icon(
-                      Icons.share,
-                      color: Colors.black,
-                      size: 24,
-                    ),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // More Options
-                  IconButton(
-                    onPressed: () {
-                      _showPostOptions();
-                    },
-                    icon: const Icon(
-                      Icons.more_vert,
-                      color: Colors.black,
-                      size: 24,
-                    ),
-                  ),
-                ],
+  Widget _buildHeader() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        color: Color.fromARGB(255, 255, 60, 60),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // User Avatar
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: widget.post.userAvatar.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: CachedNetworkImage(
+                          imageUrl: widget.post.userAvatar,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) {
+                            return const Icon(
+                              Icons.person,
+                              color: Color.fromARGB(255, 255, 60, 60),
+                              size: 24,
+                            );
+                          },
+                        ),
+                      )
+                    : const Icon(
+                        Icons.person,
+                        color: Color.fromARGB(255, 255, 60, 60),
+                        size: 24,
+                      ),
               ),
-            ),
-
-            // Post Content
-            Expanded(
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                physics: const ClampingScrollPhysics(),
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Post Title
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Text(
-                        widget.post.artworkTitle,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                    Text(
+                      widget.post.userName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-
-                    // Author Information
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Row(
-                        children: [
-                          // User Avatar
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: const Color(0xFF666666),
-                            backgroundImage: widget.post.userAvatar != null
-                                ? CachedNetworkImageProvider(
-                                    widget.post.userAvatar!)
-                                : null,
-                            child: widget.post.userAvatar == null
-                                ? const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 20,
-                                  )
-                                : null,
-                          ),
-
-                          const SizedBox(width: 12),
-
-                          // User Name
-                          Text(
-                            widget.post.userName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Artwork Image (Large)
-                    Container(
-                      width: double.infinity,
-                      height: 300,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F0F0),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: widget.post.artworkImageUrl ==
-                                'no_image_placeholder'
-                            ? Container(
-                                color: const Color(0xFFF0F0F0),
-                                child: const Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.image_not_supported_outlined,
-                                        size: 60,
-                                        color: Color(0xFFCCCCCC),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        'No image',
-                                        style: TextStyle(
-                                          color: Color(0xFFCCCCCC),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : CachedNetworkImage(
-                                imageUrl: widget.post.artworkImageUrl,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => const Center(
-                                  child: CircularProgressIndicator(
-                                    color: Color.fromARGB(255, 255, 60, 60),
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                    const Center(
-                                  child: Icon(
-                                    Icons.image,
-                                    size: 60,
-                                    color: Color(0xFFCCCCCC),
-                                  ),
-                                ),
-                              ),
-                      ),
-                    ),
-
-                    // Description Section
-                    if (widget.post.artworkDescription != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        child: RichText(
-                          text: TextSpan(
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black,
-                              height: 1.4,
-                            ),
-                            children: [
-                              TextSpan(
-                                text: widget.post.artworkDescription!.length >
-                                        100
-                                    ? '${widget.post.artworkDescription!.substring(0, 100)}...'
-                                    : widget.post.artworkDescription!,
-                              ),
-                              if (widget.post.artworkDescription!.length > 100)
-                                const TextSpan(
-                                  text: ' more',
-                                  style: TextStyle(
-                                    color: Color.fromARGB(255, 255, 60, 60),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    // Like Button
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: () =>
-                                postProvider.toggleLike(widget.post.id),
-                            icon: Icon(
-                              widget.post.isLiked
-                                  ? Icons.thumb_up
-                                  : Icons.thumb_up_outlined,
-                              color: widget.post.isLiked
-                                  ? const Color.fromARGB(255, 255, 60, 60)
-                                  : Colors.black,
-                              size: 24,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Comments Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Comments (${postProvider.getCommentsForPost(widget.post.id).length})',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Comments List
-                          ..._displayedComments
-                              .map((comment) => _buildCommentItem(comment))
-                              .toList(),
-
-                          // Load More Comments Button
-                          if (_displayedComments.length <
-                              postProvider
-                                  .getCommentsForPost(widget.post.id)
-                                  .length)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: Center(
-                                child: _isLoadingMore
-                                    ? const CircularProgressIndicator(
-                                        color: Color.fromARGB(255, 255, 60, 60),
-                                      )
-                                    : TextButton(
-                                        onPressed: _loadMoreComments,
-                                        child: Text(
-                                          'Load More Comments (${postProvider.getCommentsForPost(widget.post.id).length - _displayedComments.length} remaining)',
-                                          style: const TextStyle(
-                                            color: Color.fromARGB(
-                                                255, 255, 60, 60),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                            ),
-
-                          const SizedBox(height: 16),
-
-                          // Add Comment Section
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: const Color(0xFF666666),
-                                child: const Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: TextField(
-                                  controller: _commentController,
-                                  decoration: const InputDecoration(
-                                    hintText: 'Add a comment...',
-                                    hintStyle: TextStyle(
-                                      color: Color(0xFF9E9E9E),
-                                      fontSize: 14,
-                                    ),
-                                    border: InputBorder.none,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  if (_commentController.text
-                                      .trim()
-                                      .isNotEmpty) {
-                                    final newComment = {
-                                      'id': DateTime.now()
-                                          .millisecondsSinceEpoch
-                                          .toString(),
-                                      'userName': 'You',
-                                      'userAvatar': null,
-                                      'comment': _commentController.text.trim(),
-                                      'timestamp': 'Just now',
-                                    };
-
-                                    setState(() {
-                                      _displayedComments.insert(0, newComment);
-                                    });
-
-                                    // Add comment to PostProvider
-                                    postProvider.addComment(
-                                        widget.post.id, newComment);
-
-                                    _commentController.clear();
-                                  }
-                                },
-                                icon: const Icon(
-                                  Icons.send,
-                                  color: Color.fromARGB(255, 255, 60, 60),
-                                  size: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.post.title,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
-        ),
+              // Engagement Stats
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.favorite,
+                      color: Color.fromARGB(255, 255, 60, 60),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${widget.post.likes}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromARGB(255, 255, 60, 60),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${widget.post.likes} likes',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                '${widget.post.comments} comments',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+    );
+  }
 
-      // Bottom Navigation
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFF5F5F5),
-          border: Border(
-            top: BorderSide(
-              color: Color(0xFFE0E0E0),
-              width: 1,
+  Widget _buildPostImage() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: widget.post.imageUrl == 'no_image_placeholder'
+            ? Container(
+                height: 300,
+                color: const Color(0xFFF0F0F0),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.image_not_supported_outlined,
+                        size: 60,
+                        color: Color(0xFFCCCCCC),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'No image',
+                        style: TextStyle(
+                          color: Color(0xFFCCCCCC),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : CachedNetworkImage(
+                imageUrl: widget.post.imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  height: 300,
+                  color: const Color(0xFFF0F0F0),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: Color.fromARGB(255, 255, 60, 60),
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  height: 300,
+                  color: const Color(0xFFF0F0F0),
+                  child: const Center(
+                    child: Icon(
+                      Icons.image,
+                      size: 60,
+                      color: Color(0xFFCCCCCC),
+                    ),
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildPostActions() {
+    final postProvider = Provider.of<PostProvider>(context, listen: false);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.post.description.isNotEmpty) ...[
+            Text(
+              'Description',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              widget.post.description,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF6B7280),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => postProvider.toggleLike(widget.post.id),
+                icon: Icon(
+                  widget.post.isLiked ? Icons.favorite : Icons.favorite_border,
+                  color: widget.post.isLiked
+                      ? const Color.fromARGB(255, 255, 60, 60)
+                      : Colors.black,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${widget.post.likes}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: () {
+                  // TODO: Implement bookmark functionality
+                },
+                icon: const Icon(
+                  Icons.bookmark_border,
+                  color: Colors.black,
+                  size: 24,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  // TODO: Implement share functionality
+                },
+                icon: const Icon(
+                  Icons.share,
+                  color: Colors.black,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCommentsSection() {
+    final postProvider = Provider.of<PostProvider>(context, listen: false);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Comments (${postProvider.getCommentsForPost(widget.post.id).length})',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
-        ),
-        child: SafeArea(
-          child: Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.home, 0, isSelected: true),
-                _buildNavItem(Icons.bookmark_border, 1, isSelected: false),
-                _buildNavItem(Icons.chat_bubble_outline, 2, isSelected: false),
-                _buildNavItem(Icons.person_outline, 3, isSelected: false),
-              ],
+          const SizedBox(height: 16),
+
+          // Comments List
+          ..._displayedComments
+              .map((comment) => _buildCommentItem(comment))
+              .toList(),
+
+          // Load More Comments Button
+          if (_displayedComments.length <
+              postProvider.getCommentsForPost(widget.post.id).length)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: _isLoadingMore
+                    ? const CircularProgressIndicator(
+                        color: Color.fromARGB(255, 255, 60, 60),
+                      )
+                    : TextButton(
+                        onPressed: _loadMoreComments,
+                        child: Text(
+                          'Load More Comments (${postProvider.getCommentsForPost(widget.post.id).length - _displayedComments.length} remaining)',
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 255, 60, 60),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingCommentInput() {
+    final postProvider = Provider.of<PostProvider>(context, listen: false);
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: Color(0xFFE0E0E0),
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x1A000000),
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              // User Avatar
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: const Color(0xFF666666),
+                child: const Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Comment Input
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFE0E0E0),
+                      width: 1,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _commentController,
+                    decoration: const InputDecoration(
+                      hintText: 'Add a comment...',
+                      hintStyle: TextStyle(
+                        color: Color(0xFF9E9E9E),
+                        fontSize: 14,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    maxLines: null,
+                    textInputAction: TextInputAction.newline,
+                    onSubmitted: (value) {
+                      if (value.trim().isNotEmpty) {
+                        _addComment(postProvider, value.trim());
+                      }
+                    },
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Send Button
+              GestureDetector(
+                onTap: () {
+                  if (_commentController.text.trim().isNotEmpty) {
+                    _addComment(postProvider, _commentController.text.trim());
+                  }
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: _commentController.text.trim().isNotEmpty
+                        ? const Color.fromARGB(255, 255, 60, 60)
+                        : const Color(0xFFE0E0E0),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.send,
+                    color: _commentController.text.trim().isNotEmpty
+                        ? Colors.white
+                        : const Color(0xFF9E9E9E),
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  void _addComment(PostProvider postProvider, String commentText) {
+    final newComment = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'userName': 'You',
+      'userAvatar': null,
+      'comment': commentText,
+      'timestamp': 'Just now',
+    };
+
+    setState(() {
+      _displayedComments.insert(0, newComment);
+    });
+
+    // Add comment to PostProvider
+    postProvider.addComment(widget.post.id, newComment);
+
+    _commentController.clear();
+
+    // Scroll to top of comments to show the new comment
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   Widget _buildCommentItem(Map<String, dynamic> comment) {
@@ -726,50 +826,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, int index, {required bool isSelected}) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to different screens based on index
-        switch (index) {
-          case 0:
-            Navigator.of(context).pushReplacementNamed('/home');
-            break;
-          case 1:
-            // TODO: Navigate to bookmarks
-            break;
-          case 2:
-            Navigator.of(context).pushReplacementNamed('/messaging');
-            break;
-          case 3:
-            Navigator.of(context).pushReplacementNamed('/profile');
-            break;
-        }
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected
-                ? const Color.fromARGB(255, 255, 60, 60)
-                : Colors.black,
-            size: 24,
-          ),
-          if (isSelected)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              width: 4,
-              height: 4,
-              decoration: const BoxDecoration(
-                color: Colors.black,
-                shape: BoxShape.circle,
-              ),
-            ),
         ],
       ),
     );

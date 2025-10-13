@@ -2,3 +2,4 @@
 export * from './api-endpoints';
 export * from './app-config';
 export * from './validation-rules';
+export * from './ui-theme';
