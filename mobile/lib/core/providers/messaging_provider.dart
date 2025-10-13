@@ -17,40 +17,12 @@ class MessagingProvider extends ChangeNotifier {
     return _conversationMessages[conversationId] ?? [];
   }
 
-  // Return conversation for a given key; seed with sample messages if empty
-  List<Message> getConversation(String key) {
-    if (!_conversationMessages.containsKey(key)) {
-      final currentUser = User(id: 'current_user', name: 'You');
-      final otherUser = User(
-          id: 'other_user',
-          name: 'Alice Johnson',
-          avatar: 'https://i.pravatar.cc/150?img=3');
+  // Get conversation keys for UI
+  List<String> get conversationKeys => _conversationMessages.keys.toList();
 
-      _conversationMessages[key] = [
-        Message(
-          id: '1',
-          conversationId: key,
-          senderId: otherUser.id,
-          sender: otherUser,
-          content:
-              "Hey! How is the commission going? I'm really excited to see the final result!",
-          type: MessageType.text,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-          isRead: true,
-        ),
-        Message(
-          id: '2',
-          conversationId: key,
-          senderId: currentUser.id,
-          sender: currentUser,
-          content: "It's going great! I'm about 70% done with the sketch.",
-          type: MessageType.text,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
-          isRead: true,
-        ),
-      ];
-    }
-    return _conversationMessages[key]!;
+  // Return conversation for a given key; return empty list if not found
+  List<Message> getConversation(String key) {
+    return _conversationMessages[key] ?? [];
   }
 
   void sendMessage({
@@ -71,15 +43,22 @@ class MessagingProvider extends ChangeNotifier {
       isRead: true, // your own messages are read by default
     );
 
-    final conversation = getConversation(conversationId);
-    conversation.add(message);
+    // Ensure the conversation exists in the map
+    if (!_conversationMessages.containsKey(conversationId)) {
+      _conversationMessages[conversationId] = [];
+    }
+
+    _conversationMessages[conversationId]!.add(message);
     notifyListeners();
   }
 
   void markAllRead(String conversationId) {
     // Update read status for all messages in conversation
     // In a real app, this would update the Message objects
-    getConversation(conversationId); // Ensure conversation exists
+    // For now, we'll just ensure the conversation exists
+    if (!_conversationMessages.containsKey(conversationId)) {
+      _conversationMessages[conversationId] = [];
+    }
     notifyListeners();
   }
 
@@ -88,12 +67,14 @@ class MessagingProvider extends ChangeNotifier {
     required String messageId,
     required String newContent,
   }) {
-    final conversation = getConversation(conversationId);
-    final index = conversation.indexWhere((m) => m.id == messageId);
-    if (index != -1) {
-      // In a real app, you'd update the message content
-      // For now, we'll just notify listeners
-      notifyListeners();
+    final conversation = _conversationMessages[conversationId];
+    if (conversation != null) {
+      final index = conversation.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        // In a real app, you'd update the message content
+        // For now, we'll just notify listeners
+        notifyListeners();
+      }
     }
   }
 
@@ -101,11 +82,13 @@ class MessagingProvider extends ChangeNotifier {
     required String conversationId,
     required String messageId,
   }) {
-    final conversation = getConversation(conversationId);
-    final index = conversation.indexWhere((m) => m.id == messageId);
-    if (index != -1) {
-      conversation.removeAt(index);
-      notifyListeners();
+    final conversation = _conversationMessages[conversationId];
+    if (conversation != null) {
+      final index = conversation.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        conversation.removeAt(index);
+        notifyListeners();
+      }
     }
   }
 
@@ -122,6 +105,52 @@ class MessagingProvider extends ChangeNotifier {
 
   void clearError() {
     _error = null;
+    notifyListeners();
+  }
+
+  // Create a new conversation or get existing one
+  void createOrGetConversation({
+    required String userName,
+    required String userId,
+    String? userAvatar,
+  }) {
+    final conversationKey = userName;
+
+    // If conversation doesn't exist, create it
+    if (!_conversationMessages.containsKey(conversationKey)) {
+      final currentUser = User(id: 'current_user', name: 'You');
+      final otherUser = User(
+        id: userId,
+        name: userName,
+        avatar: userAvatar,
+      );
+
+      _conversationMessages[conversationKey] = [
+        // Start with a welcome message from the other user
+        Message(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          conversationId: conversationKey,
+          senderId: otherUser.id,
+          sender: otherUser,
+          content: "Hello! Thanks for your interest in the commission.",
+          type: MessageType.text,
+          timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+          isRead: true,
+        ),
+        // Follow with a message from current user
+        Message(
+          id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
+          conversationId: conversationKey,
+          senderId: currentUser.id,
+          sender: currentUser,
+          content: "Hello! I'd like to discuss the commission with you.",
+          type: MessageType.text,
+          timestamp: DateTime.now(),
+          isRead: true,
+        ),
+      ];
+    }
+
     notifyListeners();
   }
 }

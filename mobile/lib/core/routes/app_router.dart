@@ -7,10 +7,11 @@ import '../../features/home/screens/home_screen.dart';
 import '../../features/post/screens/post_detail_screen.dart';
 import '../../features/events/screens/events_screen.dart';
 import '../../features/events/screens/event_detail_screen.dart';
+import '../../features/events/screens/create_event_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/messaging/screens/messaging_screen.dart';
 import '../../features/messaging/screens/chat_screen.dart';
-import '../models/post_model.dart';
+import '../../shared/types/post.dart';
 import '../../features/settings/screens/settings_screen.dart';
 
 class AppRouter {
@@ -23,6 +24,7 @@ class AppRouter {
   static const String settings = '/settings';
   static const String events = '/events';
   static const String eventDetail = '/event-detail';
+  static const String createEvent = '/create-event';
   static const String profile = '/profile';
   static const String messaging = '/messaging';
   static const String chat = '/chat';
@@ -83,6 +85,12 @@ class AppRouter {
         final event = settings.arguments as Map<String, dynamic>;
         return _noTransitionRoute(
           EventDetailScreen(event: event),
+          settings,
+        );
+
+      case createEvent:
+        return _noTransitionRoute(
+          const CreateEventScreen(),
           settings,
         );
 

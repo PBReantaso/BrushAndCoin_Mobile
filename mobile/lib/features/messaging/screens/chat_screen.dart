@@ -388,9 +388,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   children: [
                     Text(
                       message.content,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white,
+                        color: isMe ? Colors.white : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 4),
