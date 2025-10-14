@@ -59,17 +59,18 @@ app.get('/users/dashboard', (req, res) => {
 
 // Post routes
 app.post('/users/register', async (req, res) => {
-  let { username, email, password, password2, first_name, last_name } = req.body;
+  let { username, email, password, password2, first_name, last_name, user_type} = req.body;
+  user_type = user_type || 'user';
   console.log({
     username,
     first_name,
     last_name,
     email,
     password,
-    password2
+    password2,
+    user_type
   });
   let errors = [];
-
   if(!username || !email || !password || !password2 || !first_name || !last_name) {
     errors.push({ message: "Please enter all fields"});
   }
@@ -100,9 +101,9 @@ app.post('/users/register', async (req, res) => {
           res.render('register', { errors });
         } else {
           pool.query(
-            `INSERT INTO users (username, email, password, first_name, last_name)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, password`, [username, email, hashedPassword, first_name, last_name], (err, results) => {
+            `INSERT INTO users (username, email, password, first_name, last_name, user_type)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, password`, [username, email, hashedPassword, first_name, last_name, user_type], (err, results) => {
               if(err) {
                 throw err;
               }
