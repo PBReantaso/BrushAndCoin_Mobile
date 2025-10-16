@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/utils/validators.dart';
 
@@ -16,13 +17,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _usernameController = TextEditingController();
-  final _fullNameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _locationController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
-  String _selectedUserType = 'client';
+  String _selectedUserType = 'user';
 
   @override
   void dispose() {
@@ -30,7 +32,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _usernameController.dispose();
-    _fullNameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _locationController.dispose();
     super.dispose();
   }
@@ -112,6 +115,68 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
                   ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // First name Field
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: TextFormField(
+                    controller: _firstNameController,
+                    keyboardType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                    validator: Validators.validateEmail,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your first name',
+                      hintStyle: TextStyle(
+                        color: Color(0xFF9E9E9E),
+                        fontSize: 16,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.person,
+                        color: Color(0xFF9E9E9E),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                  )
+                ),
+
+                const SizedBox(height: 20),
+                
+                // Last name Field
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: TextFormField(
+                    controller: _lastNameController,
+                    keyboardType: TextInputType.name,
+                    textInputAction: TextInputAction.next,
+                    validator: Validators.validateEmail,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your last name',
+                      hintStyle: TextStyle(
+                        color: Color(0xFF9E9E9E),
+                        fontSize: 16,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.person,
+                        color: Color(0xFF9E9E9E),
+                      ),
+                      border: InputBorder.none,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                  )
                 ),
 
                 const SizedBox(height: 20),

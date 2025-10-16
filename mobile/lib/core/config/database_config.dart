@@ -3,7 +3,7 @@ class DatabaseConfig {
   // Environment-specific database configurations
   static const Map<String, dynamic> _configs = {
     'development': {
-      'host': 'localhost',
+      'host': 'postgres',
       'port': 5433,
       'database': 'BCDB',
       'username': 'postgres',
