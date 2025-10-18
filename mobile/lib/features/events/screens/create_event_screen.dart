@@ -941,15 +941,55 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         return;
       }
 
-      // TODO: Implement actual event creation logic
-      // For now, just show success message and navigate back
+      // Create event data
+      final eventData = {
+        'id': DateTime.now().millisecondsSinceEpoch, // Unique ID
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'venue': _venueController.text,
+        'location': _selectedLocation,
+        'category': _selectedCategory,
+        'date': DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ),
+        'day': _selectedDate.day.toString().padLeft(2, '0'),
+        'month': _getMonthAbbreviation(_selectedDate.month),
+        'image': 'assets/images/placeholder.txt', // Default placeholder
+        'createdAt': DateTime.now(),
+      };
+
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Event created successfully!'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.pop(context);
+
+      // Return the event data and navigate back
+      Navigator.pop(context, eventData);
     }
+  }
+
+  String _getMonthAbbreviation(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return months[month - 1];
   }
 }

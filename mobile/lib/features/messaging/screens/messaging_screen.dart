@@ -333,6 +333,14 @@ class _MessagingScreenState extends State<MessagingScreen> {
         ),
       ),
 
+      // Floating Action Button to send new message
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showNewMessageDialog,
+        backgroundColor: const Color.fromARGB(255, 255, 60, 60),
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      ),
+
       // Bottom Navigation with rounded corners
       bottomNavigationBar: RoundedNavigationBar(
         currentIndex: _selectedNavIndex,
@@ -875,5 +883,187 @@ class _MessagingScreenState extends State<MessagingScreen> {
         );
       },
     );
+  }
+
+  void _showNewMessageDialog() {
+    final TextEditingController _usernameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header with icon
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color:
+                        const Color.fromARGB(255, 255, 60, 60).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: const Icon(
+                    Icons.message_outlined,
+                    color: Color.fromARGB(255, 255, 60, 60),
+                    size: 30,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Title
+                const Text(
+                  'New Message',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Subtitle
+                const Text(
+                  'Start a conversation with another user',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF9E9E9E),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Username input field
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFE0E0E0),
+                      width: 1,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _usernameController,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Username',
+                      hintText: 'Enter username',
+                      hintStyle: TextStyle(
+                        color: Color(0xFF9E9E9E),
+                        fontSize: 14,
+                      ),
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 60, 60),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9E9E9E),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final username = _usernameController.text.trim();
+                          if (username.isNotEmpty) {
+                            Navigator.of(context).pop();
+                            _navigateToChat(username);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please enter a username'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 255, 60, 60),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Send Message',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _navigateToChat(String username) {
+    // Create a mock user object for the chat screen
+    final userData = {
+      'id': 'user_$username',
+      'name': username,
+      'username': username,
+      'avatar':
+          'https://via.placeholder.com/150/FF3C3C/FFFFFF?text=${username[0].toUpperCase()}',
+      'isOnline': true,
+    };
+
+    Navigator.of(context).pushNamed('/chat', arguments: userData);
   }
 }

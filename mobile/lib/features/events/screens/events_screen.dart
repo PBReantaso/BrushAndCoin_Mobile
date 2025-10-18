@@ -34,7 +34,30 @@ class _EventsScreenState extends State<EventsScreen> {
       'description': 'Local artist showcase and gallery opening',
       'location': 'Downtown Art Center',
     },
+    {
+      'id': 3,
+      'title': 'Past Event - Should be removed',
+      'date': DateTime.now().subtract(const Duration(days: 5)), // 5 days ago
+      'image': 'assets/images/event3.jpg',
+      'description':
+          'This event is in the past and should be automatically removed',
+      'location': 'Old Venue',
+    },
+    {
+      'id': 4,
+      'title': 'Another Past Event',
+      'date': DateTime.now().subtract(const Duration(days: 10)), // 10 days ago
+      'image': 'assets/images/event4.jpg',
+      'description': 'This event is also in the past',
+      'location': 'Another Old Venue',
+    },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _removePastEvents();
+  }
 
   @override
   void dispose() {
@@ -277,8 +300,17 @@ class _EventsScreenState extends State<EventsScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).pushNamed('/create-event');
+                          onTap: () async {
+                            final result = await Navigator.of(context)
+                                .pushNamed('/create-event');
+                            if (result != null &&
+                                result is Map<String, dynamic>) {
+                              setState(() {
+                                _events.insert(
+                                    0, result); // Add to beginning of list
+                                _removePastEvents(); // Clean up past events after adding new one
+                              });
+                            }
                           },
                           child: Container(
                             width: 32,
@@ -546,5 +578,14 @@ class _EventsScreenState extends State<EventsScreen> {
       'Dec'
     ];
     return months[month - 1];
+  }
+
+  void _removePastEvents() {
+    final now = DateTime.now();
+    _events.removeWhere((event) {
+      final eventDate = event['date'] as DateTime;
+      // Remove events that are more than 1 day past their date
+      return eventDate.isBefore(now.subtract(const Duration(days: 1)));
+    });
   }
 }
