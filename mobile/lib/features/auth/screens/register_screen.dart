@@ -20,11 +20,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _locationController = TextEditingController();
-
+  final _usertypeController = TextEditingController();
+  
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
-  String _selectedUserType = 'user';
+  
 
   @override
   void dispose() {
@@ -35,14 +36,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _locationController.dispose();
+    _usertypeController.dispose();
     super.dispose();
   }
 
   Future<void> _handleRegister() async {
     // For testing: bypass authentication and go straight to home
-    if (mounted) {
-      // Navigate to home screen immediately
-      Navigator.of(context).pushReplacementNamed('/home');
+    if (_formKey.currentState!.validate()) {
+      final success = await AuthProvider.register(
+        email: _emailController.text,
+        password: _passwordController.text,
+        username: _usernameController.text,
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        userType: _usertypeController.text,
+      );
+                          
+      if (success && mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     }
   }
 

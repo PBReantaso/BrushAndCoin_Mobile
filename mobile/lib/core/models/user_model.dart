@@ -14,64 +14,68 @@ class User extends HiveObject {
   final String username;
   
   @HiveField(3)
-  final String fullName;
-  
+  final String firstName;
+
   @HiveField(4)
-  final String? profileImage;
+  final String lastName;
   
   @HiveField(5)
-  final String? bio;
+  final String? profileImage;
   
   @HiveField(6)
-  final String userType; // 'artist' or 'client'
+  final String? bio;
   
   @HiveField(7)
-  final List<String> specializations; // For artists
+  final String userType; // 'artist' or 'client'
   
   @HiveField(8)
-  final double rating;
+  final List<String> specializations; // For artists
   
   @HiveField(9)
-  final int reviewCount;
+  final double rating;
   
   @HiveField(10)
-  final String? location;
+  final int reviewCount;
   
   @HiveField(11)
-  final double? latitude;
+  final String? location;
   
   @HiveField(12)
-  final double? longitude;
+  final double? latitude;
   
   @HiveField(13)
-  final bool isVerified;
+  final double? longitude;
   
   @HiveField(14)
-  final DateTime createdAt;
+  final bool isVerified;
   
   @HiveField(15)
-  final DateTime updatedAt;
+  final DateTime createdAt;
   
   @HiveField(16)
-  final Map<String, dynamic>? socialLinks;
+  final DateTime updatedAt;
   
   @HiveField(17)
-  final List<String>? portfolioImages;
+  final Map<String, dynamic>? socialLinks;
   
   @HiveField(18)
-  final Map<String, dynamic>? pricingInfo; // For artists
+  final List<String>? portfolioImages;
   
   @HiveField(19)
-  final bool isOnline;
+  final Map<String, dynamic>? pricingInfo; // For artists
   
   @HiveField(20)
+  final bool isOnline;
+  
+  @HiveField(21)
   final DateTime? lastSeen;
 
   User({
     required this.id,
     required this.email,
     required this.username,
-    required this.fullName,
+    required this.firstName,
+    required this.lastName,
     this.profileImage,
     this.bio,
     required this.userType,
@@ -96,7 +100,8 @@ class User extends HiveObject {
       id: json['id'],
       email: json['email'],
       username: json['username'],
-      fullName: json['full_name'],
+      firstName: json['first_name'],
+      lastName: json['last_name'],
       profileImage: json['profile_image'],
       bio: json['bio'],
       userType: json['user_type'],
@@ -122,7 +127,8 @@ class User extends HiveObject {
       'id': id,
       'email': email,
       'username': username,
-      'full_name': fullName,
+      'first_name': firstName,
+      'last_name': lastName,
       'profile_image': profileImage,
       'bio': bio,
       'user_type': userType,
@@ -147,7 +153,8 @@ class User extends HiveObject {
     String? id,
     String? email,
     String? username,
-    String? fullName,
+    String? firstName,
+    String? lastName,
     String? profileImage,
     String? bio,
     String? userType,
@@ -170,7 +177,8 @@ class User extends HiveObject {
       id: id ?? this.id,
       email: email ?? this.email,
       username: username ?? this.username,
-      fullName: fullName ?? this.fullName,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
       profileImage: profileImage ?? this.profileImage,
       bio: bio ?? this.bio,
       userType: userType ?? this.userType,
@@ -202,6 +210,6 @@ class User extends HiveObject {
 
   @override
   String toString() {
-    return 'User(id: $id, username: $username, fullName: $fullName, userType: $userType)';
+    return 'User(id: $id, username: $username, firstName: $firstName, lastname: $lastName, userType: $userType)';
   }
 }

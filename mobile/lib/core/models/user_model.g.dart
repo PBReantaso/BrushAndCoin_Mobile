@@ -20,24 +20,25 @@ class UserAdapter extends TypeAdapter<User> {
       id: fields[0] as String,
       email: fields[1] as String,
       username: fields[2] as String,
-      fullName: fields[3] as String,
-      profileImage: fields[4] as String?,
-      bio: fields[5] as String?,
-      userType: fields[6] as String,
-      specializations: (fields[7] as List).cast<String>(),
-      rating: fields[8] as double,
-      reviewCount: fields[9] as int,
-      location: fields[10] as String?,
-      latitude: fields[11] as double?,
-      longitude: fields[12] as double?,
-      isVerified: fields[13] as bool,
-      createdAt: fields[14] as DateTime,
-      updatedAt: fields[15] as DateTime,
-      socialLinks: (fields[16] as Map?)?.cast<String, dynamic>(),
-      portfolioImages: (fields[17] as List?)?.cast<String>(),
-      pricingInfo: (fields[18] as Map?)?.cast<String, dynamic>(),
-      isOnline: fields[19] as bool,
-      lastSeen: fields[20] as DateTime?,
+      firstName: fields[3] as String,
+      lastName: fields[4] as String,
+      profileImage: fields[5] as String?,
+      bio: fields[6] as String?,
+      userType: fields[7] as String,
+      specializations: (fields[8] as List).cast<String>(),
+      rating: fields[9] as double,
+      reviewCount: fields[10] as int,
+      location: fields[11] as String?,
+      latitude: fields[12] as double?,
+      longitude: fields[13] as double?,
+      isVerified: fields[14] as bool,
+      createdAt: fields[15] as DateTime,
+      updatedAt: fields[16] as DateTime,
+      socialLinks: (fields[17] as Map?)?.cast<String, dynamic>(),
+      portfolioImages: (fields[18] as List?)?.cast<String>(),
+      pricingInfo: (fields[19] as Map?)?.cast<String, dynamic>(),
+      isOnline: fields[20] as bool,
+      lastSeen: fields[21] as DateTime?,
     );
   }
 
@@ -52,7 +53,7 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(2)
       ..write(obj.username)
       ..writeByte(3)
-      ..write(obj.fullName)
+      ..write(obj.firstName)
       ..writeByte(4)
       ..write(obj.profileImage)
       ..writeByte(5)
@@ -86,7 +87,8 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(19)
       ..write(obj.isOnline)
       ..writeByte(20)
-      ..write(obj.lastSeen);
+      ..write(obj.lastSeen)
+      ..write(obj.lastName);
   }
 
   @override

@@ -1,7 +1,9 @@
 class Post {
   final String id;
   final String userId;
-  final String userName;
+  final String username;
+  final String firstName;
+  final String lastName;
   final String? userAvatar;
   final String artworkTitle;
   final String? artworkDescription;
@@ -21,7 +23,9 @@ class Post {
   Post({
     required this.id,
     required this.userId,
-    required this.userName,
+    required this.username,
+    required this.firstName,
+    required this.lastName,
     this.userAvatar,
     required this.artworkTitle,
     this.artworkDescription,
@@ -43,7 +47,9 @@ class Post {
     return Post(
       id: json['id'],
       userId: json['user_id'],
-      userName: json['user_name'],
+      username: json['user_name'],
+      firstName: json['firs_name'],
+      lastName: json['last_name'],
       userAvatar: json['user_avatar'],
       artworkTitle: json['artwork_title'],
       artworkDescription: json['artwork_description'],
@@ -66,7 +72,9 @@ class Post {
     return {
       'id': id,
       'user_id': userId,
-      'user_name': userName,
+      'user_name': username,
+      'first_name': firstName,
+      'last_name': lastName,
       'user_avatar': userAvatar,
       'artwork_title': artworkTitle,
       'artwork_description': artworkDescription,
@@ -88,7 +96,9 @@ class Post {
   Post copyWith({
     String? id,
     String? userId,
-    String? userName,
+    String? username,
+    String? firstName,
+    String? lastName,
     String? userAvatar,
     String? artworkTitle,
     String? artworkDescription,
@@ -108,7 +118,9 @@ class Post {
     return Post(
       id: id ?? this.id,
       userId: userId ?? this.userId,
-      userName: userName ?? this.userName,
+      username: username ?? this.username,
+      firstName: firstName?? this.firstName,
+      lastName: lastName?? this.lastName,
       userAvatar: userAvatar ?? this.userAvatar,
       artworkTitle: artworkTitle ?? this.artworkTitle,
       artworkDescription: artworkDescription ?? this.artworkDescription,
@@ -138,6 +150,6 @@ class Post {
 
   @override
   String toString() {
-    return 'Post(id: $id, artworkTitle: $artworkTitle, userName: $userName)';
+    return 'Post(id: $id, artworkTitle: $artworkTitle, userName: $username)';
   }
 }

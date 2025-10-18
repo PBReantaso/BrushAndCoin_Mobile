@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/post_model.dart';
 import '../services/api_service.dart';
 
@@ -53,7 +54,7 @@ class ArtworkProvider extends ChangeNotifier {
         return artwork.artworkTitle.toLowerCase().contains(query) ||
             (artwork.artworkDescription?.toLowerCase().contains(query) ??
                 false) ||
-            artwork.userName.toLowerCase().contains(query) ||
+            artwork.username.toLowerCase().contains(query) ||
             artwork.tags.any((tag) => tag.toLowerCase().contains(query));
       }).toList();
     }

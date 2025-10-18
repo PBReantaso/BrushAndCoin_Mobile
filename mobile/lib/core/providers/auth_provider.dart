@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
@@ -51,9 +52,9 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
     required String username,
-    required String fullName,
+    required String firstName,
+    required String lastName,
     required String userType,
-    List<String>? specializations,
     String? location,
     double? latitude,
     double? longitude,
@@ -66,9 +67,9 @@ class AuthProvider extends ChangeNotifier {
         'email': email,
         'password': password,
         'username': username,
-        'full_name': fullName,
+        'first_name': firstName,
+        'last_name': lastName,
         'user_type': userType,
-        if (specializations != null) 'specializations': specializations,
         if (location != null) 'location': location,
         if (latitude != null) 'latitude': latitude,
         if (longitude != null) 'longitude': longitude,
