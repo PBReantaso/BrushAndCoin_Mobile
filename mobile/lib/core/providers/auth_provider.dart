@@ -70,7 +70,7 @@ class AuthProvider extends ChangeNotifier {
         userType: userType,
       );
 
-      _currentUser = User.fromJson(authResponse.user);
+      _currentUser = authResponse.user;
     _isAuthenticated = true;
 
     // Save token to local storage
