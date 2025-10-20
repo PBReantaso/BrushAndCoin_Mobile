@@ -41,9 +41,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
-    // For testing: bypass authentication and go straight to home
+    // register data
     if (_formKey.currentState!.validate()) {
-      final success = await AuthProvider.register(
+      final authProvider = AuthProvider();
+      final success = await authProvider.register(
         email: _emailController.text,
         password: _passwordController.text,
         username: _usernameController.text,

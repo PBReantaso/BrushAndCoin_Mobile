@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,7 +52,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> register(
+  Future<Map<String, dynamic>> register(
       Map<String, dynamic> userData) async {
     try {
       final response = await _dio.post('$_auth/register', data: userData);

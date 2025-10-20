@@ -1,3 +1,4 @@
+import 'package:brush_and_coin_mobile/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 import '../models/user_model.dart';
@@ -5,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 
 class AuthProvider extends ChangeNotifier {
+  final AuthService _authService = AuthService();
   User? _currentUser;
   bool _isLoading = false;
   String? _error;
@@ -55,49 +57,33 @@ class AuthProvider extends ChangeNotifier {
     required String firstName,
     required String lastName,
     required String userType,
-    String? location,
-    double? latitude,
-    double? longitude,
   }) async {
     _setLoading(true);
     _clearError();
 
     try {
-      final userData = {
-        'email': email,
-        'password': password,
-        'username': username,
-        'first_name': firstName,
-        'last_name': lastName,
-        'user_type': userType,
-        if (location != null) 'location': location,
-        if (latitude != null) 'latitude': latitude,
-        if (longitude != null) 'longitude': longitude,
-      };
+      final authResponse = await _authService.register(
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        userType: userType,
+      );
 
-      final response = await ApiService.register(userData);
+      _currentUser = User.fromJson(authResponse.user);
+    _isAuthenticated = true;
 
-      if (response['success'] == true) {
-        final userData = response['data']['user'];
-        final token = response['data']['token'];
+    // Save token to local storage
+    await _saveAuthToken(authResponse.token);
 
-        _currentUser = User.fromJson(userData);
-        _isAuthenticated = true;
-
-        // Save token to local storage
-        await _saveAuthToken(token);
-
-        _setLoading(false);
-        notifyListeners();
-        return true;
-      } else {
-        _setError(response['message'] ?? 'Registration failed');
-        return false;
-      }
+    _setLoading(false);
+    notifyListeners();
+    return true;
     } catch (e) {
       _setError(e.toString());
       return false;
     }
+    
   }
 
   // Logout method
