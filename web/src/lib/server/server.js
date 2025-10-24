@@ -4,7 +4,12 @@ const { pool } = require('./dbConfig');
 const bcrypt = require('bcrypt');
 const flash = require('express-flash');
 const session = require('express-session');
+const passport = require("passport");
 //require('dotenv').config();
+
+const initializePassport = require("./passportConfig")
+
+initializePassport(passport);
 
 const port = process.env.PORT || 4000;
 
@@ -17,6 +22,9 @@ app.use(session({
   saveUninitialized: false,
   cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 day
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(flash());
 
@@ -31,6 +39,12 @@ app.get('/users/register', (req, res) => {
 
 app.get('/users/login', (req, res) => {
   res.render('login');
+});
+
+app.get('/users/logout', (req, res) => {
+  res.logOut();
+  res.flash("success_msg", "You have looged out");
+  res.redirect("/users/login");
 });
 
 app.get('/users/events', (req, res) => {
@@ -118,7 +132,14 @@ app.post('/users/register', async (req, res) => {
   }
 });
 
-
+app.post(
+  "/users/login", 
+  passport.authenticate('local',{
+    successRedirect: "/users/home",
+    failureRedirect: "/users/login",
+    failureFlash: true
+  })
+);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

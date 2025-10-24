@@ -96,30 +96,30 @@ class User extends HiveObject {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'],
-      email: json['email'],
-      username: json['username'],
-      firstName: json['first_name'],
-      lastName: json['last_name'],
-      profileImage: json['profile_image'],
-      bio: json['bio'],
-      userType: json['user_type'],
-      specializations: List<String>.from(json['specializations'] ?? []),
-      rating: (json['rating'] ?? 0.0).toDouble(),
-      reviewCount: json['review_count'] ?? 0,
-      location: json['location'],
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
-      isVerified: json['is_verified'] ?? false,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      socialLinks: json['social_links'],
-      portfolioImages: List<String>.from(json['portfolio_images'] ?? []),
-      pricingInfo: json['pricing_info'],
-      isOnline: json['is_online'] ?? false,
-      lastSeen: json['last_seen'] != null ? DateTime.parse(json['last_seen']) : null,
-    );
+  return User(
+    id: json['id']?.toString() ?? '0', 
+    email: json['email'] ?? '',
+    username: json['username'] ?? '',
+    firstName: json['first_name'] ?? '',
+    lastName: json['last_name'] ?? '',
+    profileImage: json['profile_image'],
+    bio: json['bio'],
+    userType: json['user_type'] ?? '',
+    specializations: List<String>.from(json['specializations'] ?? []),
+    rating: (json['rating'] ?? 0.0).toDouble(),
+    reviewCount: json['review_count'] ?? 0,
+    location: json['location'],
+    latitude: json['latitude']?.toDouble(),
+    longitude: json['longitude']?.toDouble(),
+    isVerified: json['is_verified'] ?? false,
+    createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
+    updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : DateTime.now(),
+    socialLinks: json['social_links'] != null ? Map<String, dynamic>.from(json['social_links']) : null,
+    portfolioImages: List<String>.from(json['portfolio_images'] ?? []),
+    pricingInfo: json['pricing_info'] != null ? Map<String, dynamic>.from(json['pricing_info']) : null,
+    isOnline: json['is_online'] ?? false,
+    lastSeen: json['last_seen'] != null ? DateTime.parse(json['last_seen']) : null,
+  );
   }
 
   Map<String, dynamic> toJson() {
