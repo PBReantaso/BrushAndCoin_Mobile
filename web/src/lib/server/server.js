@@ -43,7 +43,7 @@ app.get('/users/login', (req, res) => {
 
 app.get('/users/logout', (req, res) => {
   res.logOut();
-  res.flash("success_msg", "You have looged out");
+  res.flash("success_msg", "You have loged out");
   res.redirect("/users/login");
 });
 
@@ -52,7 +52,7 @@ app.get('/users/events', (req, res) => {
 });
 
 app.get('/users/home', (req, res) => {
-  res.render('home');
+  res.render('home', { user: req.user.username });
 });
 
 app.get('/users/profile', (req, res) => {
