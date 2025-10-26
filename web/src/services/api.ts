@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { API_ENDPOINTS } from '@/shared/constants'
+import { API_ENDPOINTS } from '@/lib/constants'
 import { ApiResponse, PaginatedResponse, UploadResponse } from '@/shared/types'
 import { env } from '@/lib/env'
 import StorageService from './storage'

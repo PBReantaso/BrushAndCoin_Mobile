@@ -86,4 +86,3 @@ class BrushAndCoinApp extends StatelessWidget {
     );
   }
 }
-

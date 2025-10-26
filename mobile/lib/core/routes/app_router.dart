@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-
-import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/splash/screens/splash_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
-import '../../features/events/screens/create_event_screen.dart';
-import '../../features/events/screens/event_detail_screen.dart';
-import '../../features/events/screens/events_screen.dart';
+import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/home/screens/home_screen.dart';
-import '../../features/messaging/screens/chat_screen.dart';
-import '../../features/messaging/screens/messaging_screen.dart';
 import '../../features/post/screens/post_detail_screen.dart';
+import '../../features/events/screens/events_screen.dart';
+import '../../features/events/screens/event_detail_screen.dart';
+import '../../features/events/screens/create_event_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
-import '../../features/settings/screens/settings_screen.dart';
-import '../../features/splash/screens/splash_screen.dart';
+import '../../features/messaging/screens/messaging_screen.dart';
+import '../../features/messaging/screens/chat_screen.dart';
 import '../../shared/types/post.dart';
+import '../../features/settings/screens/settings_screen.dart';
 
 class AppRouter {
   static const String splash = '/splash';
@@ -138,7 +137,4 @@ class AppRouter {
       reverseTransitionDuration: Duration.zero,
     );
   }
-
-  
-
 }

@@ -11,7 +11,7 @@ import { Eye, EyeOff, Mail, Lock, User, MapPin } from 'lucide-react'
 
 import { registerUser } from '@/store/slices/authSlice'
 import { AppDispatch } from '@/store'
-import { VALIDATION_RULES } from '@/shared/constants'
+import { VALIDATION_RULES } from '@/lib/constants'
 
 const registerSchema = z.object({
   email: z

@@ -11,7 +11,7 @@ import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 
 import { loginUser } from '@/store/slices/authSlice'
 import { AppDispatch } from '@/store'
-import { VALIDATION_RULES } from '@/shared/constants'
+import { VALIDATION_RULES } from '@/lib/constants'
 
 const loginSchema = z.object({
   email: z

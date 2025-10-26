@@ -890,7 +890,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(

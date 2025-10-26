@@ -1,17 +1,17 @@
 import 'package:dio/dio.dart';
 
-import '../config/env.dart';
-
 /// PostgreSQL service for handling database operations
 /// This service communicates with a backend API that uses PostgreSQL
 class PostgreSQLService {
   static late Dio _dio;
-  static final String _baseUrl = Environment.currentApiBaseUrl;
+  static const String _baseUrl =
+      'https://api.brushandcoin.com'; // Replace with your actual API URL
+  static const String _apiVersion = '/api/v1';
   static const String _dbEndpoint = '/db';
 
   static Future<void> init() async {
     _dio = Dio(BaseOptions(
-  baseUrl: _baseUrl + _dbEndpoint,
+      baseUrl: _baseUrl + _apiVersion + _dbEndpoint,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {
@@ -29,7 +29,7 @@ class PostgreSQLService {
   }
 
   // User Operations
-  Future<Map<String, dynamic>> createUser(
+  static Future<Map<String, dynamic>> createUser(
       Map<String, dynamic> userData) async {
     try {
       final response = await _dio.post('/users', data: userData);
@@ -295,7 +295,8 @@ class PostgreSQLService {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (conversationId != null) queryParams['conversation_id'] = conversationId;
+      if (conversationId != null)
+        queryParams['conversation_id'] = conversationId;
       if (senderId != null) queryParams['sender_id'] = senderId;
       if (receiverId != null) queryParams['receiver_id'] = receiverId;
       if (limit != null) queryParams['limit'] = limit;
@@ -382,7 +383,8 @@ class PostgreSQLService {
     try {
       final queryParams = <String, dynamic>{};
       if (organizerId != null) queryParams['organizer_id'] = organizerId;
-      if (startDate != null) queryParams['start_date'] = startDate.toIso8601String();
+      if (startDate != null)
+        queryParams['start_date'] = startDate.toIso8601String();
       if (endDate != null) queryParams['end_date'] = endDate.toIso8601String();
       if (lat != null) queryParams['lat'] = lat;
       if (lng != null) queryParams['lng'] = lng;
