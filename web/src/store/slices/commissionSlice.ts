@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { Commission, CommissionFilters, CommissionCreateRequest } from '@/shared/types'
+import { Commission, CommissionFilters, CommissionCreateRequest } from '@/types'
 import ApiService from '@/services/api'
 
 interface CommissionState {

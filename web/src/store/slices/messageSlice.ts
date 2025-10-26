@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { Conversation, Message, SendMessageRequest } from '@/shared/types'
+import { Conversation, Message, SendMessageRequest } from '@/types'
 import ApiService from '@/services/api'
 
 interface MessageState {

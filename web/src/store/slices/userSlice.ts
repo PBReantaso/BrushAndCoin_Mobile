@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { User, UserProfile } from '@/shared/types'
+import { User, UserProfile } from '@/types'
 import ApiService from '@/services/api'
 
 interface UserState {

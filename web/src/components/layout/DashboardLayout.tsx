@@ -17,7 +17,7 @@ import {
   Bell
 } from 'lucide-react'
 
-import { User as UserType } from '@/shared/types'
+import { User as UserType } from '@/types'
 import { logoutUser } from '@/store/slices/authSlice'
 import { AppDispatch } from '@/store'
 

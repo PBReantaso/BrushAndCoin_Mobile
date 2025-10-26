@@ -1,4 +1,4 @@
-// Shared Commission Types for Mobile and Web
+// Commission Types for Web
 
 export enum CommissionStatus {
   PENDING = 'pending',

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { Artwork, ArtworkFilters, ArtworkCreateRequest } from '@/shared/types'
+import { Artwork, ArtworkFilters, ArtworkCreateRequest } from '@/types'
 import ApiService from '@/services/api'
 
 interface ArtworkState {
