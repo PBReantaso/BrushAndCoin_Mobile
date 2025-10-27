@@ -3,21 +3,19 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/user_model.dart';
-import 'auth_response.dart';
+import '../../shared/types/user.dart';
 
 class AuthService {
   //static const String baseUrl = 'http://10.0.2.2:3000/api'; // For Android emulator
   // static const String baseUrl = 'http://localhost:3000/api'; // For iOS simulator
   static const String baseUrl = 'http://3000:3000/api'; // For real device
 
-  Future<AuthResponse> register({
-    required String email,
-    required String password,
-    required String firstName,
-    required String lastName,
-    required String userType
-  }) async {
+  Future<AuthResponse> register(
+      {required String email,
+      required String password,
+      required String firstName,
+      required String lastName,
+      required String userType}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/register'),
       headers: {'Content-Type': 'application/json'},
@@ -33,11 +31,11 @@ class AuthService {
     if (response.statusCode == 201) {
       final data = json.decode(response.body);
       final authResponse = AuthResponse.fromJson(data);
-      
+
       // Save token
-      await _saveToken(authResponse.token);
-      await _saveUser(authResponse.user);
-      
+      await _saveToken(authResponse.data.token);
+      await _saveUser(authResponse.data.user);
+
       return authResponse;
     } else {
       final error = json.decode(response.body);
@@ -61,11 +59,11 @@ class AuthService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final authResponse = AuthResponse.fromJson(data);
-      
+
       // Save token and user
-      await _saveToken(authResponse.token);
-      await _saveUser(authResponse.user);
-      
+      await _saveToken(authResponse.data.token);
+      await _saveUser(authResponse.data.user);
+
       return authResponse;
     } else {
       final error = json.decode(response.body);
@@ -106,11 +104,12 @@ class AuthService {
 
   Future<void> _saveUser(User user) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user', json.encode({
-      'id': user.id,
-      'email': user.email,
-      'firstName': user.firstName,
-      'lastName': user.lastName,
-    }));
+    await prefs.setString(
+        'user',
+        json.encode({
+          'id': user.id,
+          'email': user.email,
+          'fullName': user.fullName,
+        }));
   }
 }

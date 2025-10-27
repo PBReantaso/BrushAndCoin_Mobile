@@ -1,7 +1,7 @@
 import 'package:brush_and_coin_mobile/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
-import '../models/user_model.dart';
+import '../../shared/types/user.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 
@@ -70,20 +70,19 @@ class AuthProvider extends ChangeNotifier {
         userType: userType,
       );
 
-      _currentUser = authResponse.user;
-    _isAuthenticated = true;
+      _currentUser = authResponse.data.user;
+      _isAuthenticated = true;
 
-    // Save token to local storage
-    await _saveAuthToken(authResponse.token);
+      // Save token to local storage
+      await _saveAuthToken(authResponse.data.token);
 
-    _setLoading(false);
-    notifyListeners();
-    return true;
+      _setLoading(false);
+      notifyListeners();
+      return true;
     } catch (e) {
       _setError(e.toString());
       return false;
     }
-    
   }
 
   // Logout method
