@@ -21,7 +21,7 @@ const initialState: UserState = {
 // Async thunks
 export const fetchUserProfile = createAsyncThunk(
   'user/fetchProfile',
-  async (userId?: string, { rejectWithValue }) => {
+  async (userId: string | undefined, { rejectWithValue }) => {
     try {
       const response = await ApiService.getUserProfile(userId)
       

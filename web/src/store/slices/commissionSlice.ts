@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { Commission, CommissionFilters, CommissionCreateRequest } from '@/types'
+import { Commission, CommissionFilters, CreateCommissionRequest } from '@/types'
 import ApiService from '@/services/api'
 
 interface CommissionState {
@@ -31,7 +31,7 @@ const initialState: CommissionState = {
 // Async thunks
 export const fetchCommissions = createAsyncThunk(
   'commission/fetchCommissions',
-  async (filters?: CommissionFilters, { rejectWithValue }) => {
+  async (filters: CommissionFilters | undefined, { rejectWithValue }) => {
     try {
       const response = await ApiService.getCommissions(filters)
       return response
@@ -60,7 +60,7 @@ export const fetchCommissionById = createAsyncThunk(
 
 export const createCommission = createAsyncThunk(
   'commission/create',
-  async (commissionData: CommissionCreateRequest, { rejectWithValue }) => {
+  async (commissionData: CreateCommissionRequest, { rejectWithValue }) => {
     try {
       const response = await ApiService.createCommission(commissionData)
       

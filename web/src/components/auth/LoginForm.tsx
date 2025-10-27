@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDispatch } from 'react-redux'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, AlertCircle, X } from 'lucide-react'
 
 import { loginUser } from '@/store/slices/authSlice'
 import { AppDispatch } from '@/store'
@@ -29,6 +29,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
@@ -42,6 +43,7 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      setError(null)
       const result = await dispatch(loginUser(data)).unwrap()
       if (result) {
         toast.success('Login successful!')
@@ -57,52 +59,68 @@ export default function LoginForm() {
         router.push('/home')
       }
     } catch (error: any) {
-      toast.error(error || 'Login failed. Please try again.')
+      const errorMessage = error || 'Login failed. Please try again.'
+      setError(errorMessage)
+      toast.error(errorMessage)
     }
   }
 
+  const clearError = () => {
+    setError(null)
+  }
+
   return (
-    <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-4">
+    <div className="w-full">
+      {/* Header - Welcome back, Artist! */}
+      <div className="text-center mb-16">
+        <h1 className="text-3xl font-bold text-red-500 mb-2">
+          Welcome back,
+        </h1>
+        <h1 className="text-3xl font-bold text-black">
+          Artist!
+        </h1>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Email/Phone Field */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email address
-          </label>
-          <div className="mt-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Mail className="h-5 w-5 text-gray-400" />
             </div>
             <input
               {...register('email')}
               type="email"
               autoComplete="email"
-              className={`input pl-10 ${errors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
-              placeholder="Enter your email"
+              className={`w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                errors.email ? 'border-red-300 focus:ring-red-500' : ''
+              }`}
+              placeholder="Enter your mail/phone number"
             />
           </div>
           {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
           )}
         </div>
 
+        {/* Password Field */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <div className="mt-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Lock className="h-5 w-5 text-gray-400" />
             </div>
             <input
               {...register('password')}
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              className={`input pl-10 pr-10 ${errors.password ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
+              className={`w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                errors.password ? 'border-red-300 focus:ring-red-500' : ''
+              }`}
               placeholder="Enter your password"
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              className="absolute inset-y-0 right-0 pr-4 flex items-center z-10"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -113,49 +131,95 @@ export default function LoginForm() {
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
           )}
         </div>
-      </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <input
-            {...register('rememberMe')}
-            id="remember-me"
-            type="checkbox"
-            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-          />
-          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-            Remember me
-          </label>
+        {/* Remember Me & Forgot Password */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              {...register('rememberMe')}
+              id="remember-me"
+              type="checkbox"
+              className="h-4 w-4 text-red-500 focus:ring-red-500 border-gray-300 rounded"
+            />
+            <label htmlFor="remember-me" className="ml-2 text-sm text-gray-400">
+              Remember me
+            </label>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push('/auth/forgot-password')}
+            className="text-sm font-medium text-blue-500 hover:text-blue-600"
+          >
+            Forgot Password?
+          </button>
         </div>
 
-        <div className="text-sm">
-          <a href="/auth/forgot-password" className="font-medium text-primary-600 hover:text-primary-500">
-            Forgot your password?
-          </a>
-        </div>
-      </div>
-
-      <div>
+        {/* Sign In Button */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="btn btn-primary btn-lg w-full"
+          className="w-full py-4 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-semibold rounded-xl transition-colors duration-200"
         >
-          {isSubmitting ? 'Signing in...' : 'Sign in'}
+          {isSubmitting ? (
+            <div className="flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Signing in...
+            </div>
+          ) : (
+            'Sign In'
+          )}
         </button>
-      </div>
 
-      <div className="text-center">
-        <span className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="/auth/register" className="font-medium text-primary-600 hover:text-primary-500">
-            Sign up
-          </a>
-        </span>
-      </div>
-    </form>
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+              <span className="flex-1 text-sm text-red-600">{error}</span>
+              <button
+                onClick={clearError}
+                className="text-red-500 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="flex items-center my-10">
+          <div className="flex-1 border-t border-gray-200"></div>
+          <span className="px-4 text-sm text-gray-400 font-medium">Or</span>
+          <div className="flex-1 border-t border-gray-200"></div>
+        </div>
+
+        {/* Google Sign In Button */}
+        <button
+          type="button"
+          className="w-full py-4 bg-white border border-gray-200 hover:bg-gray-50 text-black font-medium rounded-xl transition-colors duration-200 flex items-center justify-center"
+        >
+          <div className="w-6 h-6 mr-3 text-blue-500 font-bold">G</div>
+          Continue with Google
+        </button>
+
+        {/* Register Link */}
+        <div className="text-center mt-16">
+          <span className="text-gray-400 text-base">
+            Don't have an account?{' '}
+          </span>
+          <button
+            type="button"
+            onClick={() => router.push('/auth/register')}
+            className="text-red-500 font-semibold text-base hover:text-red-600"
+          >
+            Sign Up
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }

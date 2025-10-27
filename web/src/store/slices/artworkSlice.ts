@@ -31,7 +31,7 @@ const initialState: ArtworkState = {
 // Async thunks
 export const fetchArtworks = createAsyncThunk(
   'artwork/fetchArtworks',
-  async (filters?: ArtworkFilters, { rejectWithValue }) => {
+  async (filters: ArtworkFilters | undefined, { rejectWithValue }) => {
     try {
       const response = await ApiService.getArtworks(filters)
       return response

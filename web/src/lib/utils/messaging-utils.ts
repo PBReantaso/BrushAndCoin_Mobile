@@ -265,3 +265,4 @@ export class MessagingUtils {
     return 'text';
   }
 }
+

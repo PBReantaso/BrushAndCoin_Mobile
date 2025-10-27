@@ -4,7 +4,7 @@ export interface Payment {
   amount: number;
   currency: string;
   status: PaymentStatus;
-  paymentMethod: PaymentMethod;
+  paymentMethod: string; // Will use PaymentMethod from commission.ts
   transactionId?: string;
   gatewayResponse?: any;
   createdAt: string;
@@ -19,17 +19,10 @@ export type PaymentStatus =
   | 'cancelled'
   | 'refunded';
 
-export type PaymentMethod = 
-  | 'stripe'
-  | 'paypal'
-  | 'gcash'
-  | 'paymaya'
-  | 'bank_transfer';
-
 export interface PaymentRequest {
   commissionId: string;
   amount: number;
-  paymentMethod: PaymentMethod;
+  paymentMethod: string; // Will use PaymentMethod from commission.ts
   currency?: string;
 }
 
@@ -40,14 +33,4 @@ export interface PaymentResponse {
     redirectUrl?: string;
     clientSecret?: string;
   };
-}
-
-export interface EscrowPayment {
-  id: string;
-  commissionId: string;
-  amount: number;
-  status: 'held' | 'released' | 'refunded';
-  releaseConditions: string[];
-  createdAt: string;
-  releasedAt?: string;
 }

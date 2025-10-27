@@ -1,8 +1,9 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, Poppins } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
 import { Toaster } from 'react-hot-toast'
+import LayoutWithSidebar from '@/components/layout/LayoutWithSidebar'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -20,8 +21,6 @@ export const metadata: Metadata = {
   description: 'Connect with talented artists and commission custom artwork. Secure payments, milestone tracking, and verified reviews.',
   keywords: 'art, commission, artist, creative, marketplace, artwork, custom art',
   authors: [{ name: 'Brush&Coin Team' }],
-  viewport: 'width=device-width, initial-scale=1',
-  themeColor: '#0ea5e9',
   openGraph: {
     title: 'Brush&Coin - Creative Marketplace',
     description: 'Connect with talented artists and commission custom artwork.',
@@ -35,6 +34,12 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#EF4444',
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -44,7 +49,9 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <body className="font-sans antialiased">
         <Providers>
-          {children}
+          <LayoutWithSidebar>
+            {children}
+          </LayoutWithSidebar>
           <Toaster 
             position="top-right"
             toastOptions={{

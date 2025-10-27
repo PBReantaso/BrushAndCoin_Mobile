@@ -53,6 +53,16 @@ class ApiService {
 
   // Authentication
   static async login(email: string, password: string): Promise<ApiResponse> {
+    console.log('🔧 ApiService.login called, NODE_ENV:', env.NODE_ENV)
+    
+    // Use mock API in development
+    if (env.NODE_ENV === 'development') {
+      console.log('🔧 Using MockApiService for login')
+      const { MockApiService } = await import('./mockApi')
+      return MockApiService.login(email, password)
+    }
+    
+    console.log('🔧 Using real API for login')
     this.ensureInitialized()
     const response = await this.instance.post(API_ENDPOINTS.AUTH.LOGIN, {
       email,
@@ -62,12 +72,24 @@ class ApiService {
   }
 
   static async register(userData: any): Promise<ApiResponse> {
+    // Use mock API in development
+    if (env.NODE_ENV === 'development') {
+      const { MockApiService } = await import('./mockApi')
+      return MockApiService.register(userData)
+    }
+    
     this.ensureInitialized()
     const response = await this.instance.post(API_ENDPOINTS.AUTH.REGISTER, userData)
     return response.data
   }
 
   static async logout(): Promise<void> {
+    // Use mock API in development
+    if (env.NODE_ENV === 'development') {
+      const { MockApiService } = await import('./mockApi')
+      return MockApiService.logout()
+    }
+    
     this.ensureInitialized()
     try {
       await this.instance.post(API_ENDPOINTS.AUTH.LOGOUT)
@@ -78,6 +100,12 @@ class ApiService {
   }
 
   static async refreshToken(): Promise<ApiResponse> {
+    // Use mock API in development
+    if (env.NODE_ENV === 'development') {
+      const { MockApiService } = await import('./mockApi')
+      return MockApiService.refreshToken()
+    }
+    
     this.ensureInitialized()
     const response = await this.instance.post(API_ENDPOINTS.AUTH.REFRESH)
     return response.data
@@ -97,7 +125,7 @@ class ApiService {
     return response.data
   }
 
-  static async searchUsers(query: string): Promise<PaginatedResponse> {
+  static async searchUsers(query: string): Promise<PaginatedResponse<any>> {
     this.ensureInitialized()
     const response = await this.instance.get(API_ENDPOINTS.USERS.SEARCH, {
       params: { q: query },
@@ -106,7 +134,7 @@ class ApiService {
   }
 
   // Artwork Management
-  static async getArtworks(filters?: any): Promise<PaginatedResponse> {
+  static async getArtworks(filters?: any): Promise<PaginatedResponse<any>> {
     this.ensureInitialized()
     const response = await this.instance.get(API_ENDPOINTS.ARTWORKS.LIST, {
       params: filters,
@@ -138,7 +166,7 @@ class ApiService {
   }
 
   // Commission Management
-  static async getCommissions(filters?: any): Promise<PaginatedResponse> {
+  static async getCommissions(filters?: any): Promise<PaginatedResponse<any>> {
     this.ensureInitialized()
     const response = await this.instance.get(API_ENDPOINTS.COMMISSIONS.LIST, {
       params: filters,
@@ -191,14 +219,14 @@ class ApiService {
     return response.data
   }
 
-  static async getPaymentHistory(): Promise<PaginatedResponse> {
+  static async getPaymentHistory(): Promise<PaginatedResponse<any>> {
     this.ensureInitialized()
     const response = await this.instance.get(API_ENDPOINTS.PAYMENTS.HISTORY)
     return response.data
   }
 
   // Messaging
-  static async getConversations(): Promise<PaginatedResponse> {
+  static async getConversations(): Promise<PaginatedResponse<any>> {
     this.ensureInitialized()
     const response = await this.instance.get(API_ENDPOINTS.MESSAGES.CONVERSATIONS)
     return response.data
@@ -210,7 +238,7 @@ class ApiService {
     return response.data
   }
 
-  static async getMessages(conversationId: string): Promise<PaginatedResponse> {
+  static async getMessages(conversationId: string): Promise<PaginatedResponse<any>> {
     this.ensureInitialized()
     const response = await this.instance.get(API_ENDPOINTS.MESSAGES.GET_MESSAGES(conversationId))
     return response.data
@@ -228,7 +256,7 @@ class ApiService {
   }
 
   // Events
-  static async getEvents(filters?: any): Promise<PaginatedResponse> {
+  static async getEvents(filters?: any): Promise<PaginatedResponse<any>> {
     this.ensureInitialized()
     const response = await this.instance.get(API_ENDPOINTS.EVENTS.LIST, {
       params: filters,

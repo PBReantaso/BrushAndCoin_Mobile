@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import StorageService from '@/services/storage'
 
 type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -10,8 +9,8 @@ interface ThemeState {
 }
 
 const initialState: ThemeState = {
-  mode: (StorageService.getThemeMode() as ThemeMode) || 'system',
-  language: StorageService.getLanguage(),
+  mode: 'system',
+  language: 'en',
   sidebarCollapsed: false,
 }
 
@@ -21,11 +20,9 @@ const themeSlice = createSlice({
   reducers: {
     setThemeMode: (state, action: PayloadAction<ThemeMode>) => {
       state.mode = action.payload
-      StorageService.saveThemeMode(action.payload)
     },
     setLanguage: (state, action: PayloadAction<string>) => {
       state.language = action.payload
-      StorageService.saveLanguage(action.payload)
     },
     toggleSidebar: (state) => {
       state.sidebarCollapsed = !state.sidebarCollapsed

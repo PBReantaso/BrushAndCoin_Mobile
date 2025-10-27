@@ -20,13 +20,10 @@ export async function auth(): Promise<User | null> {
         id: 'dev-user-1',
         email: 'dev@brushandcoin.com',
         fullName: 'Development User',
-        firstName: 'Development',
-        lastName: 'User',
         username: 'devuser',
         userType: 'artist',
         profileImage: 'https://i.pravatar.cc/150?img=10',
         isVerified: true,
-        isActive: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }

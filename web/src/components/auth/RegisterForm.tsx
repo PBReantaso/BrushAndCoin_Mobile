@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useDispatch } from 'react-redux'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, Mail, Lock, User, MapPin } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, MapPin, AlertCircle, X } from 'lucide-react'
 
 import { registerUser } from '@/store/slices/authSlice'
 import { AppDispatch } from '@/store'
@@ -44,6 +44,7 @@ type RegisterFormData = z.infer<typeof registerSchema>
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
@@ -57,102 +58,129 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      const result = await dispatch(registerUser(data)).unwrap()
+      setError(null)
+      
+      // Transform location string to object format if provided
+      const registerData = {
+        ...data,
+        location: data.location ? {
+          address: data.location,
+          latitude: 0, // Default values for development
+          longitude: 0,
+        } : undefined,
+      }
+      
+      const result = await dispatch(registerUser(registerData)).unwrap()
       if (result) {
         toast.success('Registration successful!')
         router.push('/dashboard')
       }
     } catch (error: any) {
-      toast.error(error || 'Registration failed. Please try again.')
+      const errorMessage = error || 'Registration failed. Please try again.'
+      setError(errorMessage)
+      toast.error(errorMessage)
     }
   }
 
+  const clearError = () => {
+    setError(null)
+  }
+
   return (
-    <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-4">
+    <div className="w-full">
+      {/* Header - Create Account */}
+      <div className="text-center mb-16">
+        <h1 className="text-3xl font-bold text-red-500 mb-2">
+          Create Account
+        </h1>
+        <p className="text-gray-400 text-base">
+          Join the creative community
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Full Name and Username */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-              Full Name
-            </label>
-            <div className="mt-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <User className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 {...register('fullName')}
                 type="text"
                 autoComplete="name"
-                className={`input pl-10 ${errors.fullName ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
-                placeholder="Enter your full name"
+                className={`w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                  errors.fullName ? 'border-red-300 focus:ring-red-500' : ''
+                }`}
+                placeholder="Full Name"
               />
             </div>
             {errors.fullName && (
-              <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
+              <p className="mt-2 text-sm text-red-600">{errors.fullName.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-              Username
-            </label>
-            <div className="mt-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <User className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 {...register('username')}
                 type="text"
                 autoComplete="username"
-                className={`input pl-10 ${errors.username ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
-                placeholder="Choose a username"
+                className={`w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                  errors.username ? 'border-red-300 focus:ring-red-500' : ''
+                }`}
+                placeholder="Username"
               />
             </div>
             {errors.username && (
-              <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
+              <p className="mt-2 text-sm text-red-600">{errors.username.message}</p>
             )}
           </div>
         </div>
 
+        {/* Email Field */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email address
-          </label>
-          <div className="mt-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Mail className="h-5 w-5 text-gray-400" />
             </div>
             <input
               {...register('email')}
               type="email"
               autoComplete="email"
-              className={`input pl-10 ${errors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
+              className={`w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                errors.email ? 'border-red-300 focus:ring-red-500' : ''
+              }`}
               placeholder="Enter your email"
             />
           </div>
           {errors.email && (
-            <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
           )}
         </div>
 
+        {/* Password Field */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <div className="mt-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Lock className="h-5 w-5 text-gray-400" />
             </div>
             <input
               {...register('password')}
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
-              className={`input pl-10 pr-10 ${errors.password ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
+              className={`w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                errors.password ? 'border-red-300 focus:ring-red-500' : ''
+              }`}
               placeholder="Create a password"
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              className="absolute inset-y-0 right-0 pr-4 flex items-center z-10"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -163,63 +191,88 @@ export default function RegisterForm() {
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
           )}
         </div>
 
+        {/* User Type */}
         <div>
-          <label htmlFor="userType" className="block text-sm font-medium text-gray-700">
-            I am a
-          </label>
           <select
             {...register('userType')}
-            className={`input ${errors.userType ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
+            className={`w-full py-4 px-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+              errors.userType ? 'border-red-300 focus:ring-red-500' : ''
+            }`}
           >
-            <option value="">Select your role</option>
+            <option value="">I am a...</option>
             <option value="artist">Artist</option>
             <option value="client">Client</option>
           </select>
           {errors.userType && (
-            <p className="mt-1 text-sm text-red-600">{errors.userType.message}</p>
+            <p className="mt-2 text-sm text-red-600">{errors.userType.message}</p>
           )}
         </div>
 
+        {/* Location Field */}
         <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-            Location (Optional)
-          </label>
-          <div className="mt-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <MapPin className="h-5 w-5 text-gray-400" />
             </div>
             <input
               {...register('location')}
               type="text"
-              className="input pl-10"
-              placeholder="Enter your location"
+              className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="Location (Optional)"
             />
           </div>
         </div>
-      </div>
 
-      <div>
+        {/* Create Account Button */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="btn btn-primary btn-lg w-full"
+          className="w-full py-4 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-semibold rounded-xl transition-colors duration-200"
         >
-          {isSubmitting ? 'Creating account...' : 'Create account'}
+          {isSubmitting ? (
+            <div className="flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Creating account...
+            </div>
+          ) : (
+            'Create Account'
+          )}
         </button>
-      </div>
 
-      <div className="text-center">
-        <span className="text-sm text-gray-600">
-          Already have an account?{' '}
-          <a href="/auth/login" className="font-medium text-primary-600 hover:text-primary-500">
-            Sign in
-          </a>
-        </span>
-      </div>
-    </form>
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+              <span className="flex-1 text-sm text-red-600">{error}</span>
+              <button
+                onClick={clearError}
+                className="text-red-500 hover:text-red-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Login Link */}
+        <div className="text-center mt-16">
+          <span className="text-gray-400 text-base">
+            Already have an account?{' '}
+          </span>
+          <button
+            type="button"
+            onClick={() => router.push('/auth/login')}
+            className="text-red-500 font-semibold text-base hover:text-red-600"
+          >
+            Sign In
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }
