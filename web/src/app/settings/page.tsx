@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Lock, Heart, MessageCircle, UserPlus, Key, Monitor, HelpCircle, Shield, FileText, LogOut, Trash2 } from 'lucide-react'
+import ApiService from '@/services/api'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -10,13 +11,24 @@ export default function SettingsPage() {
   const [pushLikes, setPushLikes] = useState(true)
   const [pushComments, setPushComments] = useState(true)
   const [pushFollows, setPushFollows] = useState(true)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     const confirmed = window.confirm('Are you sure you want to log out?')
     if (confirmed) {
-      // Clear user session and navigate to login
-      router.push('/auth/login')
+      setIsLoggingOut(true)
+      try {
+        // Use API service logout method
+        await ApiService.logout()
+        
+        // Force refresh to ensure clean state
+        window.location.href = '/auth/login'
+      } catch (error) {
+        console.error('Logout error:', error)
+        // Even if API call fails, clear local data and redirect
+        window.location.href = '/auth/login'
+      }
     }
   }
 
@@ -108,16 +120,23 @@ export default function SettingsPage() {
   const DangerTile = ({ 
     icon: Icon, 
     title, 
-    onClick 
+    onClick,
+    disabled = false
   }: { 
     icon: any
     title: string
     onClick: () => void
+    disabled?: boolean
   }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-3 lg:shadow-md">
       <button
-        onClick={onClick}
-        className="w-full p-4 lg:p-6 flex items-center space-x-4 hover:bg-red-50 transition-colors"
+        onClick={disabled ? undefined : onClick}
+        disabled={disabled}
+        className={`w-full p-4 lg:p-6 flex items-center space-x-4 transition-colors ${
+          disabled 
+            ? 'opacity-50 cursor-not-allowed' 
+            : 'hover:bg-red-50'
+        }`}
       >
         <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
           <Icon className="w-5 h-5 text-red-500" />
@@ -134,7 +153,7 @@ export default function SettingsPage() {
   return (
     <div className="bg-gray-50">
       {/* Main Content */}
-      <div className="px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 max-w-4xl mx-auto">
+      <div className="px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 lg:mr-64 max-w-6xl mx-auto">
         {/* Account Section */}
         <SectionHeader title="Account" />
         <SettingsTile
@@ -220,8 +239,9 @@ export default function SettingsPage() {
         <div className="mt-8">
           <DangerTile
             icon={LogOut}
-            title="Log Out"
+            title={isLoggingOut ? "Logging out..." : "Log Out"}
             onClick={handleLogout}
+            disabled={isLoggingOut}
           />
           <DangerTile
             icon={Trash2}

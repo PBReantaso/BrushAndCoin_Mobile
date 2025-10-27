@@ -163,7 +163,7 @@ export default function EventsPage() {
   return (
     <div className="bg-gray-50">
       {/* Main Content */}
-      <div className="px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 max-w-4xl mx-auto">
+      <div className="px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 lg:mr-64 max-w-6xl mx-auto">
         {/* Calendar Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 p-4">
           {/* Calendar Header */}

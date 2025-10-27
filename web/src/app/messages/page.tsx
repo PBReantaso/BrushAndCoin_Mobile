@@ -183,7 +183,7 @@ export default function MessagesPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 max-w-4xl mx-auto">
+      <div className="flex-1 px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 lg:mr-64 max-w-6xl mx-auto">
         {selectedTabIndex === 0 ? (
           /* Messages Tab */
           <div className="space-y-3">
@@ -277,41 +277,6 @@ export default function MessagesPage() {
       >
         <Plus className="w-6 h-6 text-white" />
       </button>
-
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 rounded-t-2xl lg:hidden">
-        <div className="h-16 px-4 flex items-center justify-around">
-          {[
-            { icon: Home, label: 'Home', route: '/home' },
-            { icon: MapPin, label: 'Events', route: '/events' },
-            { icon: MessageCircle, label: 'Messages', route: '/messages' },
-            { icon: User, label: 'Profile', route: '/profile' },
-          ].map((item, index) => {
-            const IconComponent = item.icon
-            return (
-              <button
-                key={item.label}
-                onClick={() => {
-                  setSelectedNavIndex(index)
-                  router.push(item.route)
-                }}
-                className={`flex flex-col items-center justify-center space-y-1 px-3 py-2 rounded-lg transition-colors ${
-                  selectedNavIndex === index 
-                    ? 'text-red-500' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <IconComponent className={`w-6 h-6 ${selectedNavIndex === index ? 'fill-current' : ''}`} />
-                <span className={`text-xs font-medium ${
-                  selectedNavIndex === index ? 'text-red-500' : 'text-gray-500'
-                }`}>
-                  {item.label}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
     </div>
   )
 }

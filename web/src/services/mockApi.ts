@@ -65,6 +65,7 @@ export class MockApiService {
   static async logout(): Promise<void> {
     console.log('🔧 MockApiService.logout called')
     await new Promise(resolve => setTimeout(resolve, 500))
+    console.log('🔧 MockApiService.logout completed')
     // Mock logout - no actual API call needed
   }
 

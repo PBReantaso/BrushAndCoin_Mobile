@@ -84,19 +84,29 @@ class ApiService {
   }
 
   static async logout(): Promise<void> {
+    console.log('🔧 ApiService.logout called, NODE_ENV:', env.NODE_ENV)
+    
     // Use mock API in development
     if (env.NODE_ENV === 'development') {
+      console.log('🔧 Using MockApiService for logout')
       const { MockApiService } = await import('./mockApi')
-      return MockApiService.logout()
+      await MockApiService.logout()
+    } else {
+      console.log('🔧 Using real API for logout')
+      this.ensureInitialized()
+      try {
+        await this.instance.post(API_ENDPOINTS.AUTH.LOGOUT)
+      } catch (error) {
+        console.error('Logout API call failed:', error)
+      }
     }
     
-    this.ensureInitialized()
-    try {
-      await this.instance.post(API_ENDPOINTS.AUTH.LOGOUT)
-    } finally {
-      StorageService.clearAuthToken()
-      StorageService.clearUserData()
-    }
+    // Always clear local data regardless of API call success
+    console.log('🔧 Clearing local storage data')
+    StorageService.clearAuthToken()
+    StorageService.clearUserData()
+    StorageService.clearAllData()
+    console.log('🔧 Local storage cleared')
   }
 
   static async refreshToken(): Promise<ApiResponse> {

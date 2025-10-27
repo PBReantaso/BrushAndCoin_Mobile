@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { 
   Home, 
   MapPin, 
@@ -12,8 +12,10 @@ import {
   Plus,
   Search,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react'
+import ApiService from '@/services/api'
 
 interface SidebarProps {
   isOpen: boolean
@@ -22,6 +24,24 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    const confirmed = window.confirm('Are you sure you want to log out?')
+    if (confirmed) {
+      try {
+        // Use API service logout method
+        await ApiService.logout()
+        
+        // Force refresh to ensure clean state
+        window.location.href = '/auth/login'
+      } catch (error) {
+        console.error('Logout error:', error)
+        // Even if API call fails, clear local data and redirect
+        window.location.href = '/auth/login'
+      }
+    }
+  }
 
   const navigationItems = [
     {
@@ -142,7 +162,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
         {/* User Profile Section */}
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+          <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer mb-2">
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
               <User className="w-5 h-5 text-gray-600" />
             </div>
@@ -151,6 +171,15 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
               <p className="text-xs text-gray-500 truncate">@johndoe</p>
             </div>
           </div>
+          
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="text-sm font-medium">Logout</span>
+          </button>
         </div>
       </div>
     </>

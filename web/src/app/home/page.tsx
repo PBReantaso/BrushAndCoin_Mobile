@@ -177,10 +177,7 @@ export default function HomePage() {
           <Palette className="w-16 h-16 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-600 mb-2">No artworks found</h3>
           <p className="text-gray-500 text-center">
-            {searchQuery 
-              ? 'Try adjusting your search terms'
-              : 'Be the first to share your artwork!'
-            }
+            Be the first to share your artwork!
           </p>
         </div>
       )
@@ -303,7 +300,7 @@ export default function HomePage() {
   return (
     <div className="bg-gray-50">
       {/* Main Content */}
-      <div className="px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 max-w-4xl mx-auto">
+      <div className="px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 lg:mr-64 max-w-6xl mx-auto">
         {/* Create Post Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 lg:mb-6">
           <div className="p-4 lg:p-6">
