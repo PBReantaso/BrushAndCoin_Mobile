@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
 import 'dart:async';
-import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -111,8 +109,8 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       // Check if user has a valid remember me token
       final rememberMeToken =
-          await StorageService.getString('remember_me_token');
-      final authToken = await StorageService.getString('auth_token');
+          StorageService.getString('remember_me_token');
+      final authToken = StorageService.getString('auth_token');
 
       if (rememberMeToken != null && authToken != null) {
         // User has remember me token, navigate to home
@@ -202,9 +200,9 @@ class _SplashScreenState extends State<SplashScreen>
               builder: (context, child) {
                 return Transform.translate(
                   offset: Offset(0, _textSlide.value),
-                  child: Column(
+                  child: const Column(
                     children: [
-                      const Text(
+                      Text(
                         'Brush&Coin',
                         style: TextStyle(
                           fontSize: 36,
@@ -213,8 +211,8 @@ class _SplashScreenState extends State<SplashScreen>
                           letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: 8),
+                      Text(
                         'Where Art Meets Opportunity',
                         style: TextStyle(
                           fontSize: 16,
@@ -237,9 +235,9 @@ class _SplashScreenState extends State<SplashScreen>
               builder: (context, child) {
                 return Opacity(
                   opacity: _fadeAnimation.value,
-                  child: Column(
+                  child: const Column(
                     children: [
-                      const SizedBox(
+                      SizedBox(
                         width: 40,
                         height: 40,
                         child: CircularProgressIndicator(
@@ -248,8 +246,8 @@ class _SplashScreenState extends State<SplashScreen>
                               AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      const Text(
+                      SizedBox(height: 20),
+                      Text(
                         'Loading...',
                         style: TextStyle(
                           fontSize: 14,

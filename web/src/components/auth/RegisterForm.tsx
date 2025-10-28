@@ -1,17 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useDispatch } from 'react-redux'
+import { AlertCircle, Eye, EyeOff, Lock, Mail, MapPin, User, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, Mail, Lock, User, MapPin, AlertCircle, X } from 'lucide-react'
+import { useDispatch } from 'react-redux'
+import { z } from 'zod'
 
-import { registerUser } from '@/store/slices/authSlice'
-import { AppDispatch } from '@/store'
 import { VALIDATION_RULES } from '@/lib/constants'
+import { AppDispatch } from '@/store'
+import { registerUser } from '@/store/slices/authSlice'
 
 const registerSchema = z.object({
   email: z
@@ -34,9 +34,7 @@ const registerSchema = z.object({
     .min(VALIDATION_RULES.FULL_NAME.MIN_LENGTH, VALIDATION_RULES.FULL_NAME.MIN_LENGTH_MSG)
     .max(VALIDATION_RULES.FULL_NAME.MAX_LENGTH, VALIDATION_RULES.FULL_NAME.MAX_LENGTH_MSG)
     .regex(VALIDATION_RULES.FULL_NAME.REGEX, VALIDATION_RULES.FULL_NAME.PATTERN_MSG),
-  userType: z.enum(['artist', 'client'], {
-    required_error: 'Please select a user type',
-  }),
+  userType: z.string().default('user'),
   location: z.string().optional(),
 })
 
@@ -192,23 +190,6 @@ export default function RegisterForm() {
           </div>
           {errors.password && (
             <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
-          )}
-        </div>
-
-        {/* User Type */}
-        <div>
-          <select
-            {...register('userType')}
-            className={`w-full py-4 px-4 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent ${
-              errors.userType ? 'border-red-300 focus:ring-red-500' : ''
-            }`}
-          >
-            <option value="">I am a...</option>
-            <option value="artist">Artist</option>
-            <option value="client">Client</option>
-          </select>
-          {errors.userType && (
-            <p className="mt-2 text-sm text-red-600">{errors.userType.message}</p>
           )}
         </div>
 

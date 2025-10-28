@@ -217,9 +217,9 @@ class _EventsScreenState extends State<EventsScreen> {
                   const SizedBox(height: 16),
 
                   // Days of Week
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: const [
+                    children: [
                       Text('SUN',
                           style: TextStyle(
                               fontSize: 12, fontWeight: FontWeight.w500)),
@@ -485,7 +485,7 @@ class _EventsScreenState extends State<EventsScreen> {
           child: Row(
             children: [
               // Date Section
-              Container(
+              SizedBox(
                 width: 60,
                 child: Column(
                   children: [

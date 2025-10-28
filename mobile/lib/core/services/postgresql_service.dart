@@ -295,8 +295,9 @@ class PostgreSQLService {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (conversationId != null)
+      if (conversationId != null) {
         queryParams['conversation_id'] = conversationId;
+      }
       if (senderId != null) queryParams['sender_id'] = senderId;
       if (receiverId != null) queryParams['receiver_id'] = receiverId;
       if (limit != null) queryParams['limit'] = limit;
@@ -383,8 +384,9 @@ class PostgreSQLService {
     try {
       final queryParams = <String, dynamic>{};
       if (organizerId != null) queryParams['organizer_id'] = organizerId;
-      if (startDate != null)
+      if (startDate != null) {
         queryParams['start_date'] = startDate.toIso8601String();
+      }
       if (endDate != null) queryParams['end_date'] = endDate.toIso8601String();
       if (lat != null) queryParams['lat'] = lat;
       if (lng != null) queryParams['lng'] = lng;

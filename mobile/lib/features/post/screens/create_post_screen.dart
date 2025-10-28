@@ -252,7 +252,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedCategory,
+      initialValue: _selectedCategory,
       decoration: const InputDecoration(
         labelText: 'Category',
         border: OutlineInputBorder(),
@@ -368,7 +368,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               }
             });
           },
-          activeColor: const Color.fromARGB(255, 255, 60, 60),
+          activeThumbColor: const Color.fromARGB(255, 255, 60, 60),
         ),
       ],
     );

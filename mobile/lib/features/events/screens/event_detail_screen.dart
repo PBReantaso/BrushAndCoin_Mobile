@@ -526,7 +526,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       ),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 60,
             child: Text(
               time,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../core/utils/system_ui_utils.dart';
 
 // Custom painter for map preview background
@@ -36,13 +35,13 @@ class MapPreviewPainter extends CustomPainter {
 
     // Draw rectangular buildings
     final buildings = [
-      Rect.fromLTWH(30, 30, 25, 20),
-      Rect.fromLTWH(80, 50, 30, 15),
-      Rect.fromLTWH(150, 25, 20, 25),
-      Rect.fromLTWH(200, 45, 35, 20),
-      Rect.fromLTWH(50, 100, 40, 18),
-      Rect.fromLTWH(120, 90, 25, 22),
-      Rect.fromLTWH(180, 110, 30, 15),
+      const Rect.fromLTWH(30, 30, 25, 20),
+      const Rect.fromLTWH(80, 50, 30, 15),
+      const Rect.fromLTWH(150, 25, 20, 25),
+      const Rect.fromLTWH(200, 45, 35, 20),
+      const Rect.fromLTWH(50, 100, 40, 18),
+      const Rect.fromLTWH(120, 90, 25, 22),
+      const Rect.fromLTWH(180, 110, 30, 15),
     ];
 
     for (final building in buildings) {
@@ -55,8 +54,8 @@ class MapPreviewPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final parks = [
-      Rect.fromLTWH(60, 70, 15, 15),
-      Rect.fromLTWH(160, 80, 12, 12),
+      const Rect.fromLTWH(60, 70, 15, 15),
+      const Rect.fromLTWH(160, 80, 12, 12),
     ];
 
     for (final park in parks) {
@@ -410,7 +409,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             ),
           ),
           DropdownButtonFormField<String>(
-            value: _selectedCategory,
+            initialValue: _selectedCategory,
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding:
@@ -460,14 +459,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             Container(
               width: double.infinity,
               height: double.infinity,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFFE8F5E8),
-                    const Color(0xFFF0F8F0),
-                    const Color(0xFFE8F5E8),
+                    Color(0xFFE8F5E8),
+                    Color(0xFFF0F8F0),
+                    Color(0xFFE8F5E8),
                   ],
                 ),
               ),
@@ -775,11 +774,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                           ),
                           if (_selectedLocation != null) ...[
                             const SizedBox(height: 2),
-                            Text(
+                            const Text(
                               'Tap to change location',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: const Color(0xFF9E9E9E),
+                                color: Color(0xFF9E9E9E),
                               ),
                             ),
                           ],

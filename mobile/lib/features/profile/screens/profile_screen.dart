@@ -942,9 +942,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Expanded(
                 flex: 3,
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F0F0),
-                    borderRadius: const BorderRadius.only(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF0F0F0),
+                    borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(8),
                       topRight: Radius.circular(8),
                     ),

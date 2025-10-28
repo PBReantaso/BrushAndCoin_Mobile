@@ -29,7 +29,7 @@ class _CommissionRequestScreenState extends State<CommissionRequestScreen> {
   final _deadlineController = TextEditingController();
   final _requirementsController = TextEditingController();
 
-  List<File> _referenceImages = [];
+  final List<File> _referenceImages = [];
   CommissionCategory _selectedCategory = CommissionCategory.digitalArt;
   bool _isUrgent = false;
 
@@ -215,7 +215,7 @@ class _CommissionRequestScreenState extends State<CommissionRequestScreen> {
 
             // Category
             DropdownButtonFormField<CommissionCategory>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: InputDecoration(
                 labelText: 'Category',
                 border: OutlineInputBorder(
@@ -469,15 +469,15 @@ class _CommissionRequestScreenState extends State<CommissionRequestScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.security,
                 color: Color(0xFF4CAF50),
                 size: 20,
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8),
+              Text(
                 'Secure Escrow Payment',
                 style: TextStyle(
                   fontSize: 16,
@@ -512,7 +512,7 @@ class _CommissionRequestScreenState extends State<CommissionRequestScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Commission Amount'),
-                    Text('${CommissionUtils.formatPeso(pricing.budget)}'),
+                    Text(CommissionUtils.formatPeso(pricing.budget)),
                   ],
                 ),
                 if (_isUrgent) ...[
@@ -521,7 +521,7 @@ class _CommissionRequestScreenState extends State<CommissionRequestScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Urgency Fee (20%)'),
-                      Text('${CommissionUtils.formatPeso(pricing.urgencyFee)}'),
+                      Text(CommissionUtils.formatPeso(pricing.urgencyFee)),
                     ],
                   ),
                 ],
@@ -530,7 +530,7 @@ class _CommissionRequestScreenState extends State<CommissionRequestScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Platform Fee (5%)'),
-                    Text('${CommissionUtils.formatPeso(pricing.platformFee)}'),
+                    Text(CommissionUtils.formatPeso(pricing.platformFee)),
                   ],
                 ),
                 const Divider(),
@@ -545,7 +545,7 @@ class _CommissionRequestScreenState extends State<CommissionRequestScreen> {
                       ),
                     ),
                     Text(
-                      '${CommissionUtils.formatPeso(pricing.totalAmount)}',
+                      CommissionUtils.formatPeso(pricing.totalAmount),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

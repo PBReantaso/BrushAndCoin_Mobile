@@ -22,7 +22,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   final ScrollController _scrollController = ScrollController();
 
   List<Map<String, dynamic>> _displayedComments = [];
-  int _commentsPerPage = 5;
+  final int _commentsPerPage = 5;
   int _currentPage = 0;
   bool _isLoadingMore = false;
 
@@ -515,9 +515,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.post.description.isNotEmpty) ...[
-            Text(
+            const Text(
               'Description',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -616,7 +616,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           // Comments List
           ..._displayedComments
               .map((comment) => _buildCommentItem(comment))
-              .toList(),
+              ,
 
           // Load More Comments Button
           if (_displayedComments.length <
@@ -671,10 +671,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           child: Row(
             children: [
               // User Avatar
-              CircleAvatar(
+              const CircleAvatar(
                 radius: 16,
-                backgroundColor: const Color(0xFF666666),
-                child: const Icon(
+                backgroundColor: Color(0xFF666666),
+                child: Icon(
                   Icons.person,
                   color: Colors.white,
                   size: 16,

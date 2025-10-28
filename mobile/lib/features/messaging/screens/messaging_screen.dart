@@ -886,7 +886,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
   }
 
   void _showNewMessageDialog() {
-    final TextEditingController _usernameController = TextEditingController();
+    final TextEditingController usernameController = TextEditingController();
 
     showDialog(
       context: context,
@@ -958,7 +958,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     ),
                   ),
                   child: TextField(
-                    controller: _usernameController,
+                    controller: usernameController,
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Username',
@@ -1011,7 +1011,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          final username = _usernameController.text.trim();
+                          final username = usernameController.text.trim();
                           if (username.isNotEmpty) {
                             Navigator.of(context).pop();
                             _navigateToChat(username);

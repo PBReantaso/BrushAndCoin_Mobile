@@ -277,7 +277,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         value: value,
         onChanged: onChanged,
-        activeColor: const Color.fromARGB(255, 255, 60, 60),
+        activeThumbColor: const Color.fromARGB(255, 255, 60, 60),
         activeTrackColor:
             const Color.fromARGB(255, 255, 60, 60).withOpacity(0.3),
       ),

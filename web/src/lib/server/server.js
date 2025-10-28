@@ -144,15 +144,3 @@ app.post(
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
-/*
-app.get('/users/register', (req, res) => {
-  res.render({ 'register' });
-});
-
-app.get('/users/login', (req, res) => {
-  res.render({ 'login' });
-});
-
-app
-*/

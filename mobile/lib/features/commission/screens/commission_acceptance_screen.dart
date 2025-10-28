@@ -156,7 +156,7 @@ class _CommissionAcceptanceScreenState
                     ),
                   ),
                   Text(
-                    '${CommissionUtils.formatPeso(widget.commissionRequest.budget)}',
+                    CommissionUtils.formatPeso(widget.commissionRequest.budget),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -208,15 +208,15 @@ class _CommissionAcceptanceScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.security,
                 color: Color(0xFF4CAF50),
                 size: 20,
               ),
-              const SizedBox(width: 8),
-              const Text(
+              SizedBox(width: 8),
+              Text(
                 'Secure Escrow Payment',
                 style: TextStyle(
                   fontSize: 16,
@@ -408,7 +408,7 @@ class _CommissionAcceptanceScreenState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Commission Amount'),
-                  Text('${CommissionUtils.formatPeso(pricing.budget)}'),
+                  Text(CommissionUtils.formatPeso(pricing.budget)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -416,7 +416,7 @@ class _CommissionAcceptanceScreenState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Platform Fee (5%)'),
-                  Text('${CommissionUtils.formatPeso(pricing.platformFee)}'),
+                  Text(CommissionUtils.formatPeso(pricing.platformFee)),
                 ],
               ),
               const Divider(),
@@ -431,7 +431,7 @@ class _CommissionAcceptanceScreenState
                     ),
                   ),
                   Text(
-                    '${CommissionUtils.formatPeso(pricing.totalAmount)}',
+                    CommissionUtils.formatPeso(pricing.totalAmount),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

@@ -396,7 +396,7 @@ class _ArtistRequestsScreenState extends State<ArtistRequestsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Commission Amount'),
-                          Text('${CommissionUtils.formatPeso(pricing.budget)}'),
+                          Text(CommissionUtils.formatPeso(pricing.budget)),
                         ],
                       ),
                       if (request['isUrgent']) ...[
@@ -406,7 +406,7 @@ class _ArtistRequestsScreenState extends State<ArtistRequestsScreen> {
                           children: [
                             const Text('Urgency Fee (20%)'),
                             Text(
-                                '${CommissionUtils.formatPeso(pricing.urgencyFee)}'),
+                                CommissionUtils.formatPeso(pricing.urgencyFee)),
                           ],
                         ),
                       ],
@@ -416,7 +416,7 @@ class _ArtistRequestsScreenState extends State<ArtistRequestsScreen> {
                         children: [
                           const Text('Platform Fee (5%)'),
                           Text(
-                              '${CommissionUtils.formatPeso(pricing.platformFee)}'),
+                              CommissionUtils.formatPeso(pricing.platformFee)),
                         ],
                       ),
                       const Divider(),
@@ -431,7 +431,7 @@ class _ArtistRequestsScreenState extends State<ArtistRequestsScreen> {
                             ),
                           ),
                           Text(
-                            '${CommissionUtils.formatPeso(pricing.totalAmount)}',
+                            CommissionUtils.formatPeso(pricing.totalAmount),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -507,22 +507,22 @@ class _ArtistRequestsScreenState extends State<ArtistRequestsScreen> {
           ] else if (request['status'] == 'Accepted') ...[
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E8),
-                borderRadius: const BorderRadius.only(
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F5E8),
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
                 ),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.check_circle,
                     color: Color(0xFF4CAF50),
                     size: 20,
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
+                  SizedBox(width: 8),
+                  Text(
                     'Commission accepted - Payment secured in escrow',
                     style: TextStyle(
                       color: Color(0xFF4CAF50),

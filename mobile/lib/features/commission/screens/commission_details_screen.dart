@@ -694,15 +694,15 @@ class _CommissionDetailsScreenState extends State<CommissionDetailsScreen> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFF2196F3)),
             ),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.security,
                   color: Color(0xFF2196F3),
                   size: 20,
                 ),
-                const SizedBox(width: 8),
-                const Expanded(
+                SizedBox(width: 8),
+                Expanded(
                   child: Text(
                     'Payment Secured in Escrow',
                     style: TextStyle(

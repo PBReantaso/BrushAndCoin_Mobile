@@ -1,7 +1,7 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { API_ENDPOINTS } from '@/lib/constants'
-import { ApiResponse, PaginatedResponse, UploadResponse } from '@/types'
 import { env } from '@/lib/env'
+import { ApiResponse, PaginatedResponse, UploadResponse } from '@/types'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import StorageService from './storage'
 
 class ApiService {
@@ -18,6 +18,7 @@ class ApiService {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      withCredentials: true // Enable sending cookies with requests
     })
 
     // Request interceptor for authentication
@@ -53,16 +54,6 @@ class ApiService {
 
   // Authentication
   static async login(email: string, password: string): Promise<ApiResponse> {
-    console.log('🔧 ApiService.login called, NODE_ENV:', env.NODE_ENV)
-    
-    // Use mock API in development
-    if (env.NODE_ENV === 'development') {
-      console.log('🔧 Using MockApiService for login')
-      const { MockApiService } = await import('./mockApi')
-      return MockApiService.login(email, password)
-    }
-    
-    console.log('🔧 Using real API for login')
     this.ensureInitialized()
     const response = await this.instance.post(API_ENDPOINTS.AUTH.LOGIN, {
       email,
@@ -72,12 +63,6 @@ class ApiService {
   }
 
   static async register(userData: any): Promise<ApiResponse> {
-    // Use mock API in development
-    if (env.NODE_ENV === 'development') {
-      const { MockApiService } = await import('./mockApi')
-      return MockApiService.register(userData)
-    }
-    
     this.ensureInitialized()
     const response = await this.instance.post(API_ENDPOINTS.AUTH.REGISTER, userData)
     return response.data
@@ -339,17 +324,46 @@ class ApiService {
   }
 
   private static handleError(error: any): Error {
+    console.error('API Error:', {
+      message: error.message,
+      config: error.config,
+      response: error.response,
+      request: error.request,
+      stack: error.stack
+    });
+    
     if (error.response) {
       // Server responded with error status
-      const status = error.response.status
-      const message = error.response.data?.message || 'Server error occurred'
-      return new Error(`Error ${status}: ${message}`)
+      const status = error.response.status;
+      const message = error.response.data?.message || 'Server error occurred';
+      console.error(`Server Error (${status}):`, {
+        data: error.response.data,
+        headers: error.response.headers,
+        config: error.response.config
+      });
+      return new Error(`Error ${status}: ${message}`);
     } else if (error.request) {
       // Network error
-      return new Error('Network error. Please check your internet connection.')
+      console.error('Network Error:', {
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL,
+          headers: error.config?.headers
+        },
+        message: error.message
+      });
+      
+      // Check if it's a CORS issue
+      if (error.message.includes('Network Error') && !error.response) {
+        return new Error('Network Error: This might be a CORS issue. Please check the server configuration.');
+      }
+      
+      return new Error(`Network error: ${error.message}. Please check your internet connection and try again.`);
     } else {
       // Other error
-      return new Error('An unexpected error occurred')
+      console.error('Unknown Error:', error);
+      return new Error(`An unexpected error occurred: ${error.message}`);
     }
   }
 

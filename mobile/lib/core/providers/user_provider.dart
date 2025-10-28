@@ -3,7 +3,7 @@ import '../models/user_model.dart';
 
 class UserProvider extends ChangeNotifier {
   User? _currentUser;
-  List<User> _users = [];
+  final List<User> _users = [];
   bool _isLoading = false;
   String? _error;
 
