@@ -71,18 +71,41 @@ app.get('/users/dashboard', (req, res) => {
   res.render('dashboard', { user: "userBC" });
 });
 
+// Diagnostic endpoint to check user data
+app.get('/api/check-user/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const result = await pool.query(
+      'SELECT id, email, username, first_name, last_name, location_lat, location_lng, location_address FROM users WHERE email = $1',
+      [email]
+    );
+    
+    if (result.rows.length === 0) {
+      res.json({ error: 'User not found' });
+    } else {
+      res.json({ user: result.rows[0] });
+    }
+  } catch (error) {
+    console.error('Error checking user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Post routes
 app.post('/users/register', async (req, res) => {
   let { username, email, password, password2, first_name, last_name, user_type} = req.body;
   user_type = user_type || 'user';
-  console.log({
+  console.log('Registration data:', {
     username,
     first_name,
     last_name,
     email,
     password,
     password2,
-    user_type
+    user_type,
+    location_lat: req.body.location_lat,
+    location_lng: req.body.location_lng,
+    location_address: req.body.location_address
   });
   let errors = [];
   if(!username || !email || !password || !password2 || !first_name || !last_name) {
@@ -115,15 +138,40 @@ app.post('/users/register', async (req, res) => {
           res.render('register', { errors });
         } else {
           pool.query(
-            `INSERT INTO users (username, email, password, first_name, last_name, user_type)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, password`, [username, email, hashedPassword, first_name, last_name, user_type], (err, results) => {
+            `INSERT INTO users (
+              username, email, password, first_name, last_name, user_type,
+              bio, profile_image_url, location_lat, location_lng, location_address,
+              is_verified, is_active
+            ) VALUES (
+              $1, $2, $3, $4, $5, $6,
+              $7, $8, $9, $10, $11,
+              FALSE, TRUE
+            )
+            RETURNING id, password`, 
+            [
+              username, email, hashedPassword, first_name, last_name, user_type,
+              req.body.bio || null, req.body.profile_image_url || null,
+              req.body.location_lat || null, req.body.location_lng || null, req.body.location_address || null
+            ], 
+            (err, results) => {
               if(err) {
                 throw err;
               }
-              console.log(results.rows);
-              req.flash('success_msg', "You are now registered. Please log in");
-              res.redirect('/users/login');
+              const userId = results.rows[0].id;
+              // Verify the user was created with all data
+              pool.query(
+                'SELECT * FROM users WHERE id = $1',
+                [userId],
+                (verifyErr, verifyResults) => {
+                  if (verifyErr) {
+                    console.error('Error verifying user creation:', verifyErr);
+                  } else {
+                    console.log('Created user data:', verifyResults.rows[0]);
+                  }
+                  req.flash('success_msg', "You are now registered. Please log in");
+                  res.redirect('/users/login');
+                }
+              );
             }
           )
         }
