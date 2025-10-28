@@ -1,20 +1,6 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Poppins } from 'next/font/google'
 import './globals.css'
-import { Providers } from '@/components/providers'
-import { Toaster } from 'react-hot-toast'
-import LayoutWithSidebar from '@/components/layout/LayoutWithSidebar'
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-})
-
-const poppins = Poppins({ 
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-poppins',
-})
+import RootLayoutClient from './layout-client'
 
 export const metadata: Metadata = {
   title: 'Brush&Coin - Creative Marketplace',
@@ -45,25 +31,5 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
-      <body className="font-sans antialiased">
-        <Providers>
-          <LayoutWithSidebar>
-            {children}
-          </LayoutWithSidebar>
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-            }}
-          />
-        </Providers>
-      </body>
-    </html>
-  )
+  return <RootLayoutClient>{children}</RootLayoutClient>
 }
