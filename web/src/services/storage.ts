@@ -1,4 +1,3 @@
-import { env } from '@/lib/env'
 
 class StorageService {
   // Auth Token Management
@@ -27,14 +26,42 @@ class StorageService {
   // User Data Management
   static saveUserData(userData: any): void {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('Brush&Coin_user_data', JSON.stringify(userData))
+      try {
+        // Validate userData is an object
+        if (!userData || typeof userData !== 'object') {
+          throw new Error('Invalid user data format')
+        }
+        
+        localStorage.setItem('Brush&Coin_user_data', JSON.stringify(userData))
+      } catch (error) {
+        console.error('Error saving user data to localStorage:', error)
+        // Clear potentially corrupted data
+        this.clearUserData()
+      }
     }
   }
 
   static getUserData(): any | null {
     if (typeof window !== 'undefined') {
-      const data = localStorage.getItem('Brush&Coin_user_data')
-      return data ? JSON.parse(data) : null
+      try {
+        const data = localStorage.getItem('Brush&Coin_user_data')
+        if (!data) return null;
+        
+        // Validate that the data is actually JSON before parsing
+        const parsedData = JSON.parse(data)
+        if (!parsedData || typeof parsedData !== 'object') {
+          // If parsed data is not an object, clear it and return null
+          this.clearUserData()
+          return null
+        }
+        
+        return parsedData
+      } catch (error) {
+        // If there's any error parsing the data, clear it and return null
+        console.error('Error parsing user data from localStorage:', error)
+        this.clearUserData()
+        return null
+      }
     }
     return null
   }

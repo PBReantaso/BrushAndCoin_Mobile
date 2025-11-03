@@ -17,8 +17,7 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-      },
-      withCredentials: true // Enable sending cookies with requests
+      }
     })
 
     // Request interceptor for authentication
@@ -64,43 +63,48 @@ class ApiService {
 
   static async register(userData: any): Promise<ApiResponse> {
     this.ensureInitialized()
-    const response = await this.instance.post(API_ENDPOINTS.AUTH.REGISTER, userData)
-    return response.data
+    try {
+      const response = await this.instance.post(API_ENDPOINTS.AUTH.REGISTER, userData)
+      
+      // Transform raw response into expected ApiResponse format
+      return {
+        success: true,
+        message: 'Registration successful',
+        data: response.data 
+      }
+    } catch (error: any) {
+      // Transform error into expected ApiResponse format
+      const errorMessage = error.response?.data?.message 
+        || error.message 
+        || 'Registration failed';
+        
+      return {
+        success: false,
+        message: errorMessage,
+        data: null,
+        errors: [errorMessage]
+      }
+    }
   }
 
   static async logout(): Promise<void> {
-    console.log('🔧 ApiService.logout called, NODE_ENV:', env.NODE_ENV)
+  try {
+    const userId = localStorage.getItem('userId')
     
-    // Use mock API in development
-    if (env.NODE_ENV === 'development') {
-      console.log('🔧 Using MockApiService for logout')
-      const { MockApiService } = await import('./mockApi')
-      await MockApiService.logout()
-    } else {
-      console.log('🔧 Using real API for logout')
-      this.ensureInitialized()
-      try {
-        await this.instance.post(API_ENDPOINTS.AUTH.LOGOUT)
-      } catch (error) {
-        console.error('Logout API call failed:', error)
-      }
-    }
-    
-    // Always clear local data regardless of API call success
-    console.log('🔧 Clearing local storage data')
-    StorageService.clearAuthToken()
-    StorageService.clearUserData()
-    StorageService.clearAllData()
-    console.log('🔧 Local storage cleared')
+    await fetch('/api/auth/signout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId })
+    })
+  } catch (error) {
+    console.error('Logout API error:', error)
+    throw error
   }
+}
 
   static async refreshToken(): Promise<ApiResponse> {
-    // Use mock API in development
-    if (env.NODE_ENV === 'development') {
-      const { MockApiService } = await import('./mockApi')
-      return MockApiService.refreshToken()
-    }
-    
     this.ensureInitialized()
     const response = await this.instance.post(API_ENDPOINTS.AUTH.REFRESH)
     return response.data

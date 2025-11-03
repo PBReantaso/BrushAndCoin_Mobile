@@ -108,33 +108,70 @@ export default function RegisterForm() {
     }
   }
 
-  const onSubmit = async (data: RegisterFormData) => {
-    try {
-      setError(null)
+    const onSubmit = async (data: RegisterFormData) => {
+  try {
+    setError(null)
+    
+    // Prepare registration data
+    const registerData = {
+      ...data,
+      // Convert empty strings to undefined for optional fields
+      bio: data.bio || undefined,
+      profile_image_url: data.profile_image_url || undefined,
+      location_address: data.location_address || undefined,
+      location_lat: data.location_lat || undefined,
+      location_lng: data.location_lng || undefined,
+      user_type: data.user_type || 'user'
+    }
+    
+    console.log('🔄 Sending registration data:', registerData)
+    
+    const result = await dispatch(registerUser(registerData)).unwrap()
+    
+    // OPTION 3: Handle success with message and redirect to login
+    if (result.success) {
+      toast.success(result.message)
       
-      // Prepare registration data
-      const registerData = {
-        ...data,
-        // Convert empty strings to undefined for optional fields
-        bio: data.bio || undefined,
-        profile_image_url: data.profile_image_url || undefined,
-        location_address: data.location_address || undefined,
-        location_lat: data.location_lat || undefined,
-        location_lng: data.location_lng || undefined,
-        user_type: data.user_type || 'user'
-      }
-      
-      const result = await dispatch(registerUser(registerData)).unwrap()
-      if (result) {
-        toast.success('Registration successful!')
-        router.push('/dashboard')
-      }
-    } catch (error: any) {
-      const errorMessage = error || 'Registration failed. Please try again.'
-      setError(errorMessage)
-      toast.error(errorMessage)
+      // Redirect to login page with success parameter
+      setTimeout(() => {
+        router.push('/auth/login?registered=true')
+      }, 1500) // Small delay to show success message
+    }
+    
+  } catch (error: any) {
+    // Log raw error for debugging
+    console.error('RegisterForm onSubmit error:', error)
+    console.error('RegisterForm onSubmit error payload:', error.payload)
+
+    // Handle error response from the API
+    let errorMessage = 'Registration failed. Please try again.'
+    let errorDetails: string[] = []
+
+    if (error?.payload) {
+      // Handle structured error from registerUser thunk
+      const payload = error.payload as { message: string; errors?: string[] }
+      errorMessage = payload.message
+      errorDetails = payload.errors || []
+    } else if (error?.message) {
+      // Fallback for unexpected error formats
+      errorMessage = error.message
+    }
+
+    setError(errorMessage)
+    
+    // Show main error message
+    toast.error(errorMessage)
+    
+    // Show detailed error messages if available
+    if (errorDetails.length > 0) {
+      errorDetails.forEach(detail => {
+        if (detail !== errorMessage) {
+          toast.error(detail)
+        }
+      })
     }
   }
+}
 
   const clearError = () => {
     setError(null)

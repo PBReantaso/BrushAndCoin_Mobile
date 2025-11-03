@@ -1,21 +1,19 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { 
-  Home, 
-  MapPin, 
-  MessageCircle, 
-  User, 
-  Settings,
+import {
+  Home,
+  LogOut,
+  MapPin,
+  MessageCircle,
   Plus,
   Search,
-  Menu,
-  X,
-  LogOut
+  Settings,
+  User,
+  X
 } from 'lucide-react'
-import ApiService from '@/services/api'
+import { signOut } from 'next-auth/react'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 
 interface SidebarProps {
   isOpen: boolean
@@ -27,21 +25,42 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const router = useRouter()
 
   const handleLogout = async () => {
-    const confirmed = window.confirm('Are you sure you want to log out?')
-    if (confirmed) {
-      try {
-        // Use API service logout method
-        await ApiService.logout()
-        
-        // Force refresh to ensure clean state
-        window.location.href = '/auth/login'
-      } catch (error) {
-        console.error('Logout error:', error)
-        // Even if API call fails, clear local data and redirect
-        window.location.href = '/auth/login'
-      }
+  const confirmed = window.confirm('Are you sure you want to log out?')
+  if (confirmed) {
+    try {
+      // 1. Clear all client storage first
+      localStorage.clear()
+      sessionStorage.clear()
+      
+      // 2. Clear all cookies manually
+      document.cookie.split(";").forEach(function(c) {
+        const cookie = c.trim()
+        const eqPos = cookie.indexOf("=")
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
+        // Clear all cookies
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/"
+      })
+      
+      // 3. Try to call signout endpoint but don't wait for it
+      fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}) // Send empty object instead of userId
+      }).catch(err => console.warn('Signout API call failed:', err))
+      
+      // 4. Use NextAuth signout with redirect
+      await signOut({ 
+        callbackUrl: '/auth/login?logout=true',
+        redirect: true 
+      })
+      
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Fallback: just redirect to login
+      window.location.href = '/auth/login?logout=true'
     }
   }
+}
 
   const navigationItems = [
     {

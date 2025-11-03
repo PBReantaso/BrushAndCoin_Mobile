@@ -1,13 +1,25 @@
-import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import LoginForm from '@/components/auth/LoginForm'
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
 
-export default async function LoginPage() {
-  // Redirect if already authenticated
-  const user = await auth()
-  if (user) {
-    redirect('/dashboard')
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const session = await getServerSession(authOptions)
+  const params = await searchParams
+  const force = params.force || params.logout
+
+  // Only redirect if we have a VALID user session (not just any session)
+  if (session?.user?.id && !force) {
+    console.log('✅ Login: Valid session found, redirecting to home')
+    redirect('/home')
   }
+
+  // If session exists but user is null/invalid, don't redirect - show login form
+  console.log('🔍 Login: Showing login form - session:', !!session, 'user:', session?.user?.id)
 
   return (
     <div className="min-h-screen bg-white">

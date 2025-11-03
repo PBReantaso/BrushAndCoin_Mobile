@@ -1,12 +1,21 @@
-import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import RegisterForm from '@/components/auth/RegisterForm'
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
 
-export default async function RegisterPage() {
-  // Redirect if already authenticated
-  const user = await auth()
-  if (user) {
-    redirect('/dashboard')
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const session = await getServerSession(authOptions)
+  const params = await searchParams
+  const force = params.force || params.logout
+  const registerFlow = params.register // Add this check
+
+  // Only redirect if there's a session AND we're not forcing logout AND we're not in registration flow
+  if (session && !force && !registerFlow) {
+    redirect('/home')
   }
 
   return (

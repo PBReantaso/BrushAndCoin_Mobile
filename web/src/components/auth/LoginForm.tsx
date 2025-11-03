@@ -1,17 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useDispatch } from 'react-redux'
+import { AlertCircle, Eye, EyeOff, Lock, Mail, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { Eye, EyeOff, Mail, Lock, AlertCircle, X } from 'lucide-react'
+import { useDispatch } from 'react-redux'
+import { z } from 'zod'
 
-import { loginUser } from '@/store/slices/authSlice'
-import { AppDispatch } from '@/store'
 import { VALIDATION_RULES } from '@/lib/constants'
+import { AppDispatch } from '@/store'
+import { loginUser } from '@/store/slices/authSlice'
 
 const loginSchema = z.object({
   email: z
@@ -59,7 +59,30 @@ export default function LoginForm() {
         router.push('/home')
       }
     } catch (error: any) {
-      const errorMessage = error || 'Login failed. Please try again.'
+      // Log raw error for debugging
+      console.error('LoginForm onSubmit error:', error)
+
+      // Normalize error into a string to avoid rendering objects in JSX
+      let errorMessage = 'Login failed. Please try again.'
+      if (typeof error === 'string') {
+        errorMessage = error
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      } else if (error && typeof error === 'object') {
+        // Redux rejected value can be in error.payload
+        if ('payload' in error) {
+          const p = (error as any).payload
+          if (typeof p === 'string') errorMessage = p
+          else if (p && typeof p === 'object' && 'message' in p) errorMessage = String(p.message)
+        } else if ((error as any).response && (error as any).response.data) {
+          const d = (error as any).response.data
+          if (typeof d === 'string') errorMessage = d
+          else if (d && typeof d === 'object' && 'message' in d) errorMessage = String(d.message)
+        } else if ('message' in error) {
+          errorMessage = String((error as any).message)
+        }
+      }
+
       setError(errorMessage)
       toast.error(errorMessage)
     }
@@ -213,7 +236,7 @@ export default function LoginForm() {
           </span>
           <button
             type="button"
-            onClick={() => router.push('/auth/register')}
+            onClick={() => router.push('/auth/register?register=true')}
             className="text-red-500 font-semibold text-base hover:text-red-600"
           >
             Sign Up

@@ -1,30 +1,27 @@
-import pool from '@/lib/db/config';
+import { query } from '@/lib/db';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Test the connection
-    const client = await pool.connect();
+    console.log('🔍 Testing database connection...');
     
-    // Run a simple query
-    const result = await client.query('SELECT NOW()');
+    // Test query
+    const result = await query('SELECT NOW() as current_time');
     
-    // Release the client
-    client.release();
+    console.log('✅ Database connection successful');
     
-    return new Response(JSON.stringify({ 
-      status: 'success',
-      time: result.rows[0].now 
-    }), {
-      headers: { 'Content-Type': 'application/json' },
+    return NextResponse.json({
+      success: true,
+      message: 'Database connection successful',
+      data: result.rows[0]
     });
   } catch (error: any) {
-    console.error('Database connection error:', error);
-    return new Response(JSON.stringify({ 
-      status: 'error',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('❌ Database connection failed:', error);
+    
+    return NextResponse.json({
+      success: false,
+      message: 'Database connection failed',
+      error: error.message
+    }, { status: 500 });
   }
 }
