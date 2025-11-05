@@ -119,34 +119,6 @@ export const authOptions = {
     return session;
   },
 },
-    
-    return token; // Always return an object
-  },
-  
-  async session({ session, token }) {
-    console.log('🔧 Session callback - token:', token);
-    if (token) {
-      session.user = {
-        id: token.id as string,
-        email: token.email as string,
-        name: token.name as string,
-        first_name: token.first_name as string,
-        last_name: token.last_name as string,
-        username: token.username as string,
-        user_type: token.user_type as string,
-        is_verified: token.is_verified as boolean,
-        profile_image_url: token.profile_image_url as string,
-        bio: token.bio as string,
-        location_address: token.location_address as string,
-      };
-    } else {
-      // No valid token
-      session.user = null;
-    }
-    
-    return session;
-  },
-},
   debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET,
 };

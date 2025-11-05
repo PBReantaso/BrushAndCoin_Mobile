@@ -1,6 +1,41 @@
-import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
-import DashboardLayout from '@/components/layout/DashboardLayout'
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+
+async function getDashboardStats(userId: string) {
+  try {
+    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/dashboard/stats`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 60 } // Revalidate every 60 seconds
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    return {
+      activeCommissions: 0,
+      totalEarnings: 0,
+      artworkPortfolio: 0
+    };
+  }
+}
+
+async function getRecentActivity(userId: string) {
+  try {
+    // This would be a real API call to get recent activity
+    // For now, return empty array
+    return [];
+  } catch (error) {
+    console.error('Error fetching recent activity:', error);
+    return [];
+  }
+}
 
 export default async function DashboardPage() {
   const user = await auth()
@@ -9,16 +44,21 @@ export default async function DashboardPage() {
     redirect('/auth/login')
   }
 
+  const stats = await getDashboardStats(user.id);
+  const recentActivity = await getRecentActivity(user.id);
+
   return (
     <DashboardLayout user={user}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user.fullName}!</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Welcome back, {user.first_name} {user.last_name}!
+          </h1>
           <p className="text-gray-600">Here's what's happening with your creative projects.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Quick Stats */}
+          {/* Active Commissions */}
           <div className="card">
             <div className="card-content">
               <div className="flex items-center">
@@ -29,12 +69,13 @@ export default async function DashboardPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Active Commissions</p>
-                  <p className="text-2xl font-semibold text-gray-900">3</p>
+                  <p className="text-2xl font-semibold text-gray-900">{stats.activeCommissions}</p>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Total Earnings */}
           <div className="card">
             <div className="card-content">
               <div className="flex items-center">
@@ -45,12 +86,13 @@ export default async function DashboardPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-                  <p className="text-2xl font-semibold text-gray-900">₱12,500</p>
+                  <p className="text-2xl font-semibold text-gray-900">₱{stats.totalEarnings.toLocaleString()}</p>
                 </div>
               </div>
             </div>
           </div>
 
+          {/* Artwork Portfolio */}
           <div className="card">
             <div className="card-content">
               <div className="flex items-center">
@@ -61,48 +103,26 @@ export default async function DashboardPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Artwork Portfolio</p>
-                  <p className="text-2xl font-semibold text-gray-900">24</p>
+                  <p className="text-2xl font-semibold text-gray-900">{stats.artworkPortfolio}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Activity - Will be populated when we have real data */}
         <div className="card">
           <div className="card-header">
             <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
           </div>
           <div className="card-content">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                    <span className="text-primary-600 text-sm font-medium">J</span>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">
-                    <span className="font-medium">John Doe</span> commissioned a custom portrait
-                  </p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
-                </div>
+            {recentActivity.length > 0 ? (
+              <div className="space-y-4">
+                {/* Real activity will be mapped here */}
               </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-success-100 rounded-full flex items-center justify-center">
-                    <span className="text-success-600 text-sm font-medium">M</span>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">
-                    <span className="font-medium">Maria Santos</span> completed payment for digital art
-                  </p>
-                  <p className="text-xs text-gray-500">1 day ago</p>
-                </div>
-              </div>
-            </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No recent activity</p>
+            )}
           </div>
         </div>
       </div>

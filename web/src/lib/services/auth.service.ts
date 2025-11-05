@@ -51,26 +51,29 @@ export const authService = {
       const hashedPassword = await bcrypt.hash(userData.password, salt);
 
       // Prepare full_name from provided first/last
-      const fullName = `${userData.first_name.trim()} ${userData.last_name.trim()}`;
+      //const fullName = `${userData.first_name.trim()} ${userData.last_name.trim()}`;
 
       // Insert new user with hashed password
       const result = await client.query(
-        `INSERT INTO users (
-          email, username, password_hash, full_name, user_type,
-          location_address, location_latitude, location_longitude
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING id, email, username, full_name, user_type, created_at`,
-        [
-          userData.email,
-          userData.username,
-          hashedPassword,
-          fullName,
-          userData.user_type || 'user',
-          userData.location_address || null,
-          userData.location_lat || null,
-          userData.location_lng || null
-        ]
-      );
+      `INSERT INTO users (
+        email, username, password, first_name, last_name, user_type,
+        bio, profile_image_url, location_address, location_lat, location_lng
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING id, email, username, first_name, last_name, user_type, created_at`,
+      [
+        userData.email,
+        userData.username,
+        hashedPassword,
+        userData.first_name,
+        userData.last_name,
+        userData.user_type || 'user',
+        userData.bio || null,
+        userData.profile_image_url || null,
+        userData.location_address || null,
+        userData.location_lat || null,
+        userData.location_lng || null
+      ]
+    );
 
       // Commit transaction
       await client.query('COMMIT');

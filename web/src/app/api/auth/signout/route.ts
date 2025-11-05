@@ -2,21 +2,13 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    let userId: string | undefined
-    
-    // Safely parse request body - handle empty or malformed JSON
-    try {
-      const body = await request.text() // Get raw text first
-      
-      if (body && body.trim() !== '') {
-        const parsed = JSON.parse(body)
-        userId = parsed.userId
-      }
-    } catch (parseError) {
-      console.warn('Could not parse signout request body:', parseError)
-      // Continue without userId - it's optional
-    }
+    // Get the raw body text to see what's being sent
+    const rawBody = await request.text()
+    console.log('🔍 Signout request body:', rawBody)
 
+    // Don't try to parse the body - we don't need it
+    // NextAuth sends form data, not JSON
+    
     const response = NextResponse.json({ 
       message: 'Signed out successfully',
       success: true 
@@ -41,10 +33,10 @@ export async function POST(request: Request) {
     return response
   } catch (error) {
     console.error('Signout error:', error)
-    // Even if there's an error, try to return a response
+    // Return success even if there's an error to prevent client issues
     return NextResponse.json(
-      { error: 'Signout completed with warnings' },
-      { status: 200 } // Return 200 instead of 500 to prevent client errors
+      { message: 'Signout completed' },
+      { status: 200 }
     )
   }
 }

@@ -1,19 +1,18 @@
 'use client'
 
+import { useUser } from '@/hooks/useUser'; // Import the hook
 import {
   Home,
   LogOut,
   MapPin,
   MessageCircle,
-  Plus,
-  Search,
   Settings,
   User,
   X
-} from 'lucide-react'
-import { signOut } from 'next-auth/react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+} from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface SidebarProps {
   isOpen: boolean
@@ -23,44 +22,29 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { user, isLoading } = useUser() // Use the hook
 
   const handleLogout = async () => {
-  const confirmed = window.confirm('Are you sure you want to log out?')
-  if (confirmed) {
-    try {
-      // 1. Clear all client storage first
-      localStorage.clear()
-      sessionStorage.clear()
-      
-      // 2. Clear all cookies manually
-      document.cookie.split(";").forEach(function(c) {
-        const cookie = c.trim()
-        const eqPos = cookie.indexOf("=")
-        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
-        // Clear all cookies
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/"
-      })
-      
-      // 3. Try to call signout endpoint but don't wait for it
-      fetch('/api/auth/signout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}) // Send empty object instead of userId
-      }).catch(err => console.warn('Signout API call failed:', err))
-      
-      // 4. Use NextAuth signout with redirect
-      await signOut({ 
-        callbackUrl: '/auth/login?logout=true',
-        redirect: true 
-      })
-      
-    } catch (error) {
-      console.error('Logout error:', error)
-      // Fallback: just redirect to login
-      window.location.href = '/auth/login?logout=true'
+    const confirmed = window.confirm('Are you sure you want to log out?')
+    if (confirmed) {
+      try {
+        // Clear client storage
+        localStorage.clear()
+        sessionStorage.clear()
+        
+        // Use NextAuth signout
+        await signOut({ 
+          callbackUrl: '/auth/login?logout=true',
+          redirect: true 
+        })
+      } catch (error) {
+        console.error('Logout error:', error)
+        localStorage.clear()
+        sessionStorage.clear()
+        window.location.href = '/auth/login?logout=true'
+      }
     }
   }
-}
 
   const navigationItems = [
     {
@@ -130,18 +114,6 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search artworks..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-
         {/* Navigation Items */}
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
@@ -171,23 +143,29 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </ul>
         </nav>
 
-        {/* Create Post Button */}
-        <div className="p-4 border-t border-gray-200">
-          <button className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center space-x-2">
-            <Plus className="w-5 h-5" />
-            <span>Create Post</span>
-          </button>
-        </div>
-
-        {/* User Profile Section */}
+        {/* User Profile Section - USING ACTUAL USER DATA */}
         <div className="p-4 border-t border-gray-200">
           <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer mb-2">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-gray-600" />
+            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+              {isLoading ? (
+                <div className="animate-pulse bg-gray-400 w-10 h-10 rounded-full" />
+              ) : user?.profile_image_url ? (
+                <img 
+                  src={user.profile_image_url} 
+                  alt={`${user.first_name} ${user.last_name}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-5 h-5 text-gray-600" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">John Doe</p>
-              <p className="text-xs text-gray-500 truncate">@johndoe</p>
+              <p className="text-sm font-medium text-gray-900 truncate">
+                {isLoading ? 'Loading...' : user ? `${user.first_name} ${user.last_name}` : 'Guest'}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                @{isLoading ? 'loading' : user?.username || 'username'}
+              </p>
             </div>
           </div>
           

@@ -375,3 +375,44 @@ CREATE INDEX IF NOT EXISTS idx_artworks_user_id
     (user_id ASC NULLS LAST)
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default;
+
+-- DROP TABLE IF EXISTS public.follows;
+
+CREATE TABLE IF NOT EXISTS public.follows
+(
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    follower_id uuid NOT NULL,
+    following_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT follows_pkey PRIMARY KEY (id),
+    CONSTRAINT follows_follower_id_fkey FOREIGN KEY (follower_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT follows_following_id_fkey FOREIGN KEY (following_id)
+        REFERENCES public.users (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT follows_unique_follow UNIQUE (follower_id, following_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.follows
+    OWNER to postgres;
+
+-- Index: idx_follows_follower_id
+
+CREATE INDEX IF NOT EXISTS idx_follows_follower_id
+    ON public.follows USING btree
+    (follower_id ASC NULLS LAST)
+    WITH (fillfactor=100, deduplicate_items=True)
+    TABLESPACE pg_default;
+
+-- Index: idx_follows_following_id
+
+CREATE INDEX IF NOT EXISTS idx_follows_following_id
+    ON public.follows USING btree
+    (following_id ASC NULLS LAST)
+    WITH (fillfactor=100, deduplicate_items=True)
+    TABLESPACE pg_default;
