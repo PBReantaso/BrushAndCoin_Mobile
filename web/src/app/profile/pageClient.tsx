@@ -1,7 +1,7 @@
 'use client'
 
 import { useUser } from '@/hooks/useUser'
-import { Edit3, Image as ImageIcon, UserCheck, UserPlus, Users } from 'lucide-react'
+import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -60,6 +60,42 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
   const [isLoadingStats, setIsLoadingStats] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false)
+
+  const handleLike = async (artworkId: string) => {
+  // TODO: Implement actual like functionality
+  console.log('Like artwork:', artworkId)
+}
+
+const handleComment = (artworkId: string) => {
+  router.push(`/artworks/${artworkId}`)
+}
+
+const handleShare = async (artworkId: string) => {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Check out this artwork!',
+        url: window.location.origin + `/artworks/${artworkId}`
+      })
+    } catch (error) {
+      console.log('Share cancelled')
+    }
+  } else {
+    navigator.clipboard.writeText(window.location.origin + `/artworks/${artworkId}`)
+    // TODO: Show toast notification
+  }
+}
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  
+  if (diffInHours < 1) return 'Just now'
+  if (diffInHours < 24) return `${diffInHours}h ago`
+  if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
+  return date.toLocaleDateString()
+}
 
   // Use the user from props, fallback to auth hook
   const user = initialUser || authUser
@@ -212,83 +248,170 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
   }
 
   const renderGalleryTab = () => {
-    if (isLoadingArtworks) {
-      return (
-        <div className="grid grid-cols-2 gap-3">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="w-full h-48 bg-gray-200 animate-pulse"></div>
-              <div className="p-3 space-y-2">
-                <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (artworks.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-            <ImageIcon className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No artworks yet</h3>
-          <p className="text-gray-500">Start by uploading your first artwork!</p>
-          <button 
-            onClick={() => router.push('/artworks/create')}
-            className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-          >
-            Upload Artwork
-          </button>
-        </div>
-      );
-    }
-
+  if (isLoadingArtworks) {
     return (
       <div className="grid grid-cols-2 gap-3">
-        {artworks.map(artwork => (
-          <div key={artwork.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-               onClick={() => router.push(`/artworks/${artwork.id}`)}>
-            {/* Artwork Image */}
-            <div className="relative w-full h-48 bg-gray-100">
-              {artwork.image_urls && artwork.image_urls.length > 0 ? (
-                <img
-                  src={artwork.image_urls[0]}
-                  alt={artwork.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-2 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-gray-400 text-2xl">🖼️</span>
-                    </div>
-                    <p className="text-gray-400 text-sm">No image</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Artwork Info */}
-            <div className="p-3">
-              <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-1">{artwork.title}</h3>
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>{formatPrice(artwork.price)}</span>
-                <span>{artwork.category}</span>
-              </div>
-              {artwork.is_commission && (
-                <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  Commission
-                </span>
-              )}
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="w-full h-48 bg-gray-200 animate-pulse"></div>
+            <div className="p-3 space-y-2">
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2"></div>
             </div>
           </div>
         ))}
       </div>
     );
   }
+
+  if (artworks.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+          <ImageIcon className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No artworks yet</h3>
+        <p className="text-gray-500 mb-4">Start by uploading your first artwork!</p>
+        <button 
+          onClick={() => router.push('/home')}
+          className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        >
+          Create Artwork
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {artworks.map(artwork => (
+        <div key={artwork.id} className="bg-white rounded-xl shadow-sm border border-gray-100 lg:shadow-md" onClick={() => router.push(`/artworks/${artwork.id}`)}>
+          {/* Artwork Header */}
+          <div className="p-4 lg:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+                  {userData.profile_image_url ? (
+                    <img
+                      src={userData.profile_image_url}
+                      alt={userData.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-gray-600 font-medium text-lg lg:text-xl">
+                      {user.first_name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-base lg:text-lg">
+                    {userData.name}
+                  </p>
+                  <p className="text-sm text-gray-500">{formatDate(artwork.created_at)}</p>
+                </div>
+              </div>
+              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <MoreHorizontal className="w-5 h-5 lg:w-6 lg:h-6 text-gray-500" />
+              </button>
+            </div>
+          </div>
+
+          {/* Artwork Image */}
+          <div className="relative w-full h-80 lg:h-96 bg-gray-100">
+            {artwork.image_urls && artwork.image_urls.length > 0 ? (
+              <img
+                src={artwork.image_urls[0]}
+                alt={artwork.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-2 bg-gray-200 rounded-full flex items-center justify-center">
+                    <span className="text-gray-400 text-2xl">🖼️</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">No image</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Artwork Actions */}
+          <div className="p-4 lg:p-6">
+            <div className="flex items-center space-x-8 mb-4">
+              <button
+                onClick={() => handleLike(artwork.id)}
+                className="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors"
+              >
+                <Heart className="w-6 h-6 lg:w-7 lg:h-7" />
+              </button>
+              
+              <button
+                onClick={() => handleComment(artwork.id)}
+                className="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors"
+              >
+                <MessageCircle className="w-6 h-6 lg:w-7 lg:h-7" />
+              </button>
+              
+              <button
+                onClick={() => handleShare(artwork.id)}
+                className="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors"
+              >
+                <Share className="w-6 h-6 lg:w-7 lg:h-7" />
+              </button>
+            </div>
+
+            {/* Artwork Title */}
+            <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-3">{artwork.title}</h3>
+            
+            {/* Artwork Description */}
+            {artwork.description && (
+              <p className="text-gray-700 mb-4 text-sm lg:text-base leading-relaxed">{artwork.description}</p>
+            )}
+
+            {/* Price */}
+            {artwork.price && (
+              <div className="mb-3">
+                <span className="text-lg font-semibold text-red-500">₱{artwork.price.toLocaleString()}</span>
+                {artwork.is_commission && (
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                    Commission Available
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Tags */}
+            {artwork.tags && artwork.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {artwork.tags.slice(0, 3).map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-gray-100 text-gray-600 text-xs lg:text-sm rounded-full"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Category */}
+            {artwork.category && (
+              <div className="text-sm text-gray-500 mb-2">
+                Category: {artwork.category}
+              </div>
+            )}
+
+            {/* Engagement Stats */}
+            <p className="text-sm lg:text-base text-gray-500">
+              0 Likes • 0 Comments
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
   const renderMerchandiseTab = () => (
     <div className="text-center py-12">
@@ -380,13 +503,6 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
                     {isLoadingFollow && !isOwnProfile ? '...' : followStats?.following_count || 0}
                   </div>
                   <div className="text-sm text-gray-600">Following</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-black flex items-center">
-                    <ImageIcon className="w-4 h-4 mr-1" />
-                    {isLoadingStats ? '...' : stats?.artwork_count || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Artworks</div>
                 </div>
                 {/*{stats?.average_rating && stats.average_rating > 0 && (
                   <div className="text-center">

@@ -3,10 +3,12 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = params.id;
+    // Await the params Promise
+    const { id } = await params;
+    const userId = id;
 
     // Check if user exists
     const userCheck = await query(
@@ -15,74 +17,56 @@ export async function GET(
     );
 
     if (userCheck.rows.length === 0) {
-      // Return default stats if user doesn't exist
-      return NextResponse.json({
-        artwork_count: 0,
-        total_commissions: 0,
-        completed_commissions: 0,
-        average_rating: 0,
-        total_reviews: 0
-      });
-    }
-
-    let artwork_count = 0;
-    let total_commissions = 0;
-    let completed_commissions = 0;
-    let average_rating = 0;
-    let total_reviews = 0;
-
-    // Get artwork count (handle case where table might not exist)
-    try {
-      const artworkResult = await query(
-        'SELECT COUNT(*) FROM artworks WHERE user_id = $1',
-        [userId]
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
       );
-      artwork_count = parseInt(artworkResult.rows[0].count) || 0;
-    } catch (error) {
-      console.log('Artworks table not accessible');
     }
 
-    // Get commission stats (handle case where table might not exist)
-    try {
-      const commissionResult = await query(
-        `SELECT COUNT(*) as total FROM commissions WHERE artist_id = $1 OR client_id = $1`,
-        [userId]
-      );
-      total_commissions = parseInt(commissionResult.rows[0].total) || 0;
-      completed_commissions = 0; // Default for now
-    } catch (error) {
-      console.log('Commissions table not accessible');
-    }
+    // Get artwork count
+    const artworkCountResult = await query(
+      'SELECT COUNT(*) FROM artworks WHERE user_id = $1',
+      [userId]
+    );
+    const artworkCount = parseInt(artworkCountResult.rows[0].count);
 
-    // Get rating stats (handle case where table might not exist)
-    try {
-      const ratingResult = await query(
-        `SELECT AVG(rating) as avg_rating, COUNT(*) as count FROM reviews WHERE reviewee_id = $1`,
-        [userId]
-      );
-      average_rating = parseFloat(ratingResult.rows[0].avg_rating) || 0;
-      total_reviews = parseInt(ratingResult.rows[0].count) || 0;
-    } catch (error) {
-      console.log('Reviews table not accessible');
-    }
+    // Get commission stats
+    const commissionStatsResult = await query(
+      `SELECT 
+        COUNT(*) as total_commissions,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_commissions
+       FROM commissions 
+       WHERE artist_id = $1`,
+      [userId]
+    );
 
-    return NextResponse.json({
-      artwork_count,
-      total_commissions,
-      completed_commissions,
-      average_rating,
-      total_reviews
-    });
+    // Get review stats
+    const reviewStatsResult = await query(
+      `SELECT 
+        COUNT(*) as total_reviews,
+        AVG(rating) as average_rating
+       FROM reviews 
+       WHERE reviewee_id = $1`,
+      [userId]
+    );
+
+    const stats = {
+      artwork_count: artworkCount,
+      total_commissions: parseInt(commissionStatsResult.rows[0].total_commissions),
+      completed_commissions: parseInt(commissionStatsResult.rows[0].completed_commissions),
+      average_rating: reviewStatsResult.rows[0].average_rating 
+        ? parseFloat(reviewStatsResult.rows[0].average_rating) 
+        : 0,
+      total_reviews: parseInt(reviewStatsResult.rows[0].total_reviews)
+    };
+
+    return NextResponse.json(stats);
 
   } catch (error) {
     console.error('Get user stats error:', error);
-    // Return default stats on error
-    return NextResponse.json({
-      artwork_count: 0,
-      total_commissions: 0,
-      completed_commissions: 0,
-      average_rating: 0,
-      total_reviews: 0
-    });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

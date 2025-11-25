@@ -4,50 +4,50 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await the params Promise
+    const { id } = await params;
+    const userId = id;
+
     const session = await auth();
-    const currentUserId = session?.user?.id;
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const targetUserId = params.id;
-
-    // Check if target user exists
+    // Check if user exists
     const userCheck = await query(
-      'SELECT id FROM users WHERE id = $1 AND is_active = true',
-      [targetUserId]
+      'SELECT id FROM users WHERE id = $1',
+      [userId]
     );
 
     if (userCheck.rows.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
     }
+
+    const currentUserId = session.user.id;
 
     // Get follow stats
-    const followersCount = await query(
-      'SELECT COUNT(*) FROM follows WHERE following_id = $1',
-      [targetUserId]
+    const result = await query(
+      `SELECT 
+        (SELECT COUNT(*) FROM follows WHERE following_id = $1) as followers_count,
+        (SELECT COUNT(*) FROM follows WHERE follower_id = $1) as following_count,
+        EXISTS(SELECT 1 FROM follows WHERE follower_id = $2 AND following_id = $1) as is_following`,
+      [userId, currentUserId]
     );
 
-    const followingCount = await query(
-      'SELECT COUNT(*) FROM follows WHERE follower_id = $1',
-      [targetUserId]
-    );
-
-    // Check if current user is following this user
-    let isFollowing = false;
-    if (currentUserId && currentUserId !== targetUserId) {
-      const followStatus = await query(
-        'SELECT id FROM follows WHERE follower_id = $1 AND following_id = $2',
-        [currentUserId, targetUserId]
-      );
-      isFollowing = followStatus.rows.length > 0;
-    }
+    const stats = result.rows[0];
 
     return NextResponse.json({
-      followers_count: parseInt(followersCount.rows[0].count) || 0,
-      following_count: parseInt(followingCount.rows[0].count) || 0,
-      is_following: isFollowing,
-      is_own_profile: currentUserId === targetUserId
+      followers_count: parseInt(stats.followers_count),
+      following_count: parseInt(stats.following_count),
+      is_following: stats.is_following,
+      is_own_profile: currentUserId === userId
     });
 
   } catch (error) {

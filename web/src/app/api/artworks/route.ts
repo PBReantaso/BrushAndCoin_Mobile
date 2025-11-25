@@ -2,87 +2,126 @@ import { auth } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
+    // Check authentication
     const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const userId = params.id;
+    const { searchParams } = new URL(request.url);
     
-    const {
-      title,
-      description,
-      category,
-      tags,
-      image_urls,
-      price,
-      is_commission
-    } = body;
+    // Get pagination parameters with defaults
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '12');
+    const offset = (page - 1) * limit;
 
-    // Validate required fields
-    if (!title || !description || !category) {
-      return NextResponse.json(
-        { error: 'Title, description, and category are required' },
-        { status: 400 }
-      );
-    }
-
-    // Insert artwork into database
-    const result = await query(
-      `INSERT INTO artworks (
-        user_id, title, description, category, tags, image_urls, 
-        price, is_commission, is_available
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING id, title, description, category, tags, image_urls, 
-                price, is_commission, is_available, created_at`,
-      [
-        session.user.id,
-        title,
-        description,
-        category,
-        tags || [],
-        image_urls || [],
-        price || null,
-        is_commission || false,
-        true
-      ]
+    // First, check if the user exists
+    const userCheck = await query(
+      'SELECT id FROM users WHERE id = $1',
+      [userId]
     );
 
-    const artwork = result.rows[0];
+    if (userCheck.rows.length === 0) {
+      return NextResponse.json({ 
+        artworks: [],
+        pagination: {
+          page: 1,
+          limit,
+          total: 0,
+          pages: 0
+        }
+      });
+    }
 
-    return NextResponse.json({
-      message: 'Artwork created successfully',
-      artwork: {
+    // Check if artworks table exists
+    try {
+      const tableExists = await query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'artworks'
+        );
+      `);
+
+      if (!tableExists.rows[0].exists) {
+        return NextResponse.json({ 
+          artworks: [],
+          pagination: {
+            page: 1,
+            limit,
+            total: 0,
+            pages: 0
+          }
+        });
+      }
+
+      // Get paginated artworks
+      const result = await query(
+        `SELECT 
+          id, title, description, image_urls, category, tags, price,
+          is_commission, is_available, created_at, updated_at
+         FROM artworks 
+         WHERE user_id = $1
+         ORDER BY created_at DESC
+         LIMIT $2 OFFSET $3`,
+        [userId, limit, offset]
+      );
+
+      // Get total count for pagination
+      const countResult = await query(
+        'SELECT COUNT(*) FROM artworks WHERE user_id = $1',
+        [userId]
+      );
+      const total = parseInt(countResult.rows[0].count);
+
+      const artworks = result.rows.map(artwork => ({
         id: artwork.id,
         title: artwork.title,
         description: artwork.description,
+        image_urls: artwork.image_urls || [],
         category: artwork.category,
-        tags: artwork.tags,
-        image_urls: artwork.image_urls,
+        tags: artwork.tags || [],
         price: artwork.price,
         is_commission: artwork.is_commission,
         is_available: artwork.is_available,
-        created_at: artwork.created_at
-      }
-    });
+        created_at: artwork.created_at,
+        updated_at: artwork.updated_at
+      }));
 
-  } catch (error: any) {
-    console.error('Create artwork error:', error);
-    
-    // Handle specific database errors
-    if (error.code === '23505') { // Unique constraint violation
-      return NextResponse.json(
-        { error: 'An artwork with this title already exists' },
-        { status: 400 }
-      );
+      return NextResponse.json({ 
+        artworks,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      });
+
+    } catch (tableError) {
+      console.log('Artworks table not accessible, returning empty array');
+      return NextResponse.json({ 
+        artworks: [],
+        pagination: {
+          page: 1,
+          limit,
+          total: 0,
+          pages: 0
+        }
+      });
     }
-    
-    return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
-      { status: 500 }
-    );
+
+  } catch (error) {
+    console.error('Get user artworks error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error'
+    }, { status: 500 });
   }
 }

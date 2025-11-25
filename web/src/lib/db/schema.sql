@@ -416,3 +416,20 @@ CREATE INDEX IF NOT EXISTS idx_follows_following_id
     (following_id ASC NULLS LAST)
     WITH (fillfactor=100, deduplicate_items=True)
     TABLESPACE pg_default;
+
+CREATE TABLE IF NOT EXISTS public.comments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL,
+    artwork_id uuid NOT NULL,
+    comment text NOT NULL,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT comments_pkey PRIMARY KEY (id),
+    CONSTRAINT comments_artwork_id_fkey FOREIGN KEY (artwork_id)
+        REFERENCES public.artworks (id) ON DELETE CASCADE,
+    CONSTRAINT comments_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.users (id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_comments_artwork_id ON public.comments (artwork_id);
+CREATE INDEX IF NOT EXISTS idx_comments_user_id ON public.comments (user_id);

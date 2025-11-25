@@ -4,50 +4,59 @@ import { NextResponse } from 'next/server';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await the params Promise
+    const { id } = await params;
+    const userIdToFollow = id;
+
     const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const followerId = session.user.id;
-    const followingId = params.id;
+    const currentUserId = session.user.id;
 
     // Can't follow yourself
-    if (followerId === followingId) {
+    if (currentUserId === userIdToFollow) {
       return NextResponse.json(
         { error: 'Cannot follow yourself' },
         { status: 400 }
       );
     }
 
-    // Check if user exists and is active
+    // Check if user exists
     const userCheck = await query(
-      'SELECT id FROM users WHERE id = $1 AND is_active = true',
-      [followingId]
+      'SELECT id FROM users WHERE id = $1',
+      [userIdToFollow]
     );
 
     if (userCheck.rows.length === 0) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
     }
 
     // Check if already following
     const existingFollow = await query(
       'SELECT id FROM follows WHERE follower_id = $1 AND following_id = $2',
-      [followerId, followingId]
+      [currentUserId, userIdToFollow]
     );
 
     if (existingFollow.rows.length > 0) {
-      return NextResponse.json({ error: 'Already following' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Already following this user' },
+        { status: 400 }
+      );
     }
 
     // Create follow relationship
     await query(
       'INSERT INTO follows (follower_id, following_id) VALUES ($1, $2)',
-      [followerId, followingId]
+      [currentUserId, userIdToFollow]
     );
 
     return NextResponse.json({ 
@@ -66,27 +75,26 @@ export async function POST(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await the params Promise
+    const { id } = await params;
+    const userIdToUnfollow = id;
+
     const session = await auth();
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const followerId = session.user.id;
-    const followingId = params.id;
+    const currentUserId = session.user.id;
 
     // Delete follow relationship
     const result = await query(
       'DELETE FROM follows WHERE follower_id = $1 AND following_id = $2',
-      [followerId, followingId]
+      [currentUserId, userIdToUnfollow]
     );
-
-    if (result.rowCount === 0) {
-      return NextResponse.json({ error: 'Not following user' }, { status: 400 });
-    }
 
     return NextResponse.json({ 
       message: 'Successfully unfollowed user',
