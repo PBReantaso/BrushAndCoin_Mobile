@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 interface Artwork {
   id: string;
@@ -345,21 +346,14 @@ export default function HomeClient({ user }: HomeClientProps) {
       const data = await response.json()
       console.log('Artwork created successfully:', data)
       
-      const newArtwork = {
-        ...data.artwork,
-        user: {
-          id: user!.id,
-          username: user!.username,
-          first_name: user!.first_name,
-          last_name: user!.last_name,
-          profile_image_url: user!.profile_image_url
-        },
-        comment_count: 0,
-        like_count: 0
-      }
+      // Reload artworks to get the latest from database
+      await loadArtworks()
       
-      setArtworks(prev => [newArtwork, ...prev])
+      // Close modal and reset form
       closeCreateModal()
+      
+      // Show success message
+      toast.success('Post created successfully!')
       
     } catch (error: any) {
       console.error('Error creating post:', error)
