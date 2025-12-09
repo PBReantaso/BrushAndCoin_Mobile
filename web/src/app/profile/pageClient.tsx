@@ -3,7 +3,7 @@
 import ArtworkDetailModal from '@/components/artwork/ArtworkDetailModal'
 import { useUser } from '@/hooks/useUser'
 import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 interface Artwork {
@@ -52,6 +52,7 @@ interface ProfileClientProps {
 
 export default function ProfileClient({ user: initialUser }: ProfileClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user: authUser, isLoading } = useUser()
   const [selectedTab, setSelectedTab] = useState(0)
   const [artworks, setArtworks] = useState<Artwork[]>([])
@@ -61,6 +62,8 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
   const [isLoadingStats, setIsLoadingStats] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false)
+  const [user, setUser] = useState(initialUser || authUser)
+  const [isLoadingUser, setIsLoadingUser] = useState(false)
   
   // Modal state
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
@@ -109,11 +112,68 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
     return date.toLocaleDateString()
   }
 
-  // Use the user from props, fallback to auth hook
-  const user = initialUser || authUser
-
   // Check if this is the current user's own profile
   const isOwnProfile = authUser?.id === user?.id
+
+  // Fetch fresh user data from API
+  const fetchUserData = async () => {
+    if (!isOwnProfile) return // Only fetch for own profile
+    
+    setIsLoadingUser(true)
+    try {
+      const response = await fetch('/api/users/profile')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.user) {
+          setUser(data.user)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+    } finally {
+      setIsLoadingUser(false)
+    }
+  }
+
+  // Load user data on mount and when returning from edit
+  useEffect(() => {
+    // Initialize user from props or auth
+    if (!user && (initialUser || authUser)) {
+      setUser(initialUser || authUser)
+    }
+    
+    // Fetch fresh data if this is own profile
+    if (isOwnProfile && user?.id) {
+      fetchUserData()
+    }
+  }, [initialUser?.id, authUser?.id])
+
+  // Refresh data when returning from edit page
+  useEffect(() => {
+    const updated = searchParams.get('updated')
+    if (updated === 'true' && isOwnProfile && user?.id) {
+      // Remove the query parameter
+      router.replace('/profile', { scroll: false })
+      // Fetch fresh data
+      fetchUserData()
+      fetchUserArtworks()
+      fetchUserStats()
+    }
+  }, [searchParams, isOwnProfile, user?.id])
+
+  // Reload data when page becomes visible (e.g., returning from edit)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isOwnProfile && user?.id) {
+        fetchUserData()
+        fetchUserArtworks()
+        fetchUserStats()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [isOwnProfile, user?.id])
 
   useEffect(() => {
     if (user?.id) {
@@ -132,13 +192,19 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
       const response = await fetch(`/api/users/${user?.id}/artworks`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch artworks');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch artworks:', errorData.error || 'Unknown error');
+        // Set empty array instead of throwing
+        setArtworks([]);
+        return;
       }
 
       const data = await response.json();
-      setArtworks(data.artworks);
+      setArtworks(data.artworks || []);
     } catch (err) {
       console.error('Error fetching artworks:', err);
+      // Set empty array on error so page still loads
+      setArtworks([]);
     } finally {
       setIsLoadingArtworks(false);
     }
@@ -150,13 +216,31 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
       const response = await fetch(`/api/users/${user?.id}/stats`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch stats');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch stats:', errorData.error || 'Unknown error');
+        // Set default stats instead of throwing
+        setStats({
+          artwork_count: 0,
+          total_commissions: 0,
+          completed_commissions: 0,
+          average_rating: 0,
+          total_reviews: 0
+        });
+        return;
       }
 
       const data = await response.json();
       setStats(data);
     } catch (err) {
       console.error('Error fetching stats:', err);
+      // Set default stats on error so page still loads
+      setStats({
+        artwork_count: 0,
+        total_commissions: 0,
+        completed_commissions: 0,
+        average_rating: 0,
+        total_reviews: 0
+      });
     } finally {
       setIsLoadingStats(false);
     }
@@ -168,13 +252,27 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
       const response = await fetch(`/api/users/${user?.id}/follow-status`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch follow stats');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch follow stats:', errorData.error || 'Unknown error');
+        // Set default follow stats instead of throwing
+        setFollowStats({
+          follower_count: 0,
+          following_count: 0,
+          is_following: false
+        });
+        return;
       }
 
       const data = await response.json();
       setFollowStats(data);
     } catch (err) {
       console.error('Error fetching follow stats:', err);
+      // Set default follow stats on error so page still loads
+      setFollowStats({
+        follower_count: 0,
+        following_count: 0,
+        is_following: false
+      });
     } finally {
       setIsLoadingFollow(false);
     }

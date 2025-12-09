@@ -163,15 +163,50 @@ export async function POST(request: Request) {
     // Prepare data
     const title = artworkData.title.trim();
     const description = artworkData.description?.trim() || null;
-    const image_urls = artworkData.image_urls || [];
+    // Ensure arrays are proper arrays (PostgreSQL text[] format)
+    const image_urls = Array.isArray(artworkData.image_urls) ? artworkData.image_urls : (artworkData.image_urls ? [artworkData.image_urls] : []);
     const category = artworkData.category?.trim() || null;
-    const tags = artworkData.tags || [];
+    const tags = Array.isArray(artworkData.tags) ? artworkData.tags : (artworkData.tags ? [artworkData.tags] : []);
     const price = artworkData.price ? parseFloat(artworkData.price.toString()) : null;
     const is_commission = artworkData.is_commission || false;
     const is_available = artworkData.is_available !== undefined ? artworkData.is_available : true;
 
+    // Check if artworks table exists
+    try {
+      const tableExists = await query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'artworks'
+        );
+      `);
+
+      if (!tableExists.rows[0].exists) {
+        console.error('❌ Artworks table does not exist');
+        return NextResponse.json(
+          { error: 'Database table not found. Please contact support.' },
+          { status: 500 }
+        );
+      }
+    } catch (tableCheckError) {
+      console.error('❌ Error checking table existence:', tableCheckError);
+      // Continue anyway, let the insert fail with a better error
+    }
+
     // Create artwork in database
     console.log('👤 Creating artwork in database...');
+    console.log('📦 Data to insert:', {
+      user_id: session.user.id,
+      title,
+      description,
+      image_urls,
+      category,
+      tags,
+      price,
+      is_commission,
+      is_available
+    });
+    
     const result = await query(
       `INSERT INTO artworks (
         user_id, title, description, image_urls, category, tags, 
@@ -222,6 +257,7 @@ export async function POST(request: Request) {
     console.error('Error message:', error.message);
     console.error('Error code:', error.code);
     console.error('Error detail:', error.detail);
+    console.error('Full error:', error);
     
     // Handle database connection errors
     if (error.message?.includes('Database pool not initialized') || 
@@ -232,11 +268,43 @@ export async function POST(request: Request) {
       );
     }
     
-    // Generic error
+    // Handle table not found errors
+    if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+      return NextResponse.json(
+        { error: 'Database table not found. Please contact support.' },
+        { status: 500 }
+      );
+    }
+    
+    // Handle constraint violations
+    if (error.code === '23503') { // Foreign key violation
+      return NextResponse.json(
+        { error: 'Invalid user. Please log in again.' },
+        { status: 400 }
+      );
+    }
+    
+    // Handle data type errors
+    if (error.message?.includes('array') || error.code === '42804') {
+      return NextResponse.json(
+        { error: 'Invalid data format. Please check your input.' },
+        { status: 400 }
+      );
+    }
+    
+    // Generic error with details in development
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? (error.message || 'Unknown error occurred')
+      : 'Failed to create artwork. Please try again.';
+    
     return NextResponse.json(
       { 
-        error: 'Failed to create artwork. Please try again.',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? {
+          code: error.code,
+          detail: error.detail,
+          hint: error.hint
+        } : undefined
       },
       { status: 500 }
     );

@@ -1,6 +1,5 @@
 'use client'
 
-import { useUser } from '@/hooks/useUser'; // Import the hook
 import {
   Home,
   LogOut,
@@ -12,7 +11,7 @@ import {
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 interface SidebarProps {
   isOpen: boolean
@@ -21,8 +20,6 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
-  const { user, isLoading } = useUser() // Use the hook
 
   const handleLogout = async () => {
     const confirmed = window.confirm('Are you sure you want to log out?')
@@ -57,7 +54,7 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
       name: 'Events',
       href: '/events',
       icon: MapPin,
-      active: pathname === '/events'
+      active: pathname === '/events' || pathname.startsWith('/events/')
     },
     {
       name: 'Messages',
@@ -143,33 +140,8 @@ export default function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </ul>
         </nav>
 
-        {/* User Profile Section - USING ACTUAL USER DATA */}
+        {/* Logout Button */}
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer mb-2">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-              {isLoading ? (
-                <div className="animate-pulse bg-gray-400 w-10 h-10 rounded-full" />
-              ) : user?.profile_image_url ? (
-                <img 
-                  src={user.profile_image_url} 
-                  alt={`${user.first_name} ${user.last_name}`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User className="w-5 h-5 text-gray-600" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {isLoading ? 'Loading...' : user ? `${user.first_name} ${user.last_name}` : 'Guest'}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                @{isLoading ? 'loading' : user?.username || 'username'}
-              </p>
-            </div>
-          </div>
-          
-          {/* Logout Button */}
           <button
             onClick={handleLogout}
             className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"

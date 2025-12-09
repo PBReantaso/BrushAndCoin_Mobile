@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, Lock, Heart, MessageCircle, UserPlus, Key, Monitor, HelpCircle, Shield, FileText, LogOut, Trash2 } from 'lucide-react'
+import { User, Lock, Heart, MessageCircle, UserPlus, Key, Monitor, HelpCircle, Shield, FileText, LogOut, Trash2, Globe, Bell, Mail, Eye } from 'lucide-react'
 import { signOut } from 'next-auth/react'
+import toast from 'react-hot-toast'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -12,6 +13,66 @@ export default function SettingsPage() {
   const [pushComments, setPushComments] = useState(true)
   const [pushFollows, setPushFollows] = useState(true)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  
+  // General settings
+  const [language, setLanguage] = useState('en')
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [showEmailInProfile, setShowEmailInProfile] = useState(false)
+  const [autoPlayVideos, setAutoPlayVideos] = useState(false)
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('settings_language')
+    const savedEmailNotifications = localStorage.getItem('settings_emailNotifications')
+    const savedShowEmail = localStorage.getItem('settings_showEmail')
+    const savedAutoPlay = localStorage.getItem('settings_autoPlay')
+    const savedPrivateAccount = localStorage.getItem('settings_privateAccount')
+    const savedPushLikes = localStorage.getItem('settings_pushLikes')
+    const savedPushComments = localStorage.getItem('settings_pushComments')
+    const savedPushFollows = localStorage.getItem('settings_pushFollows')
+
+    if (savedLanguage) setLanguage(savedLanguage)
+    if (savedEmailNotifications !== null) setEmailNotifications(savedEmailNotifications === 'true')
+    if (savedShowEmail !== null) setShowEmailInProfile(savedShowEmail === 'true')
+    if (savedAutoPlay !== null) setAutoPlayVideos(savedAutoPlay === 'true')
+    if (savedPrivateAccount !== null) setPrivateAccount(savedPrivateAccount === 'true')
+    if (savedPushLikes !== null) setPushLikes(savedPushLikes === 'true')
+    if (savedPushComments !== null) setPushComments(savedPushComments === 'true')
+    if (savedPushFollows !== null) setPushFollows(savedPushFollows === 'true')
+  }, [])
+
+  // Save settings to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('settings_language', language)
+  }, [language])
+
+  useEffect(() => {
+    localStorage.setItem('settings_emailNotifications', String(emailNotifications))
+  }, [emailNotifications])
+
+  useEffect(() => {
+    localStorage.setItem('settings_showEmail', String(showEmailInProfile))
+  }, [showEmailInProfile])
+
+  useEffect(() => {
+    localStorage.setItem('settings_autoPlay', String(autoPlayVideos))
+  }, [autoPlayVideos])
+
+  useEffect(() => {
+    localStorage.setItem('settings_privateAccount', String(privateAccount))
+  }, [privateAccount])
+
+  useEffect(() => {
+    localStorage.setItem('settings_pushLikes', String(pushLikes))
+  }, [pushLikes])
+
+  useEffect(() => {
+    localStorage.setItem('settings_pushComments', String(pushComments))
+  }, [pushComments])
+
+  useEffect(() => {
+    localStorage.setItem('settings_pushFollows', String(pushFollows))
+  }, [pushFollows])
 
 
   const handleLogout = async () => {
@@ -88,11 +149,13 @@ export default function SettingsPage() {
   const SwitchTile = ({ 
     icon: Icon, 
     title, 
+    description,
     value, 
     onChange 
   }: { 
     icon: any
     title: string
+    description?: string
     value: boolean
     onChange: (value: boolean) => void
   }) => (
@@ -105,6 +168,9 @@ export default function SettingsPage() {
           <span className="text-base lg:text-lg font-medium text-gray-900">
             {title}
           </span>
+          {description && (
+            <p className="text-sm text-gray-500 mt-1">{description}</p>
+          )}
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
@@ -152,20 +218,113 @@ export default function SettingsPage() {
     </div>
   )
 
+  const SelectTile = ({ 
+    icon: Icon, 
+    title, 
+    value, 
+    options,
+    onChange 
+  }: { 
+    icon: any
+    title: string
+    value: string
+    options: { value: string; label: string }[]
+    onChange: (value: string) => void
+  }) => (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-3 lg:shadow-md">
+      <div className="p-4 lg:p-6 flex items-center space-x-4">
+        <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
+          <Icon className="w-5 h-5 text-red-500" />
+        </div>
+        <div className="flex-1">
+          <span className="text-base lg:text-lg font-medium text-gray-900">
+            {title}
+          </span>
+        </div>
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  )
+
   return (
     <div className="bg-gray-50">
       {/* Main Content */}
       <div className="px-4 pt-2 pb-6 lg:px-8 lg:pt-4 lg:pb-8 lg:ml-64 lg:mr-64 max-w-6xl mx-auto">
+        {/* General Section */}
+        <SectionHeader title="General" />
+        <SelectTile
+          icon={Globe}
+          title="Language"
+          value={language}
+          options={[
+            { value: 'en', label: 'English' },
+            { value: 'es', label: 'Spanish' },
+            { value: 'fr', label: 'French' },
+            { value: 'de', label: 'German' },
+            { value: 'ja', label: 'Japanese' },
+            { value: 'zh', label: 'Chinese' },
+            { value: 'ko', label: 'Korean' },
+            { value: 'pt', label: 'Portuguese' },
+            { value: 'it', label: 'Italian' },
+            { value: 'ru', label: 'Russian' }
+          ]}
+          onChange={(value) => {
+            setLanguage(value)
+            toast.success('Language preference saved')
+          }}
+        />
+        <SwitchTile
+          icon={Mail}
+          title="Email Notifications"
+          description="Receive email updates about your account activity"
+          value={emailNotifications}
+          onChange={(value) => {
+            setEmailNotifications(value)
+            toast.success(value ? 'Email notifications enabled' : 'Email notifications disabled')
+          }}
+        />
+        <SwitchTile
+          icon={Eye}
+          title="Show Email in Profile"
+          description="Make your email address visible to other users"
+          value={showEmailInProfile}
+          onChange={(value) => {
+            setShowEmailInProfile(value)
+            toast.success(value ? 'Email will be visible in your profile' : 'Email hidden from profile')
+          }}
+        />
+        <SwitchTile
+          icon={Monitor}
+          title="Auto-play Videos"
+          description="Automatically play videos in your feed"
+          value={autoPlayVideos}
+          onChange={(value) => {
+            setAutoPlayVideos(value)
+            toast.success(value ? 'Videos will auto-play' : 'Videos will not auto-play')
+          }}
+        />
+
         {/* Account Section */}
         <SectionHeader title="Account" />
         <SettingsTile
           icon={User}
           title="Edit Profile"
-          onClick={() => router.push('/profile')}
+          onClick={() => router.push('/profile/edit')}
         />
         <SwitchTile
           icon={Lock}
           title="Private Account"
+          description="Make your profile and posts visible only to approved followers"
           value={privateAccount}
           onChange={setPrivateAccount}
         />
@@ -175,18 +334,21 @@ export default function SettingsPage() {
         <SwitchTile
           icon={Heart}
           title="Likes"
+          description="Notify me when someone likes my artwork or post"
           value={pushLikes}
           onChange={setPushLikes}
         />
         <SwitchTile
           icon={MessageCircle}
           title="Comments"
+          description="Notify me when someone comments on my artwork or post"
           value={pushComments}
           onChange={setPushComments}
         />
         <SwitchTile
           icon={UserPlus}
-          title="Follows"
+          title="New Followers"
+          description="Notify me when someone starts following my profile"
           value={pushFollows}
           onChange={setPushFollows}
         />

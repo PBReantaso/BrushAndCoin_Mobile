@@ -174,76 +174,76 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 ),
               ),
               child: SafeArea(
-                child: Row(
-                  children: [
-                    // Logo
-                    const Row(
-                      children: [
-                        Text(
-                          'B',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+              child: Row(
+                children: [
+                  // Logo
+                  const Row(
+                    children: [
+                      Text(
+                        'B',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                             color: Colors.white,
-                          ),
                         ),
-                        Text(
-                          '&C',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.normal,
+                      ),
+                      Text(
+                        '&C',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.normal,
                             color: Colors.white,
-                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
 
-                    const SizedBox(width: 16),
+                  const SizedBox(width: 16),
 
-                    // Search Bar
-                    Expanded(
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
+                  // Search Bar
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const TextField(
-                          decoration: InputDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const TextField(
+                        decoration: InputDecoration(
                             hintText: 'Search messages...',
-                            hintStyle: TextStyle(
-                              color: Color(0xFF9E9E9E),
-                              fontSize: 14,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.search,
+                          hintStyle: TextStyle(
+                            color: Color(0xFF9E9E9E),
+                            fontSize: 14,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
                               color: Color.fromARGB(255, 255, 60, 60),
-                              size: 20,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                            size: 20,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
                         ),
                       ),
                     ),
+                  ),
 
-                    const SizedBox(width: 16),
+                  const SizedBox(width: 16),
 
-                    // Settings Icon
-                    IconButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('/settings');
-                      },
-                      icon: const Icon(
-                        Icons.settings,
+                  // Settings Icon
+                  IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/settings');
+                    },
+                    icon: const Icon(
+                      Icons.settings,
                         color: Colors.white,
-                        size: 24,
-                      ),
+                      size: 24,
                     ),
-                  ],
+                  ),
+                ],
                 ),
               ),
             ),
@@ -586,125 +586,125 @@ class _MessagingScreenState extends State<MessagingScreen> {
         }
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFFE0E0E0),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE0E0E0),
+          width: 1,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // Profile Picture Placeholder
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF5F5F5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.person,
-                    color: Color(0xFF9E9E9E),
-                    size: 20,
-                  ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Profile Picture Placeholder
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF5F5F5),
+                  shape: BoxShape.circle,
                 ),
+                child: const Icon(
+                  Icons.person,
+                  color: Color(0xFF9E9E9E),
+                  size: 20,
+                ),
+              ),
 
-                const SizedBox(width: 12),
+              const SizedBox(width: 12),
 
-                // User Name and Status
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              // User Name and Status
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        children: [
-                          Text(
+                  children: [
+                    Text(
                             isReceived
                                 ? request['client_name']
                                 : request['artist_name'],
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
                           ),
                           const SizedBox(width: 8),
                           // Commission Type Badge
                           _buildCommissionTypeBadge(isReceived),
                         ],
-                      ),
-                      Text(
+                    ),
+                    Text(
                         CommissionUtils.formatDate(
                             DateTime.parse(request['created_at'])),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF9E9E9E),
-                        ),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF9E9E9E),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
 
-                // Status Badge
+              // Status Badge
                 _buildStatusBadge(request['status']),
-              ],
-            ),
+            ],
+          ),
 
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-            // Request Title
-            Text(
+          // Request Title
+          Text(
               request['title'],
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
             ),
+          ),
 
-            const SizedBox(height: 8),
+          const SizedBox(height: 8),
 
-            // Request Description
-            Text(
+          // Request Description
+          Text(
               request['description'],
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF6B7280),
-              ),
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF6B7280),
             ),
+          ),
 
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-            // Budget and Actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
+          // Budget and Actions
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
                   'Budget: ${CommissionUtils.formatPeso(request['budget'])}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color.fromARGB(255, 255, 60, 60),
-                  ),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color.fromARGB(255, 255, 60, 60),
                 ),
-                if (request['status'] == 'pending')
-                  Row(
-                    children: [
-                      TextButton(
+              ),
+              if (request['status'] == 'pending')
+                Row(
+                  children: [
+                    TextButton(
                         onPressed: () async {
                           // Convert Map to CommissionRequest
                           final commissionRequest =
@@ -721,32 +721,32 @@ class _MessagingScreenState extends State<MessagingScreen> {
                           if (result == true) {
                             _updateCommissionStatus(request['id'], 'accepted');
                           }
-                        },
-                        child: const Text(
-                          'Accept',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 255, 60, 60),
-                            fontWeight: FontWeight.w600,
-                          ),
+                      },
+                      child: const Text(
+                        'Accept',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 60, 60),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
+                    ),
+                    TextButton(
+                      onPressed: () {
                           _showDeclineDialog(request);
-                        },
-                        child: const Text(
-                          'Decline',
-                          style: TextStyle(
-                            color: Color(0xFF9E9E9E),
-                            fontWeight: FontWeight.w600,
-                          ),
+                      },
+                      child: const Text(
+                        'Decline',
+                        style: TextStyle(
+                          color: Color(0xFF9E9E9E),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
-              ],
-            ),
-          ],
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
         ),
       ),
     );
@@ -800,19 +800,19 @@ class _MessagingScreenState extends State<MessagingScreen> {
       case 'pending':
         backgroundColor = const Color(0xFFFFF3CD); // Light yellow
         textColor = const Color(0xFF856404); // Dark yellow
-        break;
+            break;
       case 'accepted':
         backgroundColor = const Color(0xFFD4EDDA); // Light green
         textColor = const Color(0xFF155724); // Dark green
-        break;
+            break;
       case 'declined':
         backgroundColor = const Color(0xFFF8D7DA); // Light red
         textColor = const Color(0xFF721C24); // Dark red
-        break;
+            break;
       case 'completed':
         backgroundColor = const Color(0xFFD1ECF1); // Light blue
         textColor = const Color(0xFF0C5460); // Dark blue
-        break;
+            break;
       default:
         backgroundColor = const Color(0xFFF5F5F5); // Light gray
         textColor = const Color(0xFF6C757D); // Dark gray
@@ -902,9 +902,9 @@ class _MessagingScreenState extends State<MessagingScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Column(
+      child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
+        children: [
                 // Header with icon
                 Container(
                   width: 60,
@@ -916,7 +916,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   ),
                   child: const Icon(
                     Icons.message_outlined,
-                    color: Color.fromARGB(255, 255, 60, 60),
+                      color: Color.fromARGB(255, 255, 60, 60),
                     size: 30,
                   ),
                 ),
@@ -948,7 +948,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 const SizedBox(height: 24),
 
                 // Username input field
-                Container(
+            Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(12),
@@ -978,7 +978,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     ),
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Colors.black,
+                color: Colors.black,
                     ),
                   ),
                 ),
@@ -1041,9 +1041,9 @@ class _MessagingScreenState extends State<MessagingScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                    ),
-                  ],
+              ),
+            ),
+        ],
                 ),
               ],
             ),

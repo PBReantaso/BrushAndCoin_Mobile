@@ -310,6 +310,20 @@ export default function HomeClient({ user }: HomeClientProps) {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreateError(null)
+    
+    // Client-side validation
+    if (!title || title.trim() === '') {
+      setCreateError('Title is required')
+      toast.error('Please enter a title for your artwork')
+      return
+    }
+    
+    if (!category || category.trim() === '') {
+      setCreateError('Category is required')
+      toast.error('Please select a category')
+      return
+    }
+    
     setIsSubmitting(true)
 
     try {
@@ -320,8 +334,8 @@ export default function HomeClient({ user }: HomeClientProps) {
       
       const artworkData = {
         title: title.trim(),
-        description: description.trim(),
-        category,
+        description: description.trim() || null,
+        category: category.trim(),
         tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
         image_urls: imageUrl ? [imageUrl] : [],
         price: price ? parseFloat(price) : null,
@@ -339,12 +353,22 @@ export default function HomeClient({ user }: HomeClientProps) {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create artwork')
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch (parseError) {
+          // If response is not JSON, use status text
+          throw new Error(`Server error: ${response.status} ${response.statusText}`)
+        }
+        
+        console.error('❌ Artwork creation error response:', errorData)
+        const errorMessage = errorData.error || errorData.message || 'Failed to create artwork'
+        const errorDetails = errorData.details ? ` Details: ${JSON.stringify(errorData.details)}` : ''
+        throw new Error(`${errorMessage}${errorDetails}`)
       }
 
       const data = await response.json()
-      console.log('Artwork created successfully:', data)
+      console.log('✅ Artwork created successfully:', data)
       
       // Reload artworks to get the latest from database
       await loadArtworks()
@@ -356,8 +380,17 @@ export default function HomeClient({ user }: HomeClientProps) {
       toast.success('Post created successfully!')
       
     } catch (error: any) {
-      console.error('Error creating post:', error)
-      setCreateError(error.message || 'Failed to create artwork. Please try again.')
+      console.error('❌ Error creating post:', error)
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
+      
+      // Show detailed error message
+      const errorMessage = error.message || 'Failed to create artwork. Please try again.'
+      setCreateError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -845,7 +878,7 @@ export default function HomeClient({ user }: HomeClientProps) {
   const currentUser = {
     id: user.id,
     name: `${user.first_name} ${user.last_name}`,
-    avatar: user.profile_image_url || `https://i.pravatar.cc/150?u=${user.email}`,
+    avatar: user.profile_image_url || null,
     username: user.username,
     email: user.email
   }
