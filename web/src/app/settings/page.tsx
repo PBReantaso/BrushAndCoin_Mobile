@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Lock, Heart, MessageCircle, UserPlus, Key, Monitor, HelpCircle, Shield, FileText, LogOut, Trash2 } from 'lucide-react'
-import ApiService from '@/services/api'
+import { signOut } from 'next-auth/react'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -19,15 +19,17 @@ export default function SettingsPage() {
     if (confirmed) {
       setIsLoggingOut(true)
       try {
-        // Use API service logout method
-        await ApiService.logout()
-        
-        // Force refresh to ensure clean state
-        window.location.href = '/auth/login'
+        // Use NextAuth signout
+        await signOut({ 
+          callbackUrl: '/auth/login?logout=true',
+          redirect: true 
+        })
       } catch (error) {
         console.error('Logout error:', error)
-        // Even if API call fails, clear local data and redirect
-        window.location.href = '/auth/login'
+        // Even if signOut fails, clear storage and redirect
+        localStorage.clear()
+        sessionStorage.clear()
+        window.location.href = '/auth/login?logout=true'
       }
     }
   }

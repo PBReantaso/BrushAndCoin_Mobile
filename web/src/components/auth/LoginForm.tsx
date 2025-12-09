@@ -44,7 +44,9 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError(null)
+      console.log('🔧 LoginForm: Attempting login with:', data.email)
       const result = await dispatch(loginUser(data)).unwrap()
+      console.log('🔧 LoginForm: Login result:', result)
       if (result) {
         toast.success('Login successful!')
         
@@ -60,28 +62,56 @@ export default function LoginForm() {
       }
     } catch (error: any) {
       // Log raw error for debugging
-      console.error('LoginForm onSubmit error:', error)
+      console.error('🔧 LoginForm onSubmit error:', error)
+      console.error('🔧 Error type:', typeof error)
+      console.error('🔧 Error keys:', error ? Object.keys(error) : 'null')
+      console.error('🔧 Error stringified:', JSON.stringify(error, null, 2))
 
       // Normalize error into a string to avoid rendering objects in JSX
       let errorMessage = 'Login failed. Please try again.'
+      
+      // Try to extract error message from various error formats
       if (typeof error === 'string') {
         errorMessage = error
       } else if (error instanceof Error) {
-        errorMessage = error.message
+        errorMessage = error.message || error.toString()
       } else if (error && typeof error === 'object') {
-        // Redux rejected value can be in error.payload
-        if ('payload' in error) {
+        // Redux rejected value - unwrap() throws the rejection value directly
+        // which is what we passed to rejectWithValue
+        if ('message' in error && typeof (error as any).message === 'string') {
+          errorMessage = (error as any).message
+        } else if ('payload' in error) {
           const p = (error as any).payload
-          if (typeof p === 'string') errorMessage = p
-          else if (p && typeof p === 'object' && 'message' in p) errorMessage = String(p.message)
+          if (typeof p === 'string') {
+            errorMessage = p
+          } else if (p && typeof p === 'object') {
+            if ('message' in p && typeof p.message === 'string') {
+              errorMessage = p.message
+            } else {
+              errorMessage = JSON.stringify(p)
+            }
+          }
         } else if ((error as any).response && (error as any).response.data) {
           const d = (error as any).response.data
-          if (typeof d === 'string') errorMessage = d
-          else if (d && typeof d === 'object' && 'message' in d) errorMessage = String(d.message)
-        } else if ('message' in error) {
-          errorMessage = String((error as any).message)
+          if (typeof d === 'string') {
+            errorMessage = d
+          } else if (d && typeof d === 'object' && 'message' in d) {
+            errorMessage = String(d.message)
+          }
+        } else {
+          // Last resort: try to stringify the error
+          try {
+            const errorStr = JSON.stringify(error, null, 2)
+            if (errorStr !== '{}') {
+              errorMessage = `Error: ${errorStr}`
+            }
+          } catch {
+            errorMessage = error.toString() || 'Login failed. Please try again.'
+          }
         }
       }
+      
+      console.error('🔧 LoginForm: Final error message:', errorMessage)
 
       setError(errorMessage)
       toast.error(errorMessage)

@@ -3,7 +3,19 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 
 export default async function RootPage() {
-  const session = await getServerSession(authOptions)
+  let session = null
+  try {
+    session = await getServerSession(authOptions)
+  } catch (error: any) {
+    // Handle JWT decryption errors gracefully
+    if (error?.name === 'JWEDecryptionFailed' || error?.message?.includes('decryption')) {
+      console.log('🔧 Root: Invalid session token, redirecting to login')
+      session = null
+    } else {
+      console.error('🔧 Root: Error getting session:', error)
+      session = null
+    }
+  }
 
   // Add more specific checks
   if (session?.user?.id) {

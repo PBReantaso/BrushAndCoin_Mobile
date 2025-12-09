@@ -8,7 +8,20 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const session = await getServerSession(authOptions)
+  let session = null
+  try {
+    session = await getServerSession(authOptions)
+  } catch (error: any) {
+    // Handle JWT decryption errors gracefully (old/invalid session tokens)
+    if (error?.name === 'JWEDecryptionFailed' || error?.message?.includes('decryption')) {
+      console.log('🔧 Login page: Invalid session token detected, clearing and showing login form')
+      session = null
+    } else {
+      console.error('🔧 Login page: Error getting session:', error)
+      session = null
+    }
+  }
+  
   const params = await searchParams
   const force = params.force || params.logout
 

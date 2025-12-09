@@ -19,6 +19,64 @@ export const authOptions = {
           return null;
         }
 
+        // Check if database is available
+        const hasDatabase = process.env.DATABASE_URL && process.env.DATABASE_URL.trim() !== '';
+        
+        // Mock authentication for development when database is not available
+        if (process.env.NODE_ENV === 'development' && !hasDatabase) {
+          console.log('🔧 Using mock authentication (no database configured)');
+          
+          // Mock users for development
+          const mockUsers = [
+            {
+              email: 'test@example.com',
+              password: 'password123', // Plain text for mock
+              first_name: 'Test',
+              last_name: 'User',
+              username: 'testuser',
+              user_type: 'artist',
+            },
+            {
+              email: 'admin@example.com',
+              password: 'admin123',
+              first_name: 'Admin',
+              last_name: 'User',
+              username: 'admin',
+              user_type: 'admin',
+            },
+            {
+              email: 'client@example.com',
+              password: 'client123',
+              first_name: 'Client',
+              last_name: 'User',
+              username: 'client',
+              user_type: 'client',
+            }
+          ];
+
+          const mockUser = mockUsers.find(u => u.email === credentials.email);
+          
+          if (mockUser && mockUser.password === credentials.password) {
+            console.log('🔧 Mock authentication successful');
+            return {
+              id: '1',
+              email: mockUser.email,
+              name: `${mockUser.first_name} ${mockUser.last_name}`,
+              first_name: mockUser.first_name,
+              last_name: mockUser.last_name,
+              username: mockUser.username,
+              user_type: mockUser.user_type,
+              is_verified: true,
+              profile_image_url: null,
+              bio: null,
+              location_address: null,
+            };
+          }
+          
+          console.log('🔧 Mock authentication failed - invalid credentials');
+          return null;
+        }
+
         try {
           // Query user from your existing users table
           const result = await query(
@@ -66,6 +124,36 @@ export const authOptions = {
           };
         } catch (error) {
           console.error('🔧 Auth error:', error);
+          // Fall back to mock auth in development if database fails
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔧 Database error, falling back to mock authentication');
+            const mockUsers = [
+              {
+                email: 'test@example.com',
+                password: 'password123',
+                first_name: 'Test',
+                last_name: 'User',
+                username: 'testuser',
+                user_type: 'artist',
+              }
+            ];
+            const mockUser = mockUsers.find(u => u.email === credentials.email);
+            if (mockUser && mockUser.password === credentials.password) {
+              return {
+                id: '1',
+                email: mockUser.email,
+                name: `${mockUser.first_name} ${mockUser.last_name}`,
+                first_name: mockUser.first_name,
+                last_name: mockUser.last_name,
+                username: mockUser.username,
+                user_type: mockUser.user_type,
+                is_verified: true,
+                profile_image_url: null,
+                bio: null,
+                location_address: null,
+              };
+            }
+          }
           return null;
         }
       }

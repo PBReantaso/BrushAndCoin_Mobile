@@ -8,7 +8,20 @@ export default async function RegisterPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const session = await getServerSession(authOptions)
+  let session = null
+  try {
+    session = await getServerSession(authOptions)
+  } catch (error: any) {
+    // Handle JWT decryption errors gracefully
+    if (error?.name === 'JWEDecryptionFailed' || error?.message?.includes('decryption')) {
+      console.log('🔧 Register: Invalid session token, showing register form')
+      session = null
+    } else {
+      console.error('🔧 Register: Error getting session:', error)
+      session = null
+    }
+  }
+  
   const params = await searchParams
   const force = params.force || params.logout
   const registerFlow = params.register // Add this check

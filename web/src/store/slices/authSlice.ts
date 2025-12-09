@@ -73,15 +73,27 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string; rememberMe?: boolean }, { rejectWithValue }) => {
     try {
+      console.log('🔧 authSlice: Attempting signIn with:', credentials.email)
       const result = await signIn('credentials', {
         email: credentials.email,
         password: credentials.password,
         redirect: false,
       })
 
+      console.log('🔧 authSlice: signIn result:', result)
+
       if (result?.error) {
+        console.log('🔧 authSlice: signIn error:', result.error)
         return rejectWithValue({
-          message: 'Invalid email or password',
+          message: result.error === 'CredentialsSignin' ? 'Invalid email or password' : result.error,
+          errors: [],
+        })
+      }
+
+      if (!result?.ok) {
+        console.log('🔧 authSlice: signIn not ok')
+        return rejectWithValue({
+          message: 'Login failed. Please try again.',
           errors: [],
         })
       }
@@ -94,14 +106,30 @@ export const loginUser = createAsyncThunk(
         document.cookie = 'remember_me_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
       }
 
+      // Wait a bit for session to be created
+      await new Promise(resolve => setTimeout(resolve, 500))
+
       // Fetch user data from session
+      console.log('🔧 authSlice: Fetching session...')
       const sessionResponse = await fetch('/api/auth/session')
       const session = await sessionResponse.json()
+      console.log('🔧 authSlice: Session response:', session)
+      
+      if (!session?.user) {
+        console.log('🔧 authSlice: No user in session')
+        return rejectWithValue({
+          message: 'Failed to retrieve user session',
+          errors: [],
+        })
+      }
       
       return session.user
     } catch (error: any) {
+      console.error('🔧 authSlice: Login error caught:', error)
+      console.error('🔧 authSlice: Error message:', error?.message)
+      console.error('🔧 authSlice: Error stack:', error?.stack)
       return rejectWithValue({
-        message: error.message || 'Login failed',
+        message: error?.message || error?.toString() || 'Login failed. Please try again.',
         errors: [],
       })
     }
@@ -170,8 +198,10 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false
-        state.user = action.payload
-        state.isAuthenticated = true
+        // Registration doesn't auto-login, so don't set user or authenticated
+        // The user needs to log in separately
+        state.user = null
+        state.isAuthenticated = false
         state.error = null
       })
       .addCase(registerUser.rejected, (state, action) => {

@@ -6,6 +6,15 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   console.log('🔄 Register API called');
   
+  // Check if database is available
+  if (!process.env.DATABASE_URL) {
+    console.error('❌ DATABASE_URL not configured');
+    return NextResponse.json(
+      { error: 'Database not configured. Please contact support.' },
+      { status: 500 }
+    );
+  }
+  
   try {
     const userData = await request.json();
     console.log('📝 Registration data received:', { 
@@ -46,29 +55,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Add this right after your existing user check
-  console.log('🔍 Checking actual table structure...');
-  try {
-    const tableInfo = await query(`
-      SELECT column_name, data_type, is_nullable 
-      FROM information_schema.columns 
-      WHERE table_name = 'users' 
-      AND table_schema = 'public'
-      ORDER BY ordinal_position
-    `);
-    
-    console.log('📊 Actual users table columns:');
-    tableInfo.rows.forEach(col => {
-      console.log(`   - ${col.column_name} (${col.data_type}, nullable: ${col.is_nullable})`);
-    });
-  } catch (error) {
-    console.error('❌ Failed to check table structure:', error);
-  }
-
-  // Check current database
-  const dbInfo = await query('SELECT current_database(), current_schema()');
-  console.log('📊 Database info:', dbInfo.rows[0]);
-
     // Check username uniqueness if provided
     if (userData.username) {
       console.log('🔍 Checking username uniqueness...');
@@ -89,22 +75,42 @@ export async function POST(request: Request) {
     console.log('🔐 Hashing password...');
     const hashedPassword = await bcrypt.hash(userData.password, 12);
 
-    // Create user with hashed password - SIMPLIFIED
+    // Handle location - can come as object or separate fields
+    let location_address = userData.location_address || null;
+    let location_lat = userData.location_lat || null;
+    let location_lng = userData.location_lng || null;
+    
+    // If location comes as an object, extract fields
+    if (userData.location && typeof userData.location === 'object') {
+      location_address = userData.location.address || location_address;
+      location_lat = userData.location.latitude || location_lat;
+      location_lng = userData.location.longitude || location_lng;
+    }
+
+    // Create user with hashed password and all fields
     console.log('👤 Creating user in database...');
     const userResult = await query(
-  `INSERT INTO users (email, password, first_name, last_name, username, user_type)
-   VALUES ($1, $2, $3, $4, $5, $6) 
-   RETURNING id, email, first_name, last_name, username, user_type,
-             is_verified, bio, profile_image_url, location_address, created_at`,
-  [
-    userData.email, 
-    hashedPassword,
-    userData.first_name, 
-    userData.last_name, 
-    userData.username || null,
-    userData.user_type || 'user'
-  ]
-);
+      `INSERT INTO users (
+        email, password, first_name, last_name, username, user_type,
+        bio, profile_image_url, location_address, location_lat, location_lng
+      )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+       RETURNING id, email, first_name, last_name, username, user_type,
+                 is_verified, bio, profile_image_url, location_address, created_at`,
+      [
+        userData.email, 
+        hashedPassword,
+        userData.first_name, 
+        userData.last_name, 
+        userData.username || null,
+        userData.user_type || 'user',
+        userData.bio || null,
+        userData.profile_image_url || null,
+        location_address,
+        location_lat,
+        location_lng
+      ]
+    );
 
     const newUser = userResult.rows[0];
     console.log('✅ User created successfully:', {
@@ -124,13 +130,37 @@ export async function POST(request: Request) {
     console.error('Error message:', error.message);
     console.error('Error code:', error.code);
     console.error('Error detail:', error.detail);
-    console.error('Error stack:', error.stack);
     
+    // Handle specific database errors
+    if (error.code === '23505') { // Unique violation
+      const detail = error.detail || '';
+      if (detail.includes('email')) {
+        return NextResponse.json(
+          { error: 'User with this email already exists' },
+          { status: 400 }
+        );
+      } else if (detail.includes('username')) {
+        return NextResponse.json(
+          { error: 'Username is already taken' },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Handle database connection errors
+    if (error.message?.includes('Database pool not initialized') || 
+        error.message?.includes('DATABASE_URL')) {
+      return NextResponse.json(
+        { error: 'Database connection error. Please try again later.' },
+        { status: 503 }
+      );
+    }
+    
+    // Generic error
     return NextResponse.json(
       { 
-        error: 'Internal server error',
-        details: error.message,
-        code: error.code
+        error: 'Registration failed. Please try again.',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       },
       { status: 500 }
     );

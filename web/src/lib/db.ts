@@ -1,10 +1,22 @@
 import { Pool } from 'pg';
 
-const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-});
+// Validate DATABASE_URL
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  console.warn('⚠️  DATABASE_URL not set. Database features will be disabled. Using mock authentication.');
+}
+
+const pool = databaseUrl ? new Pool({ 
+  connectionString: databaseUrl,
+  ssl: databaseUrl.includes('sslmode=require') || databaseUrl.includes('neon.tech') ? { rejectUnauthorized: false } : false,
+}) : null;
 
 export async function query(text: string, params?: any[]) {
+  if (!pool) {
+    throw new Error('Database not configured. Please set DATABASE_URL in your .env.local file.');
+  }
+  
   const client = await pool.connect();
   try {
     console.log(`🔍 Executing query: ${text}`);

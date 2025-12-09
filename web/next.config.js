@@ -55,9 +55,6 @@ const nextConfig = {
     return config
   },
 
-  // For Turbopack compatibility
-  turbo: {},
-
   // Output configuration for deployment
   output: 'standalone',
 }
