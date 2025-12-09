@@ -1,5 +1,6 @@
 'use client'
 
+import ArtworkDetailModal from '@/components/artwork/ArtworkDetailModal'
 import { useUser } from '@/hooks/useUser'
 import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -60,42 +61,53 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
   const [isLoadingStats, setIsLoadingStats] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false)
+  
+  // Modal state
+  const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Modal functions
+  const openArtworkModal = (artwork: Artwork) => {
+    setSelectedArtwork(artwork)
+    setIsModalOpen(true)
+  }
+
+  const closeArtworkModal = () => {
+    setIsModalOpen(false)
+    setSelectedArtwork(null)
+  }
 
   const handleLike = async (artworkId: string) => {
-  // TODO: Implement actual like functionality
-  console.log('Like artwork:', artworkId)
-}
-
-const handleComment = (artworkId: string) => {
-  router.push(`/artworks/${artworkId}`)
-}
-
-const handleShare = async (artworkId: string) => {
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: 'Check out this artwork!',
-        url: window.location.origin + `/artworks/${artworkId}`
-      })
-    } catch (error) {
-      console.log('Share cancelled')
-    }
-  } else {
-    navigator.clipboard.writeText(window.location.origin + `/artworks/${artworkId}`)
-    // TODO: Show toast notification
+    // TODO: Implement like functionality
+    console.log('Like artwork:', artworkId)
   }
-}
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-  
-  if (diffInHours < 1) return 'Just now'
-  if (diffInHours < 24) return `${diffInHours}h ago`
-  if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
-  return date.toLocaleDateString()
-}
+  const handleShare = async (artworkId: string) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Check out this artwork!',
+          url: window.location.origin + `/artworks/${artworkId}`
+        })
+      } catch (error) {
+        console.log('Share cancelled')
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.origin + `/artworks/${artworkId}`)
+      // TODO: Show toast notification
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) return 'Just now'
+    if (diffInHours < 24) return `${diffInHours}h ago`
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
+    return date.toLocaleDateString()
+  }
 
   // Use the user from props, fallback to auth hook
   const user = initialUser || authUser
@@ -285,7 +297,7 @@ const formatDate = (dateString: string) => {
   return (
     <div className="space-y-6">
       {artworks.map(artwork => (
-        <div key={artwork.id} className="bg-white rounded-xl shadow-sm border border-gray-100 lg:shadow-md" onClick={() => router.push(`/artworks/${artwork.id}`)}>
+        <div key={artwork.id} className="bg-white rounded-xl shadow-sm border border-gray-100 lg:shadow-md cursor-pointer" onClick={() => openArtworkModal(artwork)}>
           {/* Artwork Header */}
           <div className="p-4 lg:p-6">
             <div className="flex items-center justify-between">
@@ -340,21 +352,30 @@ const formatDate = (dateString: string) => {
           <div className="p-4 lg:p-6">
             <div className="flex items-center space-x-8 mb-4">
               <button
-                onClick={() => handleLike(artwork.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLike(artwork.id);
+                }}
                 className="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors"
               >
                 <Heart className="w-6 h-6 lg:w-7 lg:h-7" />
               </button>
               
               <button
-                onClick={() => handleComment(artwork.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // The comment functionality is handled in the modal
+                }}
                 className="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors"
               >
                 <MessageCircle className="w-6 h-6 lg:w-7 lg:h-7" />
               </button>
               
               <button
-                onClick={() => handleShare(artwork.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShare(artwork.id);
+                }}
                 className="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors"
               >
                 <Share className="w-6 h-6 lg:w-7 lg:h-7" />
@@ -504,15 +525,6 @@ const formatDate = (dateString: string) => {
                   </div>
                   <div className="text-sm text-gray-600">Following</div>
                 </div>
-                {/*{stats?.average_rating && stats.average_rating > 0 && (
-                  <div className="text-center">
-                    <div className="font-semibold text-black flex items-center">
-                      <Star className="w-4 h-4 mr-1 fill-yellow-400 text-yellow-400" />
-                      {stats.average_rating.toFixed(1)}
-                    </div>
-                    <div className="text-sm text-gray-600">Rating</div>
-                  </div>
-                )}*/}
               </div>
 
               {/* Bio */}
@@ -561,6 +573,25 @@ const formatDate = (dateString: string) => {
         <div className="min-h-96">
           {selectedTab === 0 ? renderGalleryTab() : renderMerchandiseTab()}
         </div>
+
+        {/* Artwork Detail Modal */}
+        <ArtworkDetailModal
+          artwork={selectedArtwork ? {
+            ...selectedArtwork,
+            user: {
+              id: user.id,
+              username: user.username,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              profile_image_url: user.profile_image_url
+            }
+          } : null}
+          isOpen={isModalOpen}
+          onClose={closeArtworkModal}
+          currentUserId={authUser?.id}
+          onLike={handleLike}
+          onShare={handleShare}
+        />
       </div>
     </div>
   )

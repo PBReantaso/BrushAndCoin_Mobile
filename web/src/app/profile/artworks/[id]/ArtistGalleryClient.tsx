@@ -1,5 +1,6 @@
 'use client';
 
+import ArtworkDetailModal from '@/components/artwork/ArtworkDetailModal';
 import { ArrowLeft, DollarSign, Edit3, Grid3X3, List, MessageCircle, UserCheck, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -65,7 +66,44 @@ export default function ArtistGalleryClient({
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
   const [currentFollowStats, setCurrentFollowStats] = useState<FollowStats | null>(followStats);
+  
+  // Modal state
+  const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const router = useRouter();
+
+  // Modal functions
+  const openArtworkModal = (artwork: Artwork) => {
+    setSelectedArtwork(artwork);
+    setIsModalOpen(true);
+  };
+
+  const closeArtworkModal = () => {
+    setIsModalOpen(false);
+    setSelectedArtwork(null);
+  };
+
+  const handleLike = async (artworkId: string) => {
+    // TODO: Implement like functionality
+    console.log('Like artwork:', artworkId);
+  };
+
+  const handleShare = async (artworkId: string) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Check out this artwork!',
+          url: window.location.origin + `/artworks/${artworkId}`
+        });
+      } catch (error) {
+        console.log('Share cancelled');
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.origin + `/artworks/${artworkId}`);
+      // TODO: Show toast notification
+    }
+  };
 
   const handlePageChange = async (newPage: number) => {
     if (newPage < 1 || newPage > pagination.pages) return;
@@ -327,7 +365,7 @@ export default function ArtistGalleryClient({
           </div>
         </div>
 
-        {/* Rest of the component remains the same */}
+        {/* Artworks Display */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
@@ -342,14 +380,14 @@ export default function ArtistGalleryClient({
           </div>
         ) : (
           <>
-            {/* Artworks Grid/List - same as before */}
+            {/* Artworks Grid/List */}
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {artworks.map((artwork) => (
                   <div 
                     key={artwork.id} 
                     className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => router.push(`/home?post=${artwork.id}`)}
+                    onClick={() => openArtworkModal(artwork)}
                   >
                     {artwork.image_urls && artwork.image_urls[0] && (
                       <div className="aspect-square overflow-hidden">
@@ -387,13 +425,13 @@ export default function ArtistGalleryClient({
                 ))}
               </div>
             ) : (
-              // List View - same as before
+              // List View
               <div className="space-y-4 mb-8">
                 {artworks.map((artwork) => (
                   <div 
                     key={artwork.id}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => router.push(`/home?post=${artwork.id}`)}
+                    onClick={() => openArtworkModal(artwork)}
                   >
                     <div className="flex">
                       {artwork.image_urls && artwork.image_urls[0] && (
@@ -462,7 +500,7 @@ export default function ArtistGalleryClient({
           </>
         )}
 
-        {/* Pagination - same as before */}
+        {/* Pagination */}
         {pagination.pages > 1 && (
           <div className="flex justify-center items-center space-x-4">
             <button
@@ -502,6 +540,25 @@ export default function ArtistGalleryClient({
             </button>
           </div>
         )}
+
+        {/* Artwork Detail Modal */}
+        <ArtworkDetailModal
+          artwork={selectedArtwork ? {
+            ...selectedArtwork,
+            user: {
+              id: artist.id,
+              username: artist.username,
+              first_name: artist.first_name,
+              last_name: artist.last_name,
+              profile_image_url: artist.profile_image_url
+            }
+          } : null}
+          isOpen={isModalOpen}
+          onClose={closeArtworkModal}
+          currentUserId={currentUserId}
+          onLike={handleLike}
+          onShare={handleShare}
+        />
       </div>
     </div>
   );

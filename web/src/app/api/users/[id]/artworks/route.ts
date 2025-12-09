@@ -65,23 +65,59 @@ export async function GET(
         });
       }
 
+      // Check if comments table exists
+      const commentsTableExists = await query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'comments'
+        );
+      `);
+
+      let artworksQuery = '';
+      let countQuery = '';
+      let queryParams = [userId, limit, offset];
+
+      if (commentsTableExists.rows[0].exists) {
+        // Use a subquery to get comment counts without breaking pagination
+        artworksQuery = `
+          SELECT 
+            a.id, a.title, a.description, a.image_urls, a.category, a.tags, a.price,
+            a.is_commission, a.is_available, a.created_at, a.updated_at,
+            COALESCE(comment_counts.count, 0) as comment_count
+          FROM artworks a
+          LEFT JOIN (
+            SELECT artwork_id, COUNT(*) as count
+            FROM comments
+            GROUP BY artwork_id
+          ) comment_counts ON a.id = comment_counts.artwork_id
+          WHERE a.user_id = $1
+          ORDER BY a.created_at DESC
+          LIMIT $2 OFFSET $3
+        `;
+
+        countQuery = 'SELECT COUNT(*) FROM artworks WHERE user_id = $1';
+      } else {
+        // Fallback query without comment counts
+        artworksQuery = `
+          SELECT 
+            id, title, description, image_urls, category, tags, price,
+            is_commission, is_available, created_at, updated_at,
+            0 as comment_count
+          FROM artworks 
+          WHERE user_id = $1
+          ORDER BY created_at DESC
+          LIMIT $2 OFFSET $3
+        `;
+
+        countQuery = 'SELECT COUNT(*) FROM artworks WHERE user_id = $1';
+      }
+
       // Get paginated artworks
-      const result = await query(
-        `SELECT 
-          id, title, description, image_urls, category, tags, price,
-          is_commission, is_available, created_at, updated_at
-         FROM artworks 
-         WHERE user_id = $1
-         ORDER BY created_at DESC
-         LIMIT $2 OFFSET $3`,
-        [userId, limit, offset]
-      );
+      const result = await query(artworksQuery, queryParams);
 
       // Get total count for pagination
-      const countResult = await query(
-        'SELECT COUNT(*) FROM artworks WHERE user_id = $1',
-        [userId]
-      );
+      const countResult = await query(countQuery, [userId]);
       const total = parseInt(countResult.rows[0].count);
 
       const artworks = result.rows.map(artwork => ({
@@ -95,7 +131,8 @@ export async function GET(
         is_commission: artwork.is_commission,
         is_available: artwork.is_available,
         created_at: artwork.created_at,
-        updated_at: artwork.updated_at
+        updated_at: artwork.updated_at,
+        comment_count: parseInt(artwork.comment_count) || 0
       }));
 
       return NextResponse.json({ 
