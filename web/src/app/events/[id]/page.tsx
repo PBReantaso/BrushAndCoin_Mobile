@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Calendar, Share, MapPin, Clock, Users, DollarSign, X } from 'lucide-react'
+import { ArrowLeft, Calendar, Share, MapPin, Clock, Users, DollarSign, X, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useUser } from '@/hooks/useUser'
+
+interface ScheduleItem {
+  time: string
+  activity: string
+}
 
 interface Event {
   id: string
@@ -16,6 +22,7 @@ interface Event {
   max_attendees: number | null
   registration_fee: number
   image_urls?: string[]
+  schedule?: ScheduleItem[]
   is_active: boolean
   created_at: string
   updated_at: string
@@ -40,12 +47,17 @@ export default function EventDetailPage() {
   const router = useRouter()
   const params = useParams()
   const eventId = params?.id as string
+  const { user } = useUser()
   
   const [event, setEvent] = useState<Event | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedTab, setSelectedTab] = useState<'details' | 'location' | 'participants'>('details')
   const [isJoining, setIsJoining] = useState(false)
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  
+  // Check if current user is the organizer
+  const isOrganizer = user?.id && event?.organizer?.id === user.id
 
   const getInitials = (first?: string, last?: string, username?: string) => {
     const a = first?.charAt(0) || ''
@@ -145,6 +157,36 @@ export default function EventDetailPage() {
     }
   }
 
+  const handleDeleteEvent = async () => {
+    if (!event) return
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${event.title}"? This action cannot be undone.`
+    )
+
+    if (!confirmed) return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete event')
+      }
+
+      toast.success('Event deleted successfully!')
+      router.push('/events')
+    } catch (error: any) {
+      console.error('Error deleting event:', error)
+      toast.error(error.message || 'Failed to delete event')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="bg-gray-50 min-h-screen flex items-center justify-center">
@@ -206,6 +248,16 @@ export default function EventDetailPage() {
             >
               <Share className="w-5 h-5 text-gray-600" />
             </button>
+            {isOrganizer && (
+              <button
+                onClick={handleDeleteEvent}
+                disabled={isDeleting}
+                className="p-2 hover:bg-red-50 rounded-full transition-colors text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Delete event"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -300,38 +352,28 @@ export default function EventDetailPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <h3 className="text-lg font-bold text-black mb-4">Event Schedule</h3>
               <div className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-16 text-xs font-semibold text-red-500">{time}</div>
-                  <div className="flex-1 text-sm text-black">Event Start</div>
-                </div>
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-16 text-xs font-semibold text-red-500">TBA</div>
-                  <div className="flex-1 text-sm text-black">Event Activities</div>
-                </div>
+                {event.schedule && event.schedule.length > 0 ? (
+                  event.schedule.map((item, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-20 text-xs font-semibold text-red-500">{item.time}</div>
+                      <div className="flex-1 text-sm text-black">{item.activity}</div>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-20 text-xs font-semibold text-red-500">{time}</div>
+                      <div className="flex-1 text-sm text-black">Event Start</div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-20 text-xs font-semibold text-red-500">TBA</div>
+                      <div className="flex-1 text-sm text-black">Event Activities</div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Event Actions */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h3 className="text-lg font-bold text-black mb-4">Actions</h3>
-              <div className="space-y-3">
-                <button
-                  onClick={handleJoinEvent}
-                  disabled={isJoining}
-                  className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Users className="w-5 h-5" />
-                  {isJoining ? 'Joining...' : 'Join Event'}
-                </button>
-                <button
-                  onClick={handleShareEvent}
-                  className="w-full border-2 border-red-500 text-red-500 hover:bg-red-50 font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  <Share className="w-5 h-5" />
-                  Share Event
-                </button>
-              </div>
-            </div>
           </div>
         )}
 
@@ -436,17 +478,33 @@ export default function EventDetailPage() {
               </div>
             </div>
 
-            {/* Join Event Button */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <button
-                onClick={handleJoinEvent}
-                disabled={isJoining}
-                className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <Users className="w-5 h-5" />
-                {isJoining ? 'Joining...' : 'Join This Event'}
-              </button>
-            </div>
+            {/* Join Event Button - Only show if not organizer */}
+            {!isOrganizer && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <button
+                  onClick={handleJoinEvent}
+                  disabled={isJoining}
+                  className="w-full bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <Users className="w-5 h-5" />
+                  {isJoining ? 'Joining...' : 'Join This Event'}
+                </button>
+              </div>
+            )}
+            
+            {/* Delete Event Button - Only show if organizer */}
+            {isOrganizer && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <button
+                  onClick={handleDeleteEvent}
+                  disabled={isDeleting}
+                  className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  {isDeleting ? 'Deleting...' : 'Delete This Event'}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

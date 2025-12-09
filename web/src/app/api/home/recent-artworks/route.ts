@@ -1,19 +1,39 @@
+import { auth } from '@/lib/auth';
 import { query } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Get recent artworks with user information
+    // Check authentication
+    const session = await auth();
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const currentUserId = session.user.id;
+
+    // Get recent artworks only from users that the current user follows
+    // Also include the user's own artworks
     const result = await query(
-      `SELECT 
+      `SELECT DISTINCT
         a.id, a.title, a.description, a.image_urls, a.category, a.tags, a.price,
         a.is_commission, a.is_available, a.created_at, a.updated_at,
         u.id as user_id, u.username, u.first_name, u.last_name, u.profile_image_url
        FROM artworks a
        JOIN users u ON a.user_id = u.id
        WHERE a.is_available = true
+         AND (
+           a.user_id = $1
+           OR EXISTS (
+             SELECT 1 FROM follows f
+             WHERE f.follower_id = $1
+             AND f.following_id = a.user_id
+           )
+         )
        ORDER BY a.created_at DESC
-       LIMIT 20`
+       LIMIT 20`,
+      [currentUserId]
     );
 
     const artworks = result.rows.map(artwork => ({

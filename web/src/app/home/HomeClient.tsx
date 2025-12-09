@@ -423,7 +423,7 @@ export default function HomeClient({ user }: HomeClientProps) {
   }
 
   const handleUserClick = (userId: string) => {
-    router.push(`/profile/artworks/${userId}`)
+    router.push(`/profile/${userId}`)
   }
 
   const formatDate = (dateString: string) => {
@@ -715,16 +715,16 @@ export default function HomeClient({ user }: HomeClientProps) {
     if (artworks.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-12">
-          <Palette className="w-16 h-16 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-600 mb-2">No artworks found</h3>
-          <p className="text-gray-500 text-center">
-            Be the first to share your artwork!
+          <User className="w-16 h-16 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-600 mb-2">No posts to show</h3>
+          <p className="text-gray-500 text-center max-w-md mb-4">
+            Start following artists to see their posts in your feed! Use the search bar at the top to find and follow artists. You can also create your own artwork to share.
           </p>
           <button
             onClick={openCreateModal}
-            className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           >
-            Create First Artwork
+            Create Artwork
           </button>
         </div>
       )
@@ -738,7 +738,7 @@ export default function HomeClient({ user }: HomeClientProps) {
             <div className="p-4 lg:p-6">
               <div className="flex items-center justify-between">
                 <div 
-                  className="flex items-center space-x-4 cursor-pointer"
+                  className="flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => handleUserClick(artwork.user.id)}
                 >
                   <div className="flex-shrink-0 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
@@ -755,7 +755,7 @@ export default function HomeClient({ user }: HomeClientProps) {
                     )}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-base lg:text-lg">
+                    <p className="font-semibold text-gray-900 text-base lg:text-lg hover:text-red-500 transition-colors">
                       {artwork.user.first_name} {artwork.user.last_name}
                     </p>
                     <p className="text-sm text-gray-500">{formatDate(artwork.created_at)}</p>

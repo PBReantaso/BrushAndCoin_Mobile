@@ -25,7 +25,7 @@ export async function GET(request: Request) {
        `SELECT 
         e.id, e.title, e.description, e.event_date, e.location_address,
         e.location_lat, e.location_lng, e.max_attendees, e.registration_fee,
-        e.image_urls,
+        e.image_urls, e.schedule,
         e.is_active, e.created_at, e.updated_at,
         u.id as organizer_id, u.username, u.first_name, u.last_name, u.profile_image_url
        FROM events e
@@ -37,28 +37,41 @@ export async function GET(request: Request) {
       [limit]
     );
 
-    const events = result.rows.map(event => ({
-      id: event.id,
-      title: event.title,
-      description: event.description,
-      event_date: event.event_date,
-      location_address: event.location_address,
-      location_lat: event.location_lat ? parseFloat(event.location_lat) : null,
-      location_lng: event.location_lng ? parseFloat(event.location_lng) : null,
-      max_attendees: event.max_attendees,
-      registration_fee: event.registration_fee ? parseFloat(event.registration_fee) : 0,
-      image_urls: event.image_urls || [],
-      is_active: event.is_active,
-      created_at: event.created_at,
-      updated_at: event.updated_at,
-      organizer: {
-        id: event.organizer_id,
-        username: event.username,
-        first_name: event.first_name,
-        last_name: event.last_name,
-        profile_image_url: event.profile_image_url,
+    const events = result.rows.map(event => {
+      // Parse schedule if it's a string
+      let schedule = event.schedule || []
+      if (typeof schedule === 'string') {
+        try {
+          schedule = JSON.parse(schedule)
+        } catch (e) {
+          schedule = []
+        }
       }
-    }));
+
+      return {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        event_date: event.event_date,
+        location_address: event.location_address,
+        location_lat: event.location_lat ? parseFloat(event.location_lat) : null,
+        location_lng: event.location_lng ? parseFloat(event.location_lng) : null,
+        max_attendees: event.max_attendees,
+        registration_fee: event.registration_fee ? parseFloat(event.registration_fee) : 0,
+        image_urls: event.image_urls || [],
+        schedule: schedule,
+        is_active: event.is_active,
+        created_at: event.created_at,
+        updated_at: event.updated_at,
+        organizer: {
+          id: event.organizer_id,
+          username: event.username,
+          first_name: event.first_name,
+          last_name: event.last_name,
+          profile_image_url: event.profile_image_url,
+        }
+      }
+    });
 
     return NextResponse.json({ events });
 
@@ -123,17 +136,18 @@ export async function POST(request: Request) {
     const max_attendees = eventData.max_attendees ? parseInt(eventData.max_attendees.toString()) : null;
     const registration_fee = eventData.registration_fee ? parseFloat(eventData.registration_fee.toString()) : 0;
     const image_urls = Array.isArray(eventData.image_urls) ? eventData.image_urls.filter(Boolean) : [];
+    const schedule = eventData.schedule ? JSON.stringify(eventData.schedule) : null;
 
     // Create event in database
     console.log('👤 Creating event in database...');
     const result = await query(
       `INSERT INTO events (
         organizer_id, title, description, event_date, location_address,
-        location_lat, location_lng, max_attendees, registration_fee, image_urls
+        location_lat, location_lng, max_attendees, registration_fee, image_urls, schedule
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
        RETURNING id, title, description, event_date, location_address,
-                 location_lat, location_lng, max_attendees, registration_fee, image_urls,
+                 location_lat, location_lng, max_attendees, registration_fee, image_urls, schedule,
                  is_active, created_at, updated_at`,
       [
         session.user.id,
@@ -145,7 +159,8 @@ export async function POST(request: Request) {
         location_lng,
         max_attendees,
         registration_fee,
-        image_urls
+        image_urls,
+        schedule
       ]
     );
 

@@ -21,7 +21,7 @@ export async function GET(
     const result = await query(
       `SELECT 
         e.id, e.title, e.description, e.event_date, e.location_address,
-        e.location_lat, e.location_lng, e.max_attendees, e.registration_fee, e.image_urls,
+        e.location_lat, e.location_lng, e.max_attendees, e.registration_fee, e.image_urls, e.schedule,
         e.is_active, e.created_at, e.updated_at,
         u.id as organizer_id, u.username, u.first_name, u.last_name, u.profile_image_url
        FROM events e
@@ -64,6 +64,16 @@ export async function GET(
       profile_image_url: p.profile_image_url,
     }));
 
+    // Parse schedule if it's a string, otherwise use as is
+    let schedule = event.schedule || []
+    if (typeof schedule === 'string') {
+      try {
+        schedule = JSON.parse(schedule)
+      } catch (e) {
+        schedule = []
+      }
+    }
+
     return NextResponse.json({
       event: {
         id: event.id,
@@ -76,6 +86,7 @@ export async function GET(
         max_attendees: event.max_attendees,
         registration_fee: event.registration_fee ? parseFloat(event.registration_fee) : 0,
         image_urls: event.image_urls || [],
+        schedule: schedule,
         is_active: event.is_active,
         created_at: event.created_at,
         updated_at: event.updated_at,
@@ -93,6 +104,63 @@ export async function GET(
 
   } catch (error: any) {
     console.error('Get event error:', error);
+    return NextResponse.json({ 
+      error: 'Internal server error'
+    }, { status: 500 });
+  }
+}
+
+// DELETE - Delete event (only by organizer)
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // Check authentication
+    const session = await auth();
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    // First, check if event exists and get organizer
+    const eventCheck = await query(
+      'SELECT organizer_id FROM events WHERE id = $1',
+      [id]
+    );
+
+    if (eventCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'Event not found' },
+        { status: 404 }
+      );
+    }
+
+    const organizerId = eventCheck.rows[0].organizer_id;
+
+    // Check if current user is the organizer
+    if (organizerId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'You do not have permission to delete this event' },
+        { status: 403 }
+      );
+    }
+
+    // Delete event (soft delete by setting is_active to false, or hard delete)
+    // Using soft delete to preserve data integrity
+    await query(
+      'UPDATE events SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+      [id]
+    );
+
+    return NextResponse.json({
+      message: 'Event deleted successfully'
+    });
+
+  } catch (error: any) {
+    console.error('Delete event error:', error);
     return NextResponse.json({ 
       error: 'Internal server error'
     }, { status: 500 });

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, MapPin, Calendar, Clock } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Clock, Plus, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function CreateEventPage() {
@@ -24,6 +24,16 @@ export default function CreateEventPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadedImage, setUploadedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  
+  // Schedule items
+  interface ScheduleItem {
+    id: string
+    time: string
+    activity: string
+  }
+  const [scheduleItems, setScheduleItems] = useState<ScheduleItem[]>([
+    { id: '1', time: selectedTime, activity: 'Event Start' }
+  ])
 
   const categories = [
     'Art',
@@ -110,6 +120,40 @@ export default function CreateEventPage() {
     toast.success('Location set from search')
   }
 
+  const addScheduleItem = () => {
+    const newItem: ScheduleItem = {
+      id: Date.now().toString(),
+      time: 'TBA',
+      activity: ''
+    }
+    setScheduleItems([...scheduleItems, newItem])
+  }
+
+  const removeScheduleItem = (id: string) => {
+    if (scheduleItems.length > 1) {
+      setScheduleItems(scheduleItems.filter(item => item.id !== id))
+    } else {
+      toast.error('At least one schedule item is required')
+    }
+  }
+
+  const updateScheduleItem = (id: string, field: 'time' | 'activity', value: string) => {
+    setScheduleItems(scheduleItems.map(item => 
+      item.id === id ? { ...item, [field]: value } : item
+    ))
+  }
+
+  // Update first schedule item time when selectedTime changes
+  useEffect(() => {
+    if (scheduleItems.length > 0 && scheduleItems[0].id === '1') {
+      setScheduleItems(prev => {
+        const updated = [...prev]
+        updated[0] = { ...updated[0], time: selectedTime }
+        return updated
+      })
+    }
+  }, [selectedTime])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -161,6 +205,14 @@ export default function CreateEventPage() {
       const eventDateTime = new Date(selectedDate)
       eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
 
+      // Prepare schedule items (filter out empty activities)
+      const schedule = scheduleItems
+        .filter(item => item.activity.trim() !== '')
+        .map(item => ({
+          time: item.time,
+          activity: item.activity.trim()
+        }))
+
       const eventData = {
         title: title.trim(),
         description: description.trim(),
@@ -172,7 +224,8 @@ export default function CreateEventPage() {
         category: category,
         max_attendees: maxAttendees ? parseInt(maxAttendees) : null,
         registration_fee: registrationFee ? parseFloat(registrationFee) : 0,
-        image_urls: imageUrl ? [imageUrl] : []
+        image_urls: imageUrl ? [imageUrl] : [],
+        schedule: schedule.length > 0 ? schedule : null
       }
 
       console.log('Creating event with data:', eventData)
@@ -341,6 +394,58 @@ export default function CreateEventPage() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Event Schedule */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-sm font-semibold text-red-500">Event Schedule</label>
+              <button
+                type="button"
+                onClick={addScheduleItem}
+                className="flex items-center space-x-1 text-red-500 hover:text-red-600 text-sm font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Activity</span>
+              </button>
+            </div>
+            <div className="space-y-3">
+              {scheduleItems.map((item, index) => (
+                <div key={item.id} className="flex items-center space-x-2">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={item.time}
+                      onChange={(e) => updateScheduleItem(item.id, 'time', e.target.value)}
+                      placeholder="Time (e.g., 10:00 AM or TBA)"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
+                  </div>
+                  <div className="flex-2 flex-1">
+                    <input
+                      type="text"
+                      value={item.activity}
+                      onChange={(e) => updateScheduleItem(item.id, 'activity', e.target.value)}
+                      placeholder="Activity description"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    />
+                  </div>
+                  {scheduleItems.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeScheduleItem(item.id)}
+                      className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove activity"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Add activities and their times for your event schedule
+            </p>
           </div>
 
           {/* Venue */}
