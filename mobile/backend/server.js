@@ -1,4 +1,4 @@
-// server.js
+// server.js 
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -15,7 +15,7 @@ const pool = new Pool({
   host: 'localhost',
   database: 'BCDB',
   password: 'BoboyAdmin_2025',
-  port: 3000,
+  port: 5000,
 });
 
 // Middleware
