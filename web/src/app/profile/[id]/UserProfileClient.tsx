@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users, Palette } from 'lucide-react'
+import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users, Palette, DollarSign, Link2, Facebook, Twitter, Globe } from 'lucide-react'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 import ArtworkDetailModal from '@/components/artwork/ArtworkDetailModal'
 
 interface Artwork {
@@ -38,6 +39,9 @@ interface UserProfileClientProps {
     user_type: string
     is_verified: boolean
     location_address: string | null
+    commission_details?: any
+    gcash_details?: any
+    social_links?: any
     created_at: string
   }
   stats: {
@@ -58,6 +62,12 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false)
   const [stats, setStats] = useState(initialStats)
+  const [showCommissionModal, setShowCommissionModal] = useState(false)
+
+  // Safe fallbacks for optional fields
+  const commissionDetails = user.commission_details || {}
+  const gcashDetails = user.gcash_details || {}
+  const socialLinks = user.social_links || {}
   
   // Modal state
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
@@ -209,9 +219,55 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
   }
 
   const handleCommission = () => {
-    // Navigate to messages page to start a commission conversation
-    // In the future, this could navigate to a commission creation page
-    router.push(`/messages?user=${user.id}&type=commission`)
+    // Open modal to show commission details and CTA
+    setShowCommissionModal(true)
+  }
+
+  const handleSendCommissionRequest = () => {
+    // Navigate to messages page commissions tab with user id
+    router.push(`/messages?user=${user.id}&type=commission&tab=commissions`)
+  }
+
+  const handleTip = () => {
+    // Show GCash details if available
+    if (gcashDetails && (gcashDetails.number || gcashDetails.name)) {
+      const gcashInfo = gcashDetails
+      const message = `GCash Details:\nNumber: ${gcashInfo.number || 'Not provided'}\nName: ${gcashInfo.name || 'Not provided'}`
+      alert(message)
+      // TODO: Implement actual tip payment functionality
+    } else {
+      toast.error('This user has not set up their GCash details yet.')
+    }
+  }
+
+  const handleOtherSocials = () => {
+    // Show social media links if available
+    if (socialLinks && Object.keys(socialLinks).some(key => socialLinks[key])) {
+      const socials = socialLinks
+      const links = []
+      if (socials.facebook) links.push(`Facebook: ${socials.facebook}`)
+      if (socials.twitter) links.push(`Twitter/X: ${socials.twitter}`)
+      if (socials.instagram) links.push(`Instagram: ${socials.instagram}`)
+      if (socials.pinterest) links.push(`Pinterest: ${socials.pinterest}`)
+      if (socials.website) links.push(`Website: ${socials.website}`)
+      
+      if (links.length > 0) {
+        // Open links in a modal or new window
+        const linksText = links.join('\n')
+        const openLinks = window.confirm(`${linksText}\n\nOpen links in new tabs?`)
+        if (openLinks) {
+          if (socials.facebook) window.open(socials.facebook, '_blank')
+          if (socials.twitter) window.open(socials.twitter, '_blank')
+          if (socials.instagram) window.open(socials.instagram, '_blank')
+          if (socials.pinterest) window.open(socials.pinterest, '_blank')
+          if (socials.website) window.open(socials.website, '_blank')
+        }
+      } else {
+        toast.info('This user has not added any social media links yet.')
+      }
+    } else {
+      toast.info('This user has not added any social media links yet.')
+    }
   }
 
   const userData = {
@@ -409,42 +465,31 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
                     <Edit3 className="w-5 h-5 text-gray-600" />
                   </button>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={handleFollow}
-                      disabled={isUpdatingFollow || !followStats}
-                      className={`px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2 ${
-                        followStats?.is_following
-                          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          : 'bg-red-500 text-white hover:bg-red-600'
-                      }`}
-                    >
-                      {isUpdatingFollow ? (
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      ) : !followStats ? (
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                      ) : followStats.is_following ? (
-                        <>
-                          <UserCheck className="w-4 h-4" />
-                          <span>Following</span>
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-4 h-4" />
-                          <span>Follow</span>
-                        </>
-                      )}
-                    </button>
-                    {user.user_type === 'artist' && (
-                      <button
-                        onClick={handleCommission}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center space-x-2"
-                      >
-                        <Palette className="w-4 h-4" />
-                        <span>Commission</span>
-                      </button>
+                  <button
+                    onClick={handleFollow}
+                    disabled={isUpdatingFollow || !followStats}
+                    className={`px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2 ${
+                      followStats?.is_following
+                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        : 'bg-red-500 text-white hover:bg-red-600'
+                    }`}
+                  >
+                    {isUpdatingFollow ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                    ) : !followStats ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                    ) : followStats.is_following ? (
+                      <>
+                        <UserCheck className="w-4 h-4" />
+                        <span>Following</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        <span>Follow</span>
+                      </>
                     )}
-                  </div>
+                  </button>
                 )}
               </div>
 
@@ -470,7 +515,7 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
               <p className="text-gray-700 text-sm mb-3">{userData.bio}</p>
 
               {/* Location and User Type */}
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <div className="flex items-center space-x-2 text-sm text-gray-600 mb-3">
                 {userData.location && (
                   <span>{userData.location}</span>
                 )}
@@ -478,9 +523,158 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
                   {user.user_type}
                 </div>
               </div>
+
+              {/* Action Buttons: Commission, Tip, Other Socials */}
+              {!isOwnProfile && (
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <button
+                    onClick={handleCommission}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                  >
+                    <Palette className="w-4 h-4" />
+                    <span>Commission</span>
+                  </button>
+                  <button
+                    onClick={handleTip}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center space-x-2"
+                  >
+                    <DollarSign className="w-4 h-4" />
+                    <span>Tip</span>
+                  </button>
+                  <button
+                    onClick={handleOtherSocials}
+                    className="px-4 py-2 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors flex items-center space-x-2"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    <span>Other Socials</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Commission Details Section */}
+        {commissionDetails && (commissionDetails.description || commissionDetails.price !== undefined) && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <Palette className="w-5 h-5 text-blue-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Commission Details</h2>
+              {commissionDetails.available && (
+                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                  Accepting Commissions
+                </span>
+              )}
+            </div>
+            {commissionDetails.description && (
+              <p className="text-gray-700 text-sm mb-3 whitespace-pre-wrap">
+                {commissionDetails.description}
+              </p>
+            )}
+            {commissionDetails.price && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-600">Starting Price:</span>
+                <span className="text-lg font-semibold text-blue-500">
+                  ₱{parseFloat(commissionDetails.price).toLocaleString()}
+                </span>
+              </div>
+            )}
+            {!commissionDetails.available && (
+              <p className="text-sm text-gray-500 mt-2">Currently not accepting commissions</p>
+            )}
+          </div>
+        )}
+
+        {/* GCash Details Section */}
+        {gcashDetails && (gcashDetails.number || gcashDetails.name) && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <DollarSign className="w-5 h-5 text-green-500" />
+              <h2 className="text-lg font-semibold text-gray-900">GCash Details</h2>
+            </div>
+            <div className="space-y-2">
+              {gcashDetails.number && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">GCash Number:</span>
+                  <span className="ml-2 text-gray-900 font-mono">{gcashDetails.number}</span>
+                </div>
+              )}
+              {gcashDetails.name && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Account Name:</span>
+                  <span className="ml-2 text-gray-900">{gcashDetails.name}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Social Media Links Section */}
+        {socialLinks && Object.keys(socialLinks).some(key => socialLinks[key]) && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <Link2 className="w-5 h-5 text-purple-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Social Media Links</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {socialLinks.facebook && (
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                >
+                  <Facebook className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm font-medium text-gray-900">Facebook</span>
+                </a>
+              )}
+              {socialLinks.twitter && (
+                <a
+                  href={socialLinks.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors"
+                >
+                  <Twitter className="w-5 h-5 text-sky-600" />
+                  <span className="text-sm font-medium text-gray-900">Twitter/X</span>
+                </a>
+              )}
+              {socialLinks.instagram && (
+                <a
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
+                >
+                  <Link2 className="w-5 h-5 text-pink-600" />
+                  <span className="text-sm font-medium text-gray-900">Instagram</span>
+                </a>
+              )}
+              {socialLinks.pinterest && (
+                <a
+                  href={socialLinks.pinterest}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                >
+                  <Link2 className="w-5 h-5 text-red-600" />
+                  <span className="text-sm font-medium text-gray-900">Pinterest</span>
+                </a>
+              )}
+              {socialLinks.website && (
+                <a
+                  href={socialLinks.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Globe className="w-5 h-5 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-900">Website</span>
+                </a>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
@@ -531,6 +725,71 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
           onLike={handleLike}
           onShare={handleShare}
         />
+
+        {/* Commission Details Modal */}
+        {showCommissionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative">
+              <button
+                onClick={() => setShowCommissionModal(false)}
+                className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+
+              <div className="flex items-center space-x-3 mb-4">
+                <Palette className="w-6 h-6 text-blue-500" />
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Commission Details</h3>
+                  <p className="text-sm text-gray-500">Provided by {user.first_name} {user.last_name}</p>
+                </div>
+                {user.commission_details?.available && (
+                  <span className="ml-auto px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                    Accepting
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                    {user.commission_details?.description || 'No description provided.'}
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">Starting Price:</span>
+                  <span className="text-base font-semibold text-blue-500">
+                    {user.commission_details?.price
+                      ? `₱${parseFloat(user.commission_details.price).toLocaleString()}`
+                      : 'Contact for pricing'}
+                  </span>
+                </div>
+
+                {!user.commission_details?.available && (
+                  <p className="text-sm text-gray-500">Currently not accepting commissions.</p>
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-col sm:flex-row sm:justify-end sm:space-x-3 space-y-3 sm:space-y-0">
+                <button
+                  onClick={() => setShowCommissionModal(false)}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleSendCommissionRequest}
+                  className="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition-colors"
+                >
+                  Send Commission Request
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

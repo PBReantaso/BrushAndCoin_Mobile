@@ -21,7 +21,8 @@ export default async function UserProfilePage({ params }: PageProps) {
     const userResult = await query(
       `SELECT 
         id, username, first_name, last_name, email, profile_image_url, 
-        bio, user_type, is_verified, location_address, created_at
+        bio, user_type, is_verified, location_address, 
+        commission_details, gcash_details, social_links, created_at
        FROM users 
        WHERE id = $1 AND is_active = true`,
       [id]

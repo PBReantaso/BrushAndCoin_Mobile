@@ -2,7 +2,7 @@
 
 import ArtworkDetailModal from '@/components/artwork/ArtworkDetailModal'
 import { useUser } from '@/hooks/useUser'
-import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users } from 'lucide-react'
+import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users, Palette, DollarSign, Link2, Facebook, Twitter, Globe } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -47,6 +47,9 @@ interface ProfileClientProps {
     profile_image_url?: string;
     bio?: string;
     location_address?: string;
+    commission_details?: any;
+    gcash_details?: any;
+    social_links?: any;
   }
 }
 
@@ -640,6 +643,128 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
             </div>
           </div>
         </div>
+
+        {/* Commission Details Section */}
+        {user?.commission_details && (user.commission_details.description || user.commission_details.price !== undefined) && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <Palette className="w-5 h-5 text-blue-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Commission Details</h2>
+              {user.commission_details.available && (
+                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                  Accepting Commissions
+                </span>
+              )}
+            </div>
+            {user.commission_details.description && (
+              <p className="text-gray-700 text-sm mb-3 whitespace-pre-wrap">
+                {user.commission_details.description}
+              </p>
+            )}
+            {user.commission_details.price && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-600">Starting Price:</span>
+                <span className="text-lg font-semibold text-blue-500">
+                  ₱{parseFloat(user.commission_details.price).toLocaleString()}
+                </span>
+              </div>
+            )}
+            {!user.commission_details.available && (
+              <p className="text-sm text-gray-500 mt-2">Currently not accepting commissions</p>
+            )}
+          </div>
+        )}
+
+        {/* GCash Details Section */}
+        {user?.gcash_details && (user.gcash_details.number || user.gcash_details.name) && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <DollarSign className="w-5 h-5 text-green-500" />
+              <h2 className="text-lg font-semibold text-gray-900">GCash Details</h2>
+            </div>
+            <div className="space-y-2">
+              {user.gcash_details.number && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">GCash Number:</span>
+                  <span className="ml-2 text-gray-900 font-mono">{user.gcash_details.number}</span>
+                </div>
+              )}
+              {user.gcash_details.name && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Account Name:</span>
+                  <span className="ml-2 text-gray-900">{user.gcash_details.name}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Social Media Links Section */}
+        {user?.social_links && Object.keys(user.social_links).some(key => user.social_links[key]) && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <Link2 className="w-5 h-5 text-purple-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Social Media Links</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {user.social_links.facebook && (
+                <a
+                  href={user.social_links.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                >
+                  <Facebook className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm font-medium text-gray-900">Facebook</span>
+                </a>
+              )}
+              {user.social_links.twitter && (
+                <a
+                  href={user.social_links.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors"
+                >
+                  <Twitter className="w-5 h-5 text-sky-600" />
+                  <span className="text-sm font-medium text-gray-900">Twitter/X</span>
+                </a>
+              )}
+              {user.social_links.instagram && (
+                <a
+                  href={user.social_links.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
+                >
+                  <Link2 className="w-5 h-5 text-pink-600" />
+                  <span className="text-sm font-medium text-gray-900">Instagram</span>
+                </a>
+              )}
+              {user.social_links.pinterest && (
+                <a
+                  href={user.social_links.pinterest}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                >
+                  <Link2 className="w-5 h-5 text-red-600" />
+                  <span className="text-sm font-medium text-gray-900">Pinterest</span>
+                </a>
+              )}
+              {user.social_links.website && (
+                <a
+                  href={user.social_links.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Globe className="w-5 h-5 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-900">Website</span>
+                </a>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">

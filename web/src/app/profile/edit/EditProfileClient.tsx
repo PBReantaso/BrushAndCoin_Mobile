@@ -49,6 +49,22 @@ export default function EditProfileClient({ initialUser }: EditProfileClientProp
   const [removedImage, setRemovedImage] = useState(false)
   const [locationAddress, setLocationAddress] = useState('')
   
+  // Commission details
+  const [commissionDescription, setCommissionDescription] = useState('')
+  const [commissionPrice, setCommissionPrice] = useState('')
+  const [commissionAvailable, setCommissionAvailable] = useState(false)
+  
+  // GCash details
+  const [gcashNumber, setGcashNumber] = useState('')
+  const [gcashName, setGcashName] = useState('')
+  
+  // Social links
+  const [facebookLink, setFacebookLink] = useState('')
+  const [twitterLink, setTwitterLink] = useState('')
+  const [instagramLink, setInstagramLink] = useState('')
+  const [pinterestLink, setPinterestLink] = useState('')
+  const [websiteLink, setWebsiteLink] = useState('')
+  
   // Location search
   const [searchAddressQuery, setSearchAddressQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
@@ -73,6 +89,26 @@ export default function EditProfileClient({ initialUser }: EditProfileClientProp
       setBio(data.user.bio || '')
       setProfileImage(data.user.profile_image_url || null)
       setLocationAddress(data.user.location_address || '')
+      
+      // Load commission details
+      const commissionDetails = data.user.commission_details || {}
+      setCommissionDescription(commissionDetails.description || '')
+      setCommissionPrice(commissionDetails.price || '')
+      setCommissionAvailable(commissionDetails.available || false)
+      
+      // Load GCash details
+      const gcashDetails = data.user.gcash_details || {}
+      setGcashNumber(gcashDetails.number || '')
+      setGcashName(gcashDetails.name || '')
+      
+      // Load social links
+      const socialLinks = data.user.social_links || {}
+      setFacebookLink(socialLinks.facebook || '')
+      setTwitterLink(socialLinks.twitter || '')
+      setInstagramLink(socialLinks.instagram || '')
+      setPinterestLink(socialLinks.pinterest || '')
+      setWebsiteLink(socialLinks.website || '')
+      
       setRemovedImage(false)
       setProfileImageFile(null)
     } catch (error) {
@@ -210,6 +246,28 @@ export default function EditProfileClient({ initialUser }: EditProfileClientProp
 
       if (locationAddress.trim()) {
         updateData.location_address = locationAddress.trim()
+      }
+
+      // Add commission details
+      updateData.commission_details = {
+        description: commissionDescription.trim(),
+        price: commissionPrice.trim(),
+        available: commissionAvailable
+      }
+
+      // Add GCash details
+      updateData.gcash_details = {
+        number: gcashNumber.trim(),
+        name: gcashName.trim()
+      }
+
+      // Add social links
+      updateData.social_links = {
+        facebook: facebookLink.trim(),
+        twitter: twitterLink.trim(),
+        instagram: instagramLink.trim(),
+        pinterest: pinterestLink.trim(),
+        website: websiteLink.trim()
       }
 
       // Update profile
@@ -441,6 +499,154 @@ export default function EditProfileClient({ initialUser }: EditProfileClientProp
                 ))}
               </ul>
             )}
+          </div>
+
+          {/* Commission Details */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Commission Details</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Commission Description
+                </label>
+                <textarea
+                  value={commissionDescription}
+                  onChange={(e) => setCommissionDescription(e.target.value)}
+                  rows={4}
+                  maxLength={500}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  placeholder="Describe your commission services, pricing, and what you offer..."
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {commissionDescription.length}/500 characters
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Starting Price (₱)
+                  </label>
+                  <input
+                    type="text"
+                    value={commissionPrice}
+                    onChange={(e) => setCommissionPrice(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    placeholder="e.g., 500"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={commissionAvailable}
+                      onChange={(e) => setCommissionAvailable(e.target.checked)}
+                      className="w-5 h-5 text-red-500 border-gray-300 rounded focus:ring-red-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Accepting Commissions
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* GCash Details */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">GCash Details</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  GCash Number
+                </label>
+                <input
+                  type="text"
+                  value={gcashNumber}
+                  onChange={(e) => setGcashNumber(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="e.g., 09123456789"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  GCash Account Name
+                </label>
+                <input
+                  type="text"
+                  value={gcashName}
+                  onChange={(e) => setGcashName(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="Name on GCash account"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Social Media Links */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Social Media Links</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Facebook
+                </label>
+                <input
+                  type="url"
+                  value={facebookLink}
+                  onChange={(e) => setFacebookLink(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="https://facebook.com/yourprofile"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Twitter/X
+                </label>
+                <input
+                  type="url"
+                  value={twitterLink}
+                  onChange={(e) => setTwitterLink(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="https://twitter.com/yourprofile"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Instagram
+                </label>
+                <input
+                  type="url"
+                  value={instagramLink}
+                  onChange={(e) => setInstagramLink(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="https://instagram.com/yourprofile"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Pinterest
+                </label>
+                <input
+                  type="url"
+                  value={pinterestLink}
+                  onChange={(e) => setPinterestLink(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="https://pinterest.com/yourprofile"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Website
+                </label>
+                <input
+                  type="url"
+                  value={websiteLink}
+                  onChange={(e) => setWebsiteLink(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="https://yourwebsite.com"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Action Buttons */}

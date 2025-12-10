@@ -18,6 +18,7 @@ export async function GET() {
         id, email, username, first_name, last_name, user_type,
         bio, profile_image_url, is_verified, is_active,
         location_address, location_lat, location_lng,
+        commission_details, gcash_details, social_links,
         created_at, updated_at
        FROM users 
        WHERE id = $1`,
@@ -45,6 +46,9 @@ export async function GET() {
         location_address: user.location_address,
         location_lat: user.location_lat,
         location_lng: user.location_lng,
+        commission_details: user.commission_details || {},
+        gcash_details: user.gcash_details || {},
+        social_links: user.social_links || {},
         created_at: user.created_at,
         updated_at: user.updated_at
       }
@@ -79,7 +83,10 @@ export async function PUT(request: Request) {
       profile_image_url,
       location_address,
       location_lat,
-      location_lng
+      location_lng,
+      commission_details,
+      gcash_details,
+      social_links
     } = body;
 
     // Check if username is taken by another user
@@ -150,6 +157,24 @@ export async function PUT(request: Request) {
       paramCount++;
     }
 
+    if (commission_details !== undefined) {
+      updateFields.push(`commission_details = $${paramCount}`);
+      updateValues.push(JSON.stringify(commission_details));
+      paramCount++;
+    }
+
+    if (gcash_details !== undefined) {
+      updateFields.push(`gcash_details = $${paramCount}`);
+      updateValues.push(JSON.stringify(gcash_details));
+      paramCount++;
+    }
+
+    if (social_links !== undefined) {
+      updateFields.push(`social_links = $${paramCount}`);
+      updateValues.push(JSON.stringify(social_links));
+      paramCount++;
+    }
+
     // Always update the updated_at timestamp
     updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
 
@@ -167,6 +192,7 @@ export async function PUT(request: Request) {
         id, email, username, first_name, last_name, user_type,
         bio, profile_image_url, is_verified,
         location_address, location_lat, location_lng,
+        commission_details, gcash_details, social_links,
         created_at, updated_at
     `;
 
@@ -192,6 +218,9 @@ export async function PUT(request: Request) {
         location_address: updatedUser.location_address,
         location_lat: updatedUser.location_lat,
         location_lng: updatedUser.location_lng,
+        commission_details: updatedUser.commission_details || {},
+        gcash_details: updatedUser.gcash_details || {},
+        social_links: updatedUser.social_links || {},
         created_at: updatedUser.created_at,
         updated_at: updatedUser.updated_at
       }
