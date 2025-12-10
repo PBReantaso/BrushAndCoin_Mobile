@@ -1,33 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, MessageCircle } from 'lucide-react'
-
-// Mock messages data
-const mockMessages = [
-  {
-    id: 1,
-    userName: 'Sarah Connor',
-    lastMessage: 'I would like a portrait of my dog',
-    timestamp: '1h ago',
-    isRead: false,
-  },
-  {
-    id: 2,
-    userName: 'Alex Rivera',
-    lastMessage: 'Working on your logo design...',
-    timestamp: '2h ago',
-    isRead: true,
-  },
-  {
-    id: 3,
-    userName: 'Lisa Wang',
-    lastMessage: 'The illustration is ready for review',
-    timestamp: '1d ago',
-    isRead: false,
-  },
-]
+import { Plus, MessageCircle, X, Search, User as UserIcon } from 'lucide-react'
 
 // Mock commission requests data
 const mockCommissionRequests = [
@@ -94,10 +69,67 @@ export default function MessagesPage() {
   const router = useRouter()
   const [selectedTabIndex, setSelectedTabIndex] = useState(0)
   const [commissionFilter, setCommissionFilter] = useState('All')
-  const [messages, setMessages] = useState(mockMessages)
+  const [conversations, setConversations] = useState<any[]>([])
+  const [isLoadingConvos, setIsLoadingConvos] = useState(false)
+  const [convoError, setConvoError] = useState<string | null>(null)
   const [commissionRequests, setCommissionRequests] = useState(mockCommissionRequests)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+
+  const loadConversations = useCallback(async () => {
+    setIsLoadingConvos(true)
+    setConvoError(null)
+    try {
+      const res = await fetch('/api/messages/conversations')
+      if (!res.ok) {
+        let msg = 'Failed to load conversations'
+        try {
+          const err = await res.json()
+          if (err?.error) msg = err.error
+        } catch (_) { /* ignore */ }
+        throw new Error(msg)
+      }
+      const data = await res.json()
+      setConversations(data.conversations || [])
+    } catch (e: any) {
+      console.error('Load conversations error', e)
+      setConvoError(e?.message || 'Failed to load conversations')
+      setConversations([])
+    } finally {
+      setIsLoadingConvos(false)
+    }
+  }, [])
+
+  // Load recent conversations from localStorage (mock client-side persistence)
+  useEffect(() => {
+    loadConversations()
+
+    const handleFocus = () => loadConversations()
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [])
 
   const commissionFilters = ['All', 'Pending', 'Accepted', 'Completed', 'Declined']
+
+  const formatRelativeTime = (ts?: number | string) => {
+    if (!ts) return ''
+    const t = typeof ts === 'string' ? Number(ts) : ts
+    if (!t || Number.isNaN(t)) return ''
+    const diff = Date.now() - t
+    const sec = Math.floor(diff / 1000)
+    if (sec < 60) return 'just now'
+    const min = Math.floor(sec / 60)
+    if (min < 60) return `${min}m ago`
+    const hr = Math.floor(min / 60)
+    if (hr < 24) return `${hr}h ago`
+    const d = Math.floor(hr / 24)
+    return `${d}d ago`
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -126,13 +158,64 @@ export default function MessagesPage() {
   }
 
   const handleNewMessage = () => {
-    // Show new message dialog
-    const username = prompt('Enter username to message:')
-    if (username) {
-      // Navigate to chat with new user
-      router.push(`/messages/chat/${username}`)
+    setIsSearchOpen(true)
+  }
+
+  const handleSelectUser = async (user: any) => {
+    setIsSearchOpen(false)
+    setSearchQuery('')
+    setSearchResults([])
+    const targetId = user.id
+    if (!targetId) return
+    try {
+      const res = await fetch('/api/messages/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: targetId }),
+      })
+      if (!res.ok) throw new Error('Failed to create conversation')
+      const data = await res.json()
+      const convoId = data.conversation_id
+      if (convoId) {
+        router.push(`/messages/chat/${encodeURIComponent(convoId)}`)
+      }
+    } catch (err) {
+      console.error('Create conversation error', err)
     }
   }
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const doSearch = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([])
+        setSearchError(null)
+        return
+      }
+      setIsSearching(true)
+      setSearchError(null)
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery.trim())}&limit=8`, {
+          signal: controller.signal,
+        })
+        if (!res.ok) throw new Error('Search failed')
+        const data = await res.json()
+        setSearchResults(data.users || [])
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          setSearchError('Failed to search users')
+          setSearchResults([])
+        }
+      } finally {
+        setIsSearching(false)
+      }
+    }
+    const debounce = setTimeout(doSearch, 300)
+    return () => {
+      clearTimeout(debounce)
+      controller.abort()
+    }
+  }, [searchQuery])
 
   const handleCommissionClick = (commission: any) => {
     if (commission.commissionType === 'received') {
@@ -144,8 +227,10 @@ export default function MessagesPage() {
     }
   }
 
-  const handleMessageClick = (message: any) => {
-    router.push(`/messages/chat/${message.userName}`)
+  const handleMessageClick = (convo: any) => {
+    if (convo?.id) {
+      router.push(`/messages/chat/${encodeURIComponent(convo.id)}`)
+    }
   }
 
 
@@ -187,36 +272,68 @@ export default function MessagesPage() {
         {selectedTabIndex === 0 ? (
           /* Messages Tab */
           <div className="space-y-3">
-            {messages.map(message => (
-              <div
-                key={message.id}
-                onClick={() => handleMessageClick(message)}
-                className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center space-x-3">
-                  {/* User Avatar */}
-                  <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                    <span className="text-gray-600 font-medium">
-                      {message.userName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-
-                  {/* Message Content */}
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900">{message.userName}</h3>
-                      <span className="text-xs text-gray-500">{message.timestamp}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{message.lastMessage}</p>
-                  </div>
-
-                  {/* Unread Indicator */}
-                  {!message.isRead && (
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  )}
-                </div>
+            {isLoadingConvos ? (
+              <div className="py-6 text-center text-gray-500 text-sm">Loading conversations...</div>
+            ) : convoError ? (
+              <div className="py-6 text-center text-red-500 text-sm space-y-2">
+                <div>{convoError}</div>
+                <button
+                  onClick={loadConversations}
+                  className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Retry
+                </button>
               </div>
-            ))}
+            ) : conversations.length === 0 ? (
+              <div className="py-6 text-center text-gray-500 text-sm">No conversations yet. Start a new one with +</div>
+            ) : (
+              conversations.map(convo => (
+                <div
+                  key={convo.id}
+                  onClick={() => handleMessageClick(convo)}
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-center space-x-3">
+                    {/* User Avatar */}
+                    <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                      {convo.other_user?.profile_image_url ? (
+                        <img
+                          src={convo.other_user.profile_image_url}
+                          alt={convo.other_user.username || 'user'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-gray-600 font-medium">
+                          {(convo.other_user?.first_name?.[0] || convo.other_user?.username?.[0] || '?').toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Message Content */}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-gray-900">
+                          {convo.other_user?.first_name
+                            ? `${convo.other_user.first_name} ${convo.other_user.last_name || ''}`.trim()
+                            : convo.other_user?.username || 'User'}
+                        </h3>
+                        <span className="text-xs text-gray-500">
+                          {formatRelativeTime(convo.last_message?.created_at || convo.updated_at)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {convo.last_message?.text || 'No messages yet'}
+                      </p>
+                    </div>
+
+                    {/* Unread Indicator */}
+                    {convo.unread_count > 0 && (
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         ) : (
           /* Commissions Tab */
@@ -277,6 +394,73 @@ export default function MessagesPage() {
       >
         <Plus className="w-6 h-6 text-white" />
       </button>
+
+      {/* New Message Search Modal */}
+      {isSearchOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6 relative">
+            <button
+              onClick={() => setIsSearchOpen(false)}
+              className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Start a new message</h2>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search users by username"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="mt-4 max-h-80 overflow-y-auto">
+              {isSearching ? (
+                <div className="flex justify-center py-6">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-500"></div>
+                </div>
+              ) : searchError ? (
+                <p className="text-sm text-red-500 text-center py-4">{searchError}</p>
+              ) : searchResults.length === 0 && searchQuery.trim().length >= 2 ? (
+                <p className="text-sm text-gray-500 text-center py-4">No users found.</p>
+              ) : (
+                <div className="space-y-2">
+                  {searchResults.map((u) => (
+                    <button
+                      key={u.id || u.username || u.email}
+                      onClick={() => handleSelectUser(u)}
+                      className="w-full flex items-center space-x-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                        {u.profile_image_url ? (
+                          <img src={u.profile_image_url} alt={u.username || u.email} className="w-full h-full object-cover" />
+                        ) : (
+                          <UserIcon className="w-5 h-5 text-gray-600" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : u.username || 'Unknown User'}
+                        </p>
+                        {u.username && (
+                          <p className="text-xs text-gray-500 truncate">@{u.username}</p>
+                        )}
+                      </div>
+                      <MessageCircle className="w-5 h-5 text-red-500" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
