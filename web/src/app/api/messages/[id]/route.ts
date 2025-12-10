@@ -7,9 +7,6 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ messages: [], warning: 'Database not configured' })
-  }
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -54,10 +51,13 @@ export async function GET(
     }))
 
     return NextResponse.json({ messages })
-  } catch (error) {
+  } catch (error: any) {
     console.error('GET messages error:', error)
-    const message = error?.message || 'Internal server error'
-    return NextResponse.json({ error: message, messages: [] }, { status: 500 })
+    const errorMessage = error?.message || String(error)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 })
   }
 }
 
@@ -66,9 +66,6 @@ export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
-  }
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -115,9 +112,13 @@ export async function POST(
         created_at: message.created_at,
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST message error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorMessage = error?.message || String(error)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 })
   }
 }
 

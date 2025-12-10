@@ -4,10 +4,6 @@ import { NextResponse } from 'next/server'
 
 // GET - list conversations for current user
 export async function GET() {
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ conversations: [], warning: 'Database not configured' })
-  }
-
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -28,9 +24,9 @@ export async function GET() {
         c.updated_at,
         jsonb_build_object(
           'id', u.id,
-          'username', u.username,
-          'first_name', u.first_name,
-          'last_name', u.last_name,
+          'username', COALESCE(u.username, ''),
+          'first_name', COALESCE(u.first_name, ''),
+          'last_name', COALESCE(u.last_name, ''),
           'profile_image_url', u.profile_image_url
         ) as other_user,
         lm.text as last_message_text,
@@ -79,19 +75,18 @@ export async function GET() {
     }))
 
     return NextResponse.json({ conversations })
-  } catch (error) {
+  } catch (error: any) {
     console.error('GET conversations error:', error)
-    const message = error?.message || 'Internal server error'
-    return NextResponse.json({ error: message, conversations: [] }, { status: 500 })
+    const errorMessage = error?.message || String(error)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 })
   }
 }
 
 // POST - get or create a one-to-one conversation with target user
 export async function POST(request: Request) {
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
-  }
-
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -157,9 +152,13 @@ export async function POST(request: Request) {
         profile_image_url: targetUser.profile_image_url,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST conversations error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorMessage = error?.message || String(error)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 })
   }
 }
 

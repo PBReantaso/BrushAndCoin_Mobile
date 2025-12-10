@@ -36,14 +36,7 @@ export default function ChatPage() {
         router.push('/auth/login')
         return
       }
-      if (!res.ok) {
-        let msg = 'Failed to load messages'
-        try {
-          const err = await res.json()
-          if (err?.error) msg = err.error
-        } catch (_) { /* ignore */ }
-        throw new Error(msg)
-      }
+      if (!res.ok) throw new Error('Failed to load messages')
       const data = await res.json()
       const mapped = (data.messages || []).map((m: any) => ({
         id: m.id,

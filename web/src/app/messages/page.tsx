@@ -88,7 +88,13 @@ export default function MessagesPage() {
         let msg = 'Failed to load conversations'
         try {
           const err = await res.json()
-          if (err?.error) msg = err.error
+          if (err?.error) {
+            msg = err.error
+            if (err?.details) {
+              console.error('API error details:', err.details)
+              msg += `: ${err.details}`
+            }
+          }
         } catch (_) { /* ignore */ }
         throw new Error(msg)
       }

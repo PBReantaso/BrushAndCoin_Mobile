@@ -172,15 +172,15 @@ export const authOptions = {
     console.log('🔧 JWT callback - user:', user);
     
     if (user) {
+      // Only store essential fields in JWT to avoid cookie size issues
+      // Large fields (bio, profile_image_url, location_address) will be fetched from DB when needed
       token.id = user.id;
       token.first_name = user.first_name;
       token.last_name = user.last_name;
       token.username = user.username;
       token.user_type = user.user_type;
       token.is_verified = user.is_verified;
-      token.profile_image_url = user.profile_image_url;
-      token.bio = user.bio;
-      token.location_address = user.location_address;
+      // Removed: profile_image_url, bio, location_address (too large for JWT)
     }
     
     return token;
@@ -199,9 +199,10 @@ export const authOptions = {
         username: token.username as string,
         user_type: token.user_type as string,
         is_verified: token.is_verified as boolean,
-        profile_image_url: token.profile_image_url as string,
-        bio: token.bio as string,
-        location_address: token.location_address as string,
+        // These will be fetched from DB when needed via /api/users/profile
+        profile_image_url: undefined,
+        bio: undefined,
+        location_address: undefined,
       };
     }
     return session;

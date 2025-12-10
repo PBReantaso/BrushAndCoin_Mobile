@@ -38,8 +38,7 @@ declare module 'next-auth/jwt' {
     username?: string;
     user_type: string;
     is_verified: boolean;
-    profile_image_url?: string;
-    bio?: string;
-    location_address?: string;
+    // Large fields removed from JWT to prevent cookie size issues
+    // These are fetched from DB when needed via /api/users/profile
   }
 }
