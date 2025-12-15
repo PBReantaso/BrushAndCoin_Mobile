@@ -25,9 +25,7 @@ export default function RootLayoutClient({
   children: React.ReactNode
 }) {
   const [isMounted, setIsMounted] = useState(false)
-  
-  // Remove usePathname from here to avoid hydration issues
-  const pathname = usePathname?.() // Safe access
+  const pathname = usePathname()
   const isAuthPage = pathname?.startsWith('/auth') || false
 
   useEffect(() => {

@@ -48,9 +48,9 @@ export async function GET(
 
     const messages = messagesRes.rows.map(m => ({
       id: m.id,
-      sender_id: m.sender_id,
-      text: m.text,
-      created_at: m.created_at,
+      content: m.text,
+      senderId: m.sender_id,
+      timestamp: m.created_at,
     }))
 
     return NextResponse.json({ messages })
@@ -110,9 +110,9 @@ export async function POST(
     return NextResponse.json({
       message: {
         id: message.id,
-        sender_id: message.sender_id,
-        text: message.text,
-        created_at: message.created_at,
+        content: message.text,
+        senderId: message.sender_id,
+        timestamp: message.created_at,
       }
     })
   } catch (error) {
