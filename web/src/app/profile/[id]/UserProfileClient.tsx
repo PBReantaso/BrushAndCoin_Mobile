@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users, Palette, DollarSign, Link2, Facebook, Twitter, Globe } from 'lucide-react'
-import Link from 'next/link'
-import toast from 'react-hot-toast'
 import ArtworkDetailModal from '@/components/artwork/ArtworkDetailModal'
+import { DollarSign, Edit3, Facebook, Globe, Heart, Image as ImageIcon, Link2, MessageCircle, Palette, Share, Twitter, UserCheck, UserPlus, Users, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
+import CommissionRequestForm from '../../../components/commissions/CommissionRequestForm'
 
 interface Artwork {
   id: string;
@@ -39,9 +39,9 @@ interface UserProfileClientProps {
     user_type: string
     is_verified: boolean
     location_address: string | null
-    commission_details?: any
     gcash_details?: any
     social_links?: any
+    commission_details?: any
     created_at: string
   }
   stats: {
@@ -63,11 +63,12 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false)
   const [stats, setStats] = useState(initialStats)
   const [showCommissionModal, setShowCommissionModal] = useState(false)
-
-  // Safe fallbacks for optional fields
-  const commissionDetails = user.commission_details || {}
-  const gcashDetails = user.gcash_details || {}
-  const socialLinks = user.social_links || {}
+  const [showCommissionForm, setShowCommissionForm] = useState(false)
+  // Safe fallback for commission details when DB doesn't include the field
+  const commissionDetails: any = (user as any)?.commission_details ?? null
+  // Safe fallbacks for gcash and social links
+  const gcashDetails: any = (user as any)?.gcash_details ?? {}
+  const socialLinks: any = (user as any)?.social_links ?? {}
   
   // Modal state
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
@@ -224,8 +225,9 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
   }
 
   const handleSendCommissionRequest = () => {
-    // Navigate to messages page commissions tab with user id
-    router.push(`/messages?user=${user.id}&type=commission&tab=commissions`)
+    // Open the commission request form modal
+    setShowCommissionModal(false)
+    setShowCommissionForm(true)
   }
 
   const handleTip = () => {
@@ -263,10 +265,10 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
           if (socials.website) window.open(socials.website, '_blank')
         }
       } else {
-        toast.info('This user has not added any social media links yet.')
+        toast('This user has not added any social media links yet.')
       }
     } else {
-      toast.info('This user has not added any social media links yet.')
+      toast('This user has not added any social media links yet.')
     }
   }
 
@@ -447,54 +449,84 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
 
             {/* Profile Info */}
             <div className="flex-1">
-              <div className="flex items-center justify-between mb-2">
-                <div>
+              {/* Line 1: Name + Follow button (left), Commission button (right) */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
                   <h1 className="text-xl font-bold text-black">
                     {userData.name}
                     {user.is_verified && (
                       <span className="ml-2 text-red-500" title="Verified">✓</span>
                     )}
                   </h1>
-                  <p className="text-gray-600">{userData.username}</p>
+                  {/* For visiting profiles: Follow button */}
+                  {!isOwnProfile && (
+                    <button
+                      onClick={handleFollow}
+                      disabled={isUpdatingFollow || !followStats}
+                      className={`px-3 py-1 rounded-lg font-semibold text-sm transition-colors flex items-center space-x-1 whitespace-nowrap ${
+                        followStats?.is_following
+                          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          : 'bg-red-500 text-white hover:bg-red-600'
+                      }`}
+                    >
+                      {isUpdatingFollow ? (
+                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : !followStats ? (
+                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : followStats.is_following ? (
+                        <>
+                          <UserCheck className="w-3 h-3" />
+                          <span>Following</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-3 h-3" />
+                          <span>Follow</span>
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
-                {isOwnProfile ? (
+                <div>
+                  {/* For own profile: Edit button */}
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => router.push('/profile/edit')}
+                      className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                    >
+                      <Edit3 className="w-5 h-5 text-gray-600" />
+                    </button>
+                  )}
+                  {/* For visiting profiles: Commission button (far right) */}
+                  {!isOwnProfile && (
+                    <button
+                      onClick={handleCommission}
+                      className="px-3 py-1 rounded-lg font-semibold text-sm transition-colors flex items-center space-x-1 whitespace-nowrap bg-blue-500 text-white hover:bg-blue-600"
+                    >
+                      <Palette className="w-4 h-4" />
+                      <span>Commission</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Line 2: Username (left), Tip button (right) */}
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-gray-600">{userData.username}</p>
+                {/* Tip button for visiting profiles */}
+                {!isOwnProfile && (
                   <button
-                    onClick={() => router.push('/profile/edit')}
-                    className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                    onClick={handleTip}
+                    className="px-3 py-1 rounded-lg font-semibold text-sm transition-colors flex items-center space-x-1 whitespace-nowrap bg-green-500 text-white hover:bg-green-600"
                   >
-                    <Edit3 className="w-5 h-5 text-gray-600" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleFollow}
-                    disabled={isUpdatingFollow || !followStats}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2 ${
-                      followStats?.is_following
-                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        : 'bg-red-500 text-white hover:bg-red-600'
-                    }`}
-                  >
-                    {isUpdatingFollow ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                    ) : !followStats ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                    ) : followStats.is_following ? (
-                      <>
-                        <UserCheck className="w-4 h-4" />
-                        <span>Following</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4" />
-                        <span>Follow</span>
-                      </>
-                    )}
+                    <DollarSign className="w-4 h-4" />
+                    <span>Tip</span>
                   </button>
                 )}
               </div>
 
-              {/* Follow/Following Stats */}
-              <div className="flex space-x-4 mb-3">
+              {/* Line 3: Followers + Following */}
+              <div className="flex items-center gap-4 mb-2">
                 <div className="text-center">
                   <div className="font-semibold text-black flex items-center">
                     <Users className="w-4 h-4 mr-1" />
@@ -511,6 +543,56 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
                 </div>
               </div>
 
+              {/* Line 4: Social Links Icons (only show if socialLinks has values) */}
+              {!isOwnProfile && socialLinks && Object.keys(socialLinks).some(key => socialLinks[key]) && (
+                <div className="flex gap-2 mb-2 justify-end">
+                  {socialLinks.facebook && (
+                    <a
+                      href={socialLinks.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                      title="Facebook"
+                    >
+                      <Facebook className="w-5 h-5" />
+                    </a>
+                  )}
+                  {socialLinks.twitter && (
+                    <a
+                      href={socialLinks.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 bg-sky-100 text-sky-600 rounded-lg hover:bg-sky-200 transition-colors"
+                      title="X/Twitter"
+                    >
+                      <Twitter className="w-5 h-5" />
+                    </a>
+                  )}
+                  {socialLinks.instagram && (
+                    <a
+                      href={socialLinks.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 bg-pink-100 text-pink-600 rounded-lg hover:bg-pink-200 transition-colors"
+                      title="Instagram"
+                    >
+                      <Globe className="w-5 h-5" />
+                    </a>
+                  )}
+                  {socialLinks.website && (
+                    <a
+                      href={socialLinks.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                      title="Website"
+                    >
+                      <Link2 className="w-5 h-5" />
+                    </a>
+                  )}
+                </div>
+              )}
+
               {/* Bio */}
               <p className="text-gray-700 text-sm mb-3">{userData.bio}</p>
 
@@ -525,156 +607,14 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
               </div>
 
               {/* Action Buttons: Commission, Tip, Other Socials */}
-              {!isOwnProfile && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                  <button
-                    onClick={handleCommission}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center space-x-2"
-                  >
-                    <Palette className="w-4 h-4" />
-                    <span>Commission</span>
-                  </button>
-                  <button
-                    onClick={handleTip}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center space-x-2"
-                  >
-                    <DollarSign className="w-4 h-4" />
-                    <span>Tip</span>
-                  </button>
-                  <button
-                    onClick={handleOtherSocials}
-                    className="px-4 py-2 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors flex items-center space-x-2"
-                  >
-                    <Link2 className="w-4 h-4" />
-                    <span>Other Socials</span>
-                  </button>
-                </div>
-              )}
+              {/* Removed: now integrated into visitor profile vertical button stack above */}
             </div>
           </div>
         </div>
 
-        {/* Commission Details Section */}
-        {commissionDetails && (commissionDetails.description || commissionDetails.price !== undefined) && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <Palette className="w-5 h-5 text-blue-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Commission Details</h2>
-              {commissionDetails.available && (
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                  Accepting Commissions
-                </span>
-              )}
-            </div>
-            {commissionDetails.description && (
-              <p className="text-gray-700 text-sm mb-3 whitespace-pre-wrap">
-                {commissionDetails.description}
-              </p>
-            )}
-            {commissionDetails.price && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-600">Starting Price:</span>
-                <span className="text-lg font-semibold text-blue-500">
-                  ₱{parseFloat(commissionDetails.price).toLocaleString()}
-                </span>
-              </div>
-            )}
-            {!commissionDetails.available && (
-              <p className="text-sm text-gray-500 mt-2">Currently not accepting commissions</p>
-            )}
-          </div>
-        )}
+        {/* Commission details are displayed in the modal for visitors; static section removed */}
 
-        {/* GCash Details Section */}
-        {gcashDetails && (gcashDetails.number || gcashDetails.name) && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <DollarSign className="w-5 h-5 text-green-500" />
-              <h2 className="text-lg font-semibold text-gray-900">GCash Details</h2>
-            </div>
-            <div className="space-y-2">
-              {gcashDetails.number && (
-                <div>
-                  <span className="text-sm font-medium text-gray-600">GCash Number:</span>
-                  <span className="ml-2 text-gray-900 font-mono">{gcashDetails.number}</span>
-                </div>
-              )}
-              {gcashDetails.name && (
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Account Name:</span>
-                  <span className="ml-2 text-gray-900">{gcashDetails.name}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* Social Media Links Section */}
-        {socialLinks && Object.keys(socialLinks).some(key => socialLinks[key]) && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <Link2 className="w-5 h-5 text-purple-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Social Media Links</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {socialLinks.facebook && (
-                <a
-                  href={socialLinks.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                >
-                  <Facebook className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-900">Facebook</span>
-                </a>
-              )}
-              {socialLinks.twitter && (
-                <a
-                  href={socialLinks.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors"
-                >
-                  <Twitter className="w-5 h-5 text-sky-600" />
-                  <span className="text-sm font-medium text-gray-900">Twitter/X</span>
-                </a>
-              )}
-              {socialLinks.instagram && (
-                <a
-                  href={socialLinks.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
-                >
-                  <Link2 className="w-5 h-5 text-pink-600" />
-                  <span className="text-sm font-medium text-gray-900">Instagram</span>
-                </a>
-              )}
-              {socialLinks.pinterest && (
-                <a
-                  href={socialLinks.pinterest}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                >
-                  <Link2 className="w-5 h-5 text-red-600" />
-                  <span className="text-sm font-medium text-gray-900">Pinterest</span>
-                </a>
-              )}
-              {socialLinks.website && (
-                <a
-                  href={socialLinks.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <Globe className="w-5 h-5 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900">Website</span>
-                </a>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
@@ -711,6 +651,7 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
         <ArtworkDetailModal
           artwork={selectedArtwork ? {
             ...selectedArtwork,
+            tags: selectedArtwork.tags || [],
             user: {
               id: user.id,
               username: user.username || '',
@@ -789,6 +730,19 @@ export default function UserProfileClient({ user, stats: initialStats, isOwnProf
               </div>
             </div>
           </div>
+        )}
+        {/* Commission Request Form Modal (opens after clicking Send Commission Request) */}
+        {showCommissionForm && (
+          <CommissionRequestForm
+            artistId={user.id}
+            artistName={`${user.first_name} ${user.last_name}`}
+            artistAvatar={user.profile_image_url || undefined}
+            onClose={() => setShowCommissionForm(false)}
+            onSuccess={() => {
+              setShowCommissionForm(false)
+              toast.success('Commission request sent')
+            }}
+          />
         )}
       </div>
     </div>

@@ -86,7 +86,21 @@ export default function MessagesPage() {
     <div className="bg-gray-50 min-h-screen">
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => router.push('/messages')}
+              className="text-3xl font-bold text-gray-900 hover:text-red-600 transition-colors"
+            >
+              Messages
+            </button>
+            <span className="text-3xl font-bold text-gray-400">|</span>
+            <button
+              onClick={() => router.push('/commissions')}
+              className="text-3xl font-bold text-gray-400 hover:text-red-600 transition-colors"
+            >
+              Commissions
+            </button>
+          </div>
         </div>
       </div>
 
@@ -199,12 +213,11 @@ export default function MessagesPage() {
               ) : (
                 <div className="space-y-2">
                   {searchResults.map((u) => (
-                    <button
+                    <div
                       key={u.id || u.username || u.email}
-                      onClick={() => handleSelectUser(u)}
-                      className="w-full flex items-center space-x-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors text-left"
+                      className="flex items-center space-x-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                         {u.profile_image_url ? (
                           <img src={u.profile_image_url} alt={u.username || u.email} className="w-full h-full object-cover" />
                         ) : (
@@ -212,12 +225,21 @@ export default function MessagesPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
+                        <button
+                          onClick={() => router.push(`/profile/${u.id}`)}
+                          className="text-sm font-semibold text-gray-900 truncate hover:text-red-600 transition-colors text-left"
+                        >
                           {u.first_name && u.last_name ? `${u.first_name} ${u.last_name}` : u.username || 'Unknown User'}
-                        </p>
+                        </button>
                         <p className="text-xs text-gray-500 truncate">@{u.username || u.email}</p>
                       </div>
-                    </button>
+                      <button
+                        onClick={() => handleSelectUser(u)}
+                        className="px-3 py-1 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-medium transition-colors flex-shrink-0"
+                      >
+                        Message
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}

@@ -111,6 +111,7 @@ export const useSendMessage = () => {
       receiverId?: string
       content: string
       type?: 'text' | 'image' | 'file'
+      attachmentUrl?: string
       attachments?: File[]
     }) => {
       const res = await fetch(`${API_BASE}`, {
@@ -121,6 +122,7 @@ export const useSendMessage = () => {
           receiverId: data.receiverId,
           message: data.content,
           messageType: data.type || 'text',
+          attachmentUrl: data.attachmentUrl,
         }),
       })
       if (!res.ok) {

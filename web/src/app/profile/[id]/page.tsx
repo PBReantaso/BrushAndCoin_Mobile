@@ -17,12 +17,11 @@ export default async function UserProfilePage({ params }: PageProps) {
   }
 
   try {
-    // Fetch user info
+    // Fetch user info (include JSONB fields for gcash and social links)
     const userResult = await query(
       `SELECT 
         id, username, first_name, last_name, email, profile_image_url, 
-        bio, user_type, is_verified, location_address, 
-        commission_details, gcash_details, social_links, created_at
+        bio, user_type, is_verified, location_address, gcash_details, commission_details, social_links, created_at
        FROM users 
        WHERE id = $1 AND is_active = true`,
       [id]

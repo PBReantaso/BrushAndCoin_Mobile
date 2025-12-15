@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
         timestamp: m.created_at,
         senderId: m.sender_id,
         receiverId: m.receiver_id,
+        attachmentUrl: m.attachment_url || null,
         sender: {
           id: m.sender_id,
           username: m.sender_username,
@@ -81,6 +82,12 @@ export async function GET(request: NextRequest) {
       await query(
         `UPDATE messages SET is_read = true WHERE conversation_id = $1 AND receiver_id = $2 AND is_read = false`,
         [conversationId, session.user.id]
+      );
+
+      // Update user's last_seen timestamp
+      await query(
+        `UPDATE users SET last_seen = NOW() WHERE id = $1`,
+        [session.user.id]
       );
 
       return NextResponse.json(messages);
@@ -302,6 +309,12 @@ export async function POST(request: NextRequest) {
 
     const newMessage = msgResult.rows[0];
 
+    // Update user's last_seen timestamp to track activity
+    await query(
+      `UPDATE users SET last_seen = NOW() WHERE id = $1`,
+      [session.user.id]
+    );
+
     // Fetch sender and receiver details
     const userResult = await query(
       `SELECT id, username, first_name, last_name, profile_image_url FROM users WHERE id IN ($1, $2)`,
@@ -320,6 +333,7 @@ export async function POST(request: NextRequest) {
       timestamp: newMessage.created_at,
       senderId: newMessage.sender_id,
       receiverId: newMessage.receiver_id,
+      attachmentUrl: newMessage.attachment_url || null,
       sender: senderData ? {
         id: senderData.id,
         username: senderData.username,
