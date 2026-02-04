@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: 'File uploaded successfully',
       fileUrl,
+      url: fileUrl,
       filename: file.name,
       size: file.size,
       type: file.type

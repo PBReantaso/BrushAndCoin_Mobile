@@ -9,7 +9,7 @@ export async function GET(
     const { id } = await params;
     const artworkId = id;
 
-    // Get artwork with user information
+    // Get artwork with user information and counts
     const result = await query(
       `SELECT 
         a.*,
@@ -17,9 +17,13 @@ export async function GET(
         u.username,
         u.first_name,
         u.last_name,
-        u.profile_image_url
+        u.profile_image_url,
+        COALESCE(like_counts.count, 0) as like_count,
+        COALESCE(comment_counts.count, 0) as comment_count
        FROM artworks a
        JOIN users u ON a.user_id = u.id
+       LEFT JOIN (SELECT artwork_id, COUNT(*) as count FROM likes GROUP BY artwork_id) like_counts ON a.id = like_counts.artwork_id
+       LEFT JOIN (SELECT artwork_id, COUNT(*) as count FROM comments GROUP BY artwork_id) comment_counts ON a.id = comment_counts.artwork_id
        WHERE a.id = $1`,
       [artworkId]
     );
@@ -43,6 +47,8 @@ export async function GET(
       price: artwork.price,
       is_commission: artwork.is_commission,
       is_available: artwork.is_available,
+      like_count: parseInt(artwork.like_count) || 0,
+      comment_count: parseInt(artwork.comment_count) || 0,
       created_at: artwork.created_at,
       updated_at: artwork.updated_at,
       user: {

@@ -16,6 +16,8 @@ interface Artwork {
   price: number | null;
   is_commission: boolean;
   is_available: boolean;
+  like_count?: number;
+  comment_count?: number;
   created_at: string;
   updated_at: string;
 }
@@ -94,8 +96,18 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
   }
 
   const handleLike = async (artworkId: string) => {
-    // TODO: Implement like functionality
-    console.log('Like artwork:', artworkId)
+    try {
+      const response = await fetch(`/api/artworks/${artworkId}/like`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        // Refetch artworks to get updated like counts
+        fetchUserArtworks();
+      }
+    } catch (error) {
+      console.error('Error liking artwork:', error);
+    }
   }
 
   const handleShare = async (artworkId: string) => {
@@ -192,10 +204,8 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
     if (user?.id) {
       fetchUserArtworks();
       fetchUserStats();
-      // Only fetch follow stats if it's not the user's own profile
-      if (!isOwnProfile) {
-        fetchFollowStats();
-      }
+      // Fetch follow stats for both own profile and others (to show counts)
+      fetchFollowStats();
     }
   }, [user?.id, isOwnProfile])
 
@@ -578,7 +588,7 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
 
             {/* Engagement Stats */}
             <p className="text-sm lg:text-base text-gray-500">
-              0 Likes • 0 Comments
+              {artwork.like_count || 0} Likes • {artwork.comment_count || 0} Comments
             </p>
           </div>
         </div>
