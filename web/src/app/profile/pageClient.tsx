@@ -2,7 +2,7 @@
 
 import ArtworkDetailModal from '@/components/artwork/ArtworkDetailModal'
 import { useUser } from '@/hooks/useUser'
-import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users, Palette, DollarSign, Link2, Facebook, Twitter, Globe } from 'lucide-react'
+import { Edit3, Heart, Image as ImageIcon, MessageCircle, MoreHorizontal, Share, UserCheck, UserPlus, Users } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -67,6 +67,16 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false)
   const [user, setUser] = useState(initialUser || authUser)
   const [isLoadingUser, setIsLoadingUser] = useState(false)
+  
+  // Commission Modal state
+  const [isCommissionModalOpen, setIsCommissionModalOpen] = useState(false)
+  const [commissionForm, setCommissionForm] = useState({
+    title: '',
+    description: '',
+    budget: '',
+    deadline: ''
+  })
+  const [isSubmittingCommission, setIsSubmittingCommission] = useState(false)
   
   // Modal state
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null)
@@ -259,9 +269,10 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
         console.error('Failed to fetch follow stats:', errorData.error || 'Unknown error');
         // Set default follow stats instead of throwing
         setFollowStats({
-          follower_count: 0,
+          followers_count: 0,
           following_count: 0,
-          is_following: false
+          is_following: false,
+          is_own_profile: false
         });
         return;
       }
@@ -272,9 +283,10 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
       console.error('Error fetching follow stats:', err);
       // Set default follow stats on error so page still loads
       setFollowStats({
-        follower_count: 0,
+        followers_count: 0,
         following_count: 0,
-        is_following: false
+        is_following: false,
+        is_own_profile: false
       });
     } finally {
       setIsLoadingFollow(false);
@@ -318,6 +330,46 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
       console.error('Error updating follow status:', err);
     } finally {
       setIsUpdatingFollow(false);
+    }
+  }
+
+  const handleSubmitCommission = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user?.id || !commissionForm.title || !commissionForm.description || !commissionForm.budget) {
+      alert('Please fill in all required fields')
+      return
+    }
+
+    try {
+      setIsSubmittingCommission(true)
+      const response = await fetch('/api/commissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          artist_id: user.id,
+          title: commissionForm.title,
+          description: commissionForm.description,
+          budget: parseFloat(commissionForm.budget),
+          deadline: commissionForm.deadline || null,
+        }),
+      })
+
+      if (response.ok) {
+        // Reset form and close modal
+        setCommissionForm({ title: '', description: '', budget: '', deadline: '' })
+        setIsCommissionModalOpen(false)
+        alert('Commission request sent successfully!')
+      } else {
+        const error = await response.json()
+        alert(`Error: ${error.error || 'Failed to submit commission request'}`)
+      }
+    } catch (err) {
+      console.error('Error submitting commission:', err)
+      alert('Failed to submit commission request')
+    } finally {
+      setIsSubmittingCommission(false)
     }
   }
 
@@ -582,31 +634,39 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
                     <Edit3 className="w-5 h-5 text-gray-600" />
                   </button>
                 ) : (
-                  <button
-                    onClick={handleFollow}
-                    disabled={isUpdatingFollow || !followStats}
-                    className={`px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2 ${
-                      followStats?.is_following
-                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        : 'bg-red-500 text-white hover:bg-red-600'
-                    }`}
-                  >
-                    {isUpdatingFollow ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                    ) : !followStats ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                    ) : followStats.is_following ? (
-                      <>
-                        <UserCheck className="w-4 h-4" />
-                        <span>Following</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4" />
-                        <span>Follow</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="flex flex-col space-y-2">
+                    <button
+                      onClick={() => setIsCommissionModalOpen(true)}
+                      className="px-4 py-2 rounded-lg font-semibold transition-colors bg-red-500 text-white hover:bg-red-600"
+                    >
+                      Commission
+                    </button>
+                    <button
+                      onClick={handleFollow}
+                      disabled={isUpdatingFollow || !followStats}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 ${
+                        followStats?.is_following
+                          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          : 'bg-blue-500 text-white hover:bg-blue-600'
+                      }`}
+                    >
+                      {isUpdatingFollow ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : !followStats ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : followStats.is_following ? (
+                        <>
+                          <UserCheck className="w-4 h-4" />
+                          <span>Following</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="w-4 h-4" />
+                          <span>Follow</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -644,128 +704,6 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
           </div>
         </div>
 
-        {/* Commission Details Section */}
-        {user?.commission_details && (user.commission_details.description || user.commission_details.price !== undefined) && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <Palette className="w-5 h-5 text-blue-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Commission Details</h2>
-              {user.commission_details.available && (
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                  Accepting Commissions
-                </span>
-              )}
-            </div>
-            {user.commission_details.description && (
-              <p className="text-gray-700 text-sm mb-3 whitespace-pre-wrap">
-                {user.commission_details.description}
-              </p>
-            )}
-            {user.commission_details.price && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-600">Starting Price:</span>
-                <span className="text-lg font-semibold text-blue-500">
-                  ₱{parseFloat(user.commission_details.price).toLocaleString()}
-                </span>
-              </div>
-            )}
-            {!user.commission_details.available && (
-              <p className="text-sm text-gray-500 mt-2">Currently not accepting commissions</p>
-            )}
-          </div>
-        )}
-
-        {/* GCash Details Section */}
-        {user?.gcash_details && (user.gcash_details.number || user.gcash_details.name) && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <DollarSign className="w-5 h-5 text-green-500" />
-              <h2 className="text-lg font-semibold text-gray-900">GCash Details</h2>
-            </div>
-            <div className="space-y-2">
-              {user.gcash_details.number && (
-                <div>
-                  <span className="text-sm font-medium text-gray-600">GCash Number:</span>
-                  <span className="ml-2 text-gray-900 font-mono">{user.gcash_details.number}</span>
-                </div>
-              )}
-              {user.gcash_details.name && (
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Account Name:</span>
-                  <span className="ml-2 text-gray-900">{user.gcash_details.name}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Social Media Links Section */}
-        {user?.social_links && Object.keys(user.social_links).some(key => user.social_links[key]) && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
-            <div className="flex items-center space-x-2 mb-4">
-              <Link2 className="w-5 h-5 text-purple-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Social Media Links</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {user.social_links.facebook && (
-                <a
-                  href={user.social_links.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                >
-                  <Facebook className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-900">Facebook</span>
-                </a>
-              )}
-              {user.social_links.twitter && (
-                <a
-                  href={user.social_links.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors"
-                >
-                  <Twitter className="w-5 h-5 text-sky-600" />
-                  <span className="text-sm font-medium text-gray-900">Twitter/X</span>
-                </a>
-              )}
-              {user.social_links.instagram && (
-                <a
-                  href={user.social_links.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-pink-50 hover:bg-pink-100 rounded-lg transition-colors"
-                >
-                  <Link2 className="w-5 h-5 text-pink-600" />
-                  <span className="text-sm font-medium text-gray-900">Instagram</span>
-                </a>
-              )}
-              {user.social_links.pinterest && (
-                <a
-                  href={user.social_links.pinterest}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                >
-                  <Link2 className="w-5 h-5 text-red-600" />
-                  <span className="text-sm font-medium text-gray-900">Pinterest</span>
-                </a>
-              )}
-              {user.social_links.website && (
-                <a
-                  href={user.social_links.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <Globe className="w-5 h-5 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900">Website</span>
-                </a>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
           <div className="flex">
@@ -797,16 +735,169 @@ export default function ProfileClient({ user: initialUser }: ProfileClientProps)
           {selectedTab === 0 ? renderGalleryTab() : renderMerchandiseTab()}
         </div>
 
+        {/* Commission Modal */}
+        {isCommissionModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-md w-full shadow-lg max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+                <h2 className="text-xl font-bold text-gray-900">Request Commission</h2>
+                <button
+                  onClick={() => setIsCommissionModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Commission Details Info Section */}
+              <div className="px-6 pt-6 pb-4 border-b border-gray-200 bg-blue-50">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Commission Details</h3>
+                <p className="text-xs text-gray-500 mb-3">Provided by {user?.first_name} {user?.last_name}</p>
+                
+                {user?.commission_details?.available && (
+                  <div className="mb-3">
+                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                      Accepting Commissions
+                    </span>
+                  </div>
+                )}
+                
+                {user?.commission_details?.description ? (
+                  <div className="mb-3">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Description</p>
+                    <p className="text-gray-700 text-sm whitespace-pre-wrap">
+                      {user.commission_details.description}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mb-3">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Description</p>
+                    <p className="text-gray-500 text-sm">No description provided.</p>
+                  </div>
+                )}
+                
+                {user?.commission_details?.price ? (
+                  <div className="flex items-center space-x-2 mb-3">
+                    <span className="text-sm font-medium text-gray-600">Starting Price:</span>
+                    <span className="text-lg font-semibold text-blue-500">
+                      ₱{parseFloat(user.commission_details.price).toLocaleString()}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2 mb-3">
+                    <span className="text-sm font-medium text-gray-600">Starting Price:</span>
+                    <span className="text-sm text-blue-500 font-medium">Contact for pricing</span>
+                  </div>
+                )}
+                
+                {user?.commission_details && !user.commission_details.available && (
+                  <p className="text-sm text-gray-500">Currently not accepting commissions.</p>
+                )}
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmitCommission} className="p-6 space-y-4">
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Project Title *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Custom Character Design"
+                    value={commissionForm.title}
+                    onChange={(e) => setCommissionForm({ ...commissionForm, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                  </label>
+                  <textarea
+                    placeholder="Describe your commission request in detail..."
+                    value={commissionForm.description}
+                    onChange={(e) => setCommissionForm({ ...commissionForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                    rows={4}
+                    required
+                  />
+                </div>
+
+                {/* Budget */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Budget (₱) *
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Enter your budget"
+                    value={commissionForm.budget}
+                    onChange={(e) => setCommissionForm({ ...commissionForm, budget: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+
+                {/* Deadline */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Deadline
+                  </label>
+                  <input
+                    type="date"
+                    value={commissionForm.deadline}
+                    onChange={(e) => setCommissionForm({ ...commissionForm, deadline: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsCommissionModalOpen(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingCommission}
+                    className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  >
+                    {isSubmittingCommission ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <span>Send Request</span>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Artwork Detail Modal */}
         <ArtworkDetailModal
           artwork={selectedArtwork ? {
             ...selectedArtwork,
+            tags: selectedArtwork.tags ?? [],
             user: {
               id: user.id,
-              username: user.username,
+              username: user.username || '',
               first_name: user.first_name,
               last_name: user.last_name,
-              profile_image_url: user.profile_image_url
+              profile_image_url: user.profile_image_url ?? null
             }
           } : null}
           isOpen={isModalOpen}

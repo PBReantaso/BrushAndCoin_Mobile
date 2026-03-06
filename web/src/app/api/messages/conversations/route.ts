@@ -13,63 +13,48 @@ export async function GET() {
 
     const result = await query(
       `
-      WITH user_convos AS (
-        SELECT conversation_id
-        FROM conversation_participants
-        WHERE user_id = $1
-      )
       SELECT 
         c.id,
         c.created_at,
         c.updated_at,
         jsonb_build_object(
           'id', u.id,
-          'username', COALESCE(u.username, ''),
-          'first_name', COALESCE(u.first_name, ''),
-          'last_name', COALESCE(u.last_name, ''),
+          'username', u.username,
+          'first_name', u.first_name,
+          'last_name', u.last_name,
           'profile_image_url', u.profile_image_url
         ) as other_user,
         lm.text as last_message_text,
         lm.created_at as last_message_at,
-        lm.sender_id as last_message_sender_id,
-        COALESCE(unread.count, 0) as unread_count
+        lm.sender_id as last_message_sender_id
       FROM conversations c
-      JOIN user_convos uc ON uc.conversation_id = c.id
-      JOIN conversation_participants cpu 
-        ON cpu.conversation_id = c.id 
-       AND cpu.user_id <> $1
-      JOIN users u ON u.id = cpu.user_id
-      LEFT JOIN LATERAL (
-        SELECT m.text, m.created_at, m.sender_id
-        FROM messages m 
-        WHERE m.conversation_id = c.id
-        ORDER BY m.created_at DESC
-        LIMIT 1
-      ) lm ON true
-      LEFT JOIN LATERAL (
-        SELECT COUNT(*) as count
-        FROM messages m
-        JOIN conversation_participants cp2 
-          ON cp2.conversation_id = c.id 
-         AND cp2.user_id = $1
-        WHERE m.conversation_id = c.id
-          AND m.sender_id <> $1
-          AND (cp2.last_read_at IS NULL OR m.created_at > cp2.last_read_at)
-      ) unread ON true
-      ORDER BY COALESCE(lm.created_at, c.created_at) DESC;
+      LEFT JOIN messages lm ON lm.id = c.last_message_id
+      LEFT JOIN users u ON u.id = (
+        CASE 
+          WHEN c.participant1_id = $1 THEN c.participant2_id
+          ELSE c.participant1_id
+        END
+      )
+      WHERE c.participant1_id = $1 OR c.participant2_id = $1
+      ORDER BY COALESCE(c.last_message_at, c.created_at) DESC;
       `,
       [userId]
     )
 
     const conversations = result.rows.map(row => ({
       id: row.id,
-      other_user: row.other_user,
+      other_user: {
+        id: row.other_user_id,
+        username: row.username,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        profile_image_url: row.profile_image_url,
+      },
       last_message: row.last_message_text ? {
         text: row.last_message_text,
         created_at: row.last_message_at,
         sender_id: row.last_message_sender_id,
       } : null,
-      unread_count: Number(row.unread_count) || 0,
       updated_at: row.updated_at,
       created_at: row.created_at,
     }))
@@ -112,16 +97,17 @@ export async function POST(request: Request) {
     }
     const targetUser = targetRes.rows[0]
 
-    // find existing conversation with exactly these two participants
+    // Ensure participant1_id < participant2_id for canonical ordering
+    const participant1_id = userId < targetUserId ? userId : targetUserId
+    const participant2_id = userId < targetUserId ? targetUserId : userId
+
+    // find existing conversation with these two participants
     const existing = await query(
       `
-      SELECT conversation_id
-      FROM conversation_participants
-      WHERE user_id IN ($1, $2)
-      GROUP BY conversation_id
-      HAVING COUNT(*) = 2
-         AND SUM(CASE WHEN user_id = $1 THEN 1 ELSE 0 END) = 1
-         AND SUM(CASE WHEN user_id = $2 THEN 1 ELSE 0 END) = 1
+      SELECT id
+      FROM conversations
+      WHERE (participant1_id = $1 AND participant2_id = $2)
+         OR (participant1_id = $2 AND participant2_id = $1)
       LIMIT 1;
       `,
       [userId, targetUserId]
@@ -129,21 +115,17 @@ export async function POST(request: Request) {
 
     let conversationId: string
     if (existing.rows.length > 0) {
-      conversationId = existing.rows[0].conversation_id
+      conversationId = existing.rows[0].id
     } else {
       const convo = await query(
-        `INSERT INTO conversations DEFAULT VALUES RETURNING id`,
-        []
+        `INSERT INTO conversations (participant1_id, participant2_id) VALUES ($1, $2) RETURNING id`,
+        [participant1_id, participant2_id]
       )
       conversationId = convo.rows[0].id
-      await query(
-        `INSERT INTO conversation_participants (conversation_id, user_id) VALUES ($1, $2), ($1, $3)`,
-        [conversationId, userId, targetUserId]
-      )
     }
 
     return NextResponse.json({
-      conversation_id: conversationId,
+      id: conversationId,
       other_user: {
         id: targetUser.id,
         username: targetUser.username,
