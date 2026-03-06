@@ -7,46 +7,21 @@ import { useEffect, useState } from 'react'
 
 export default function MessagesPage() {
   const router = useRouter()
+  const { data: conversations = [], isLoading, error, refetch } = useConversations()
+  const createConversationMutation = useCreateConversation()
+
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
 
-  const loadConversations = useCallback(async () => {
-    setIsLoadingConvos(true)
-    setConvoError(null)
-    try {
-      const res = await fetch('/api/messages/conversations')
-      if (!res.ok) {
-        let msg = 'Failed to load conversations'
-        try {
-          const err = await res.json()
-          if (err?.error) msg = err.error
-        } catch (_) { /* ignore */ }
-        throw new Error(msg)
-      }
-      const data = await res.json()
-      setConversations(data.conversations || [])
-    } catch (e: any) {
-      console.error('Load conversations error', e)
-      setConvoError(e?.message || 'Failed to load conversations')
-      setConversations([])
-    } finally {
-      setIsLoadingConvos(false)
-    }
-  }, [])
-
-  // Load recent conversations from localStorage (mock client-side persistence)
+  // Refetch conversations when window regains focus
   useEffect(() => {
-    loadConversations()
-
-    const handleFocus = () => loadConversations()
+    const handleFocus = () => refetch()
     window.addEventListener('focus', handleFocus)
-    return () => {
-      window.removeEventListener('focus', handleFocus)
-    }
-  }, [])
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [refetch])
 
   const commissionFilters = ['All', 'Pending', 'Accepted', 'Completed', 'Declined']
 

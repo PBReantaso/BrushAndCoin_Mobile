@@ -55,6 +55,7 @@ export interface Commission {
   description: string;
   category: CommissionCategory;
   budget: number;
+  isUrgent?: boolean;
   urgencyFee?: number;
   platformFee: number;
   totalAmount: number;

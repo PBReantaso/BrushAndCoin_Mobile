@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 // GET messages in a conversation
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -13,15 +13,22 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const userId = session.user.id
-    const conversationId = params.id
+    const { id: conversationId } = await params
 
-    // verify participant
-    const participant = await query(
-      `SELECT 1 FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2`,
+    // Verify user is a participant (check conversations.participant1_id/participant2_id for 1:1 chats)
+    const convCheck = await query(
+      `SELECT id FROM conversations WHERE id = $1 AND (participant1_id = $2 OR participant2_id = $2)`,
       [conversationId, userId]
     )
-    if (participant.rows.length === 0) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (convCheck.rows.length === 0) {
+      // Fallback: check conversation_participants if used
+      const participant = await query(
+        `SELECT 1 FROM conversation_participants WHERE conversation_id = $1 AND user_id = $2`,
+        [conversationId, userId]
+      )
+      if (participant.rows.length === 0) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const { searchParams } = new URL(request.url)
@@ -37,17 +44,20 @@ export async function GET(
       [conversationId, limit, offset]
     )
 
-    // update last_read_at
-    await query(
-      `UPDATE conversation_participants SET last_read_at = now() WHERE conversation_id = $1 AND user_id = $2`,
-      [conversationId, userId]
-    )
+    // Update last_read_at if conversation_participants is used (optional)
+    try {
+      await query(
+        `UPDATE conversation_participants SET last_read_at = now() WHERE conversation_id = $1 AND user_id = $2`,
+        [conversationId, userId]
+      )
+    } catch (_) { /* ignore if table/row missing */ }
 
-    const messages = messagesRes.rows.map(m => ({
+    const messages = messagesRes.rows.map((m: any) => ({
       id: m.id,
       content: m.text,
-      senderId: m.sender_id,
-      timestamp: m.created_at,
+      text: m.text,
+      sender_id: m.sender_id,
+      created_at: m.created_at,
     }))
 
     return NextResponse.json({ messages })
@@ -64,7 +74,7 @@ export async function GET(
 // POST send a message
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -72,7 +82,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     const userId = session.user.id
-    const conversationId = params.id
+    const { id: conversationId } = await params
     const body = await request.json()
     const text = (body?.text || '').toString().trim()
 

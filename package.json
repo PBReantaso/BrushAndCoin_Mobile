@@ -8,6 +8,7 @@
     "shared"
   ],
   "scripts": {
+    "dev": "cd web && npm run dev",
     "dev:web": "cd web && npm run dev",
     "build:web": "cd web && npm run build",
     "start:web": "cd web && npm run start",

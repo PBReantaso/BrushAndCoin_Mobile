@@ -1,8 +1,37 @@
 'use client';
 
 import { useCreateCommission } from '@/hooks/useCommission';
+import { VALIDATION_RULES } from '@/lib/constants/validation-rules';
 import { AlertCircle, Calendar, DollarSign, Upload, X } from 'lucide-react';
 import React, { useRef, useState } from 'react';
+
+const FILE_UPLOAD = VALIDATION_RULES.FILE_UPLOAD;
+function validateFile(file: File, _context: string): { isValid: boolean; error?: string } {
+  const allowedTypes = FILE_UPLOAD.ALLOWED_IMAGE_TYPES;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (!ext || !(allowedTypes as readonly string[]).includes(ext)) {
+    return { isValid: false, error: FILE_UPLOAD.TYPE_ERROR };
+  }
+  if (file.size > FILE_UPLOAD.MAX_IMAGE_SIZE) {
+    return { isValid: false, error: FILE_UPLOAD.SIZE_ERROR };
+  }
+  return { isValid: true };
+}
+
+async function uploadFileToNeon(file: File, _context: string): Promise<{ success: boolean; publicUrl?: string; fileId?: string; error?: string }> {
+  try {
+    const formData = new FormData();
+    formData.set('file', file);
+    formData.set('type', 'image');
+    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error || 'Upload failed' };
+    const base = typeof window !== 'undefined' ? window.location.origin : '';
+    return { success: true, publicUrl: data.fileUrl ? `${base}${data.fileUrl}` : data.fileUrl, fileId: data.filename ?? data.fileUrl };
+  } catch (e: any) {
+    return { success: false, error: e?.message || 'Upload failed' };
+  }
+}
 
 interface CommissionRequestFormProps {
   artistId: string;
@@ -71,7 +100,7 @@ export default function CommissionRequestForm({
       if (!validation.isValid) {
         setErrors(prev => ({
           ...prev,
-          images: validation.error,
+          images: validation.error ?? 'Invalid file',
         }));
         continue;
       }
@@ -83,8 +112,8 @@ export default function CommissionRequestForm({
         throw new Error(uploadResult.error || 'Upload failed');
       }
 
-      setUploadedImageUrls(prev => [...prev, uploadResult.publicUrl]);
-      setUploadedFileIds(prev => [...prev, uploadResult.fileId]);
+      if (uploadResult.publicUrl) setUploadedImageUrls(prev => [...prev, uploadResult.publicUrl as string]);
+      if (uploadResult.fileId) setUploadedFileIds(prev => [...prev, uploadResult.fileId as string]);
     } catch (error: any) {
       console.error('Image upload failed:', error);
       setErrors(prev => ({

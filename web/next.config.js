@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
+  // Next.js 16 uses Turbopack by default; empty config acknowledges migration
+  turbopack: {},
   
   // Environment variables for the client
   env: {

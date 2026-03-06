@@ -1,3 +1,4 @@
+import { query } from '@/lib/db';
 import { jwtUtils } from './jwt';
 
 interface RefreshTokenPayload {
@@ -8,7 +9,7 @@ interface RefreshTokenPayload {
 export const refreshTokenUtils = {
   async createRefreshToken(userId: string): Promise<string> {
     // Increment token version in database
-    const result = await db.query(
+    const result = await query(
       'UPDATE users SET token_version = COALESCE(token_version, 0) + 1 WHERE id = $1 RETURNING token_version',
       [userId]
     );
@@ -28,7 +29,7 @@ export const refreshTokenUtils = {
       const decoded = jwtUtils.verify(token) as RefreshTokenPayload;
       
       // Verify token version matches database
-      const result = await db.query(
+      const result = await query(
         'SELECT token_version FROM users WHERE id = $1',
         [decoded.userId]
       );

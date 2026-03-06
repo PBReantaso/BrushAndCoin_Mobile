@@ -1,9 +1,9 @@
-import db from '../config';
+import { query } from '../config';
 
 async function runMigrations() {
   try {
     // Add token_version column
-    await db.query(`
+    await query(`
       ALTER TABLE users 
       ADD COLUMN IF NOT EXISTS token_version INTEGER DEFAULT 0;
     `);
@@ -11,7 +11,7 @@ async function runMigrations() {
     console.log('Migration completed successfully');
     
     // Verify table structure
-    const result = await db.query(`
+    const result = await query(`
       SELECT column_name, data_type 
       FROM information_schema.columns 
       WHERE table_name = 'users';
