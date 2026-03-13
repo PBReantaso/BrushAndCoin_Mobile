@@ -182,3 +182,4 @@ CREATE INDEX IF NOT EXISTS idx_event_attendees_event_id ON public.event_attendee
 CREATE INDEX IF NOT EXISTS idx_follows_follower_id ON public.follows (follower_id);
 CREATE INDEX IF NOT EXISTS idx_follows_following_id ON public.follows (following_id);
 
+

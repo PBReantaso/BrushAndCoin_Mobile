@@ -18,8 +18,8 @@ export const jwtUtils = {
   sign(payload: JWTPayload, expiresIn: string = TOKEN_EXPIRY): string {
     try {
       return jwt.sign(payload, JWT_SECRET, {
-        expiresIn
-      });
+        expiresIn: expiresIn as string | number,
+      } as jwt.SignOptions);
     } catch (error) {
       console.error('Error signing JWT:', error);
       throw new Error('Failed to create authentication token');

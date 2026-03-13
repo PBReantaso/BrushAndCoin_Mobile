@@ -1,3 +1,5 @@
+import { pool } from '@/lib/db/config';
+import { query } from '@/lib/db';
 import { jwtUtils } from '@/lib/utils/jwt';
 import { refreshTokenUtils } from '@/lib/utils/refreshToken';
 import bcrypt from 'bcryptjs';
@@ -31,7 +33,7 @@ export interface AuthResponse {
 
 export const authService = {
   async register(userData: UserData): Promise<AuthResponse> {
-    const client = await db.connect();
+    const client = await pool.connect();
     try {
       // Start transaction
       await client.query('BEGIN');
@@ -132,7 +134,7 @@ export const authService = {
 
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      const result = await db.query(
+      const result = await query(
         'SELECT id, email, username, password_hash, full_name, user_type FROM users WHERE email = $1',
         [email]
       );
@@ -187,7 +189,7 @@ export const authService = {
         return null;
       }
 
-      const result = await db.query(
+      const result = await query(
         'SELECT id, email, username, full_name, user_type FROM users WHERE id = $1',
         [decoded.userId]
       );

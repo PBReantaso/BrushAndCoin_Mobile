@@ -7,14 +7,64 @@ import { useEffect, useState } from 'react'
 
 export default function MessagesPage() {
   const router = useRouter()
+  const { data: conversations = [], isLoading, error, refetch } = useConversations()
+  const createConversationMutation = useCreateConversation()
+
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
 
-  const { data: conversations = [], isLoading, error } = useConversations()
-  const createConversationMutation = useCreateConversation()
+  // Refetch conversations when window regains focus
+  useEffect(() => {
+    const handleFocus = () => refetch()
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [refetch])
+
+  const commissionFilters = ['All', 'Pending', 'Accepted', 'Completed', 'Declined']
+
+  const formatRelativeTime = (ts?: number | string) => {
+    if (!ts) return ''
+    const t = typeof ts === 'string' ? Number(ts) : ts
+    if (!t || Number.isNaN(t)) return ''
+    const diff = Date.now() - t
+    const sec = Math.floor(diff / 1000)
+    if (sec < 60) return 'just now'
+    const min = Math.floor(sec / 60)
+    if (min < 60) return `${min}m ago`
+    const hr = Math.floor(min / 60)
+    if (hr < 24) return `${hr}h ago`
+    const d = Math.floor(hr / 24)
+    return `${d}d ago`
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'text-yellow-600 bg-yellow-100'
+      case 'accepted': return 'text-green-600 bg-green-100'
+      case 'completed': return 'text-blue-600 bg-blue-100'
+      case 'declined': return 'text-red-600 bg-red-100'
+      default: return 'text-gray-600 bg-gray-100'
+    }
+  }
+
+  const getCommissionTypeBadge = (type: string) => {
+    if (type === 'received') {
+      return (
+        <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full">
+          RECEIVED
+        </span>
+      )
+    } else {
+      return (
+        <span className="px-2 py-1 text-xs font-medium text-green-600 bg-green-100 rounded-full">
+          SENT
+        </span>
+      )
+    }
+  }
 
   const handleNewMessage = () => setIsSearchOpen(true)
 

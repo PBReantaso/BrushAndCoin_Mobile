@@ -545,12 +545,13 @@ export default function ArtistGalleryClient({
         <ArtworkDetailModal
           artwork={selectedArtwork ? {
             ...selectedArtwork,
+            tags: selectedArtwork.tags ?? [],
             user: {
               id: artist.id,
               username: artist.username,
               first_name: artist.first_name,
               last_name: artist.last_name,
-              profile_image_url: artist.profile_image_url
+              profile_image_url: artist.profile_image_url ?? null
             }
           } : null}
           isOpen={isModalOpen}

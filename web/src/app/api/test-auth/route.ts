@@ -8,8 +8,9 @@ export async function GET() {
       email: 'test@example.com',
       username: 'testuser',
       password: 'Test123!',
-      fullName: 'Test User',
-      userType: 'user',
+      first_name: 'Test',
+      last_name: 'User',
+      user_type: 'user',
       location: {
         address: 'Test Location',
         latitude: 0,

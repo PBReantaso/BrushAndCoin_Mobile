@@ -236,7 +236,7 @@ export default function EventDetailPage() {
             <button
               onClick={() => {
                 // TODO: Add to calendar
-                toast.info('Add to calendar feature coming soon!')
+                toast('Add to calendar feature coming soon!')
               }}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >

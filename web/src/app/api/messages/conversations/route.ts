@@ -4,10 +4,6 @@ import { NextResponse } from 'next/server'
 
 // GET - list conversations for current user
 export async function GET() {
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ conversations: [], warning: 'Database not configured' })
-  }
-
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -21,14 +17,13 @@ export async function GET() {
         c.id,
         c.created_at,
         c.updated_at,
-        CASE 
-          WHEN c.participant1_id = $1 THEN c.participant2_id
-          ELSE c.participant1_id
-        END as other_user_id,
-        u.username,
-        u.first_name,
-        u.last_name,
-        u.profile_image_url,
+        jsonb_build_object(
+          'id', u.id,
+          'username', u.username,
+          'first_name', u.first_name,
+          'last_name', u.last_name,
+          'profile_image_url', u.profile_image_url
+        ) as other_user,
         lm.text as last_message_text,
         lm.created_at as last_message_at,
         lm.sender_id as last_message_sender_id
@@ -46,38 +41,45 @@ export async function GET() {
       [userId]
     )
 
-    const conversations = result.rows.map(row => ({
-      id: row.id,
-      other_user: {
-        id: row.other_user_id,
-        username: row.username,
-        first_name: row.first_name,
-        last_name: row.last_name,
-        profile_image_url: row.profile_image_url,
-      },
-      last_message: row.last_message_text ? {
-        text: row.last_message_text,
-        created_at: row.last_message_at,
-        sender_id: row.last_message_sender_id,
-      } : null,
-      updated_at: row.updated_at,
-      created_at: row.created_at,
-    }))
+    const conversations = result.rows.map((row: any) => {
+      const ou = row.other_user || {}
+      return {
+        id: row.id,
+        other_user: {
+          id: ou.id,
+          username: ou.username,
+          first_name: ou.first_name,
+          last_name: ou.last_name,
+          profile_image_url: ou.profile_image_url,
+        },
+        last_message: row.last_message_text ? {
+          text: row.last_message_text,
+          created_at: row.last_message_at,
+          sender_id: row.last_message_sender_id,
+        } : null,
+        updated_at: row.updated_at,
+        created_at: row.created_at,
+      }
+    })
 
     return NextResponse.json({ conversations })
-  } catch (error) {
+  } catch (error: any) {
     console.error('GET conversations error:', error)
-    const message = error?.message || 'Internal server error'
-    return NextResponse.json({ error: message, conversations: [] }, { status: 500 })
+    // If schema is missing (e.g. migration not run), return empty so the page loads
+    const msg = String(error?.message || error)
+    if (msg.includes('participant1_id') || msg.includes('column') || msg.includes('does not exist')) {
+      return NextResponse.json({ conversations: [] })
+    }
+    const errorMessage = error?.message || String(error)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 })
   }
 }
 
 // POST - get or create a one-to-one conversation with target user
 export async function POST(request: Request) {
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
-  }
-
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -140,9 +142,20 @@ export async function POST(request: Request) {
         profile_image_url: targetUser.profile_image_url,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST conversations error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const msg = String(error?.message || error)
+    if (msg.includes('participant1_id') || msg.includes('column') || msg.includes('does not exist')) {
+      return NextResponse.json({ 
+        error: 'Database schema needs migration. Run: GET /api/setup-db or apply migrations 002 and 003.',
+        details: msg
+      }, { status: 503 })
+    }
+    const errorMessage = error?.message || String(error)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 })
   }
 }
 

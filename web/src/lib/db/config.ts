@@ -14,7 +14,7 @@ const pool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
-// Test the database connection
+// Test the database connection (log only; do not exit so next build can complete without a live DB)
 (async () => {
   try {
     const client = await pool.connect();
@@ -22,9 +22,8 @@ const pool = new Pool({
     client.release();
   } catch (error) {
     console.error('Failed to connect to database:', error);
-    process.exit(1);
   }
-})();
+})().catch(() => {});
 
 // Simple query function - let the pool handle connection management
 export const query = async <T = any>(
@@ -45,7 +44,7 @@ export const query = async <T = any>(
       rows: result.rowCount
     });
 
-    return result;
+    return { rows: result.rows, rowCount: result.rowCount ?? 0 };
   } catch (error: any) {
     console.error('Database query error:', {
       text,

@@ -1,4 +1,4 @@
-import pool from '@/lib/db/config';
+import { pool } from '@/lib/db/config';
 import { NextResponse } from 'next/server';
 
 export async function GET() {

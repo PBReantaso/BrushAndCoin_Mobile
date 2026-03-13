@@ -1,4 +1,4 @@
-import pool from '@/lib/db/config';
+import { pool } from '@/lib/db/config';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 

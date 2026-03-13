@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server'
 // GET single commission
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
@@ -17,7 +17,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const commissionId = params.id
+    const { id: commissionId } = await params
     const userId = session.user.id
 
     const result = await query(
@@ -93,7 +93,7 @@ export async function GET(
 // PATCH update commission status
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
@@ -105,7 +105,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const commissionId = params.id
+    const { id: commissionId } = await params
     const userId = session.user.id
     const body = await request.json()
     const { status, action, paymentMethod, message } = body
@@ -240,7 +240,7 @@ export async function PATCH(
 // DELETE commission (only if pending)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
@@ -252,7 +252,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const commissionId = params.id
+    const { id: commissionId } = await params
     const userId = session.user.id
 
     const commissionRes = await query(
