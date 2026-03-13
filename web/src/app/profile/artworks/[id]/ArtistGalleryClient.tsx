@@ -412,8 +412,8 @@ export default function ArtistGalleryClient({
                       )}
                       <div className="flex justify-between items-center text-sm text-gray-500">
                         <span>
-                          {new Date(artwork.created_at).toLocaleDateString()}
-                        </span>
+    {artwork.comment_count || 0} Comments • {new Date(artwork.created_at).toLocaleDateString()}
+  </span>
                         {artwork.is_commission && (
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                             Commission
